@@ -1,0 +1,38 @@
+package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
+
+import android.graphics.Matrix
+import android.opengl.GLES11Ext
+import android.opengl.GLES20
+import android.os.Handler
+
+/**
+ * [VideoFrameTextureBuffer] is a buffer which maintains a OpenGLES texture
+ */
+interface VideoFrameTextureBuffer : VideoFrameBuffer {
+    /**
+     * Wrapper enum of underlying supported GL texture types
+     *
+     * @param glTarget: [Int] - Underlying OpenGLES type
+     */
+    enum class Type(val glTarget: Int) {
+        TEXTURE_OES(GLES11Ext.GL_TEXTURE_EXTERNAL_OES),
+        TEXTURE_2D(GLES20.GL_TEXTURE_2D);
+    }
+
+    /**
+     * ID of underlying GL texture
+     */
+    val textureId: Int
+
+    /**
+     * The transform matrix associated with the frame. This transform matrix maps 2D
+     * homogeneous coordinates of the form (s, t, 1) with s and t in the inclusive range [0, 1] to
+     * the coordinate that should be used to sample that location from the buffer.
+     */
+    val transformMatrix: Matrix?
+
+    /**
+     * GL type of underlying GL texture
+     */
+    val type: Type
+}
