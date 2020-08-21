@@ -5,6 +5,9 @@
 
 package com.amazonaws.services.chime.sdk.meetings.internal.video
 
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileController
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
+import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionConfiguration
 import com.xodee.client.video.VideoDevice
 
@@ -29,6 +32,13 @@ interface VideoClientController {
     fun startLocalVideo()
 
     /**
+     * Start local video with a provided [VideoSource].
+     *
+     * @param source: [VideoSource] - The source of video frames to be sent to other clients
+     */
+    fun startLocalVideo(source: VideoSource)
+
+    /**
      * Stops sending video for local attendee.
      */
     fun stopLocalVideo()
@@ -46,9 +56,9 @@ interface VideoClientController {
     /**
      * Get the currently active camera, if any.
      *
-     * @return [VideoDevice] - Information about the current active device used for video.
+     * @return [MediaDevice] - Information about the current active device used for video.
      */
-    fun getActiveCamera(): VideoDevice?
+    fun getActiveCamera(): MediaDevice?
 
     /**
      * Switches the currently active camera.

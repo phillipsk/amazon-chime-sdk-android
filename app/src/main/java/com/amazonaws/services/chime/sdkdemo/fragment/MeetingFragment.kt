@@ -5,30 +5,21 @@
 
 package com.amazonaws.services.chime.sdkdemo.fragment
 
-import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
-import androidx.core.content.ContextCompat
+import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.AttendeeInfo
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoObserver
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.SignalUpdate
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.VolumeUpdate
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.*
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.audio.activespeakerdetector.ActiveSpeakerObserver
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.audio.activespeakerpolicy.DefaultActiveSpeakerPolicy
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.metric.MetricsObserver
@@ -36,6 +27,10 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.metric.ObservableMet
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoPauseState
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileObserver
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileState
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultCameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultSurfaceTextureCaptureSourceFactory
 import com.amazonaws.services.chime.sdk.meetings.device.DeviceChangeObserver
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
@@ -50,24 +45,22 @@ import com.amazonaws.services.chime.sdk.meetings.utils.logger.LogLevel
 import com.amazonaws.services.chime.sdkdemo.R
 import com.amazonaws.services.chime.sdkdemo.activity.HomeActivity
 import com.amazonaws.services.chime.sdkdemo.activity.MeetingActivity
-import com.amazonaws.services.chime.sdkdemo.adapter.DeviceAdapter
-import com.amazonaws.services.chime.sdkdemo.adapter.MessageAdapter
-import com.amazonaws.services.chime.sdkdemo.adapter.MetricAdapter
-import com.amazonaws.services.chime.sdkdemo.adapter.RosterAdapter
-import com.amazonaws.services.chime.sdkdemo.adapter.VideoAdapter
+import com.amazonaws.services.chime.sdkdemo.adapter.*
 import com.amazonaws.services.chime.sdkdemo.data.Message
 import com.amazonaws.services.chime.sdkdemo.data.MetricData
 import com.amazonaws.services.chime.sdkdemo.data.RosterAttendee
 import com.amazonaws.services.chime.sdkdemo.data.VideoCollectionTile
 import com.amazonaws.services.chime.sdkdemo.model.MeetingModel
+import com.amazonaws.services.chime.sdkdemo.utils.DemoCpuVideoProcessor
+import com.amazonaws.services.chime.sdkdemo.utils.DemoGpuVideoProcessor
 import com.amazonaws.services.chime.sdkdemo.utils.isLandscapeMode
 import com.google.android.material.tabs.TabLayout
-import java.util.Calendar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.util.*
 
 class MeetingFragment : Fragment(),
     RealtimeObserver, AudioVideoObserver, VideoTileObserver,
@@ -79,6 +72,13 @@ class MeetingFragment : Fragment(),
 
     private lateinit var credentials: MeetingSessionCredentials
     private lateinit var audioVideo: AudioVideoFacade
+    private lateinit var cameraCaptureSource: CameraCaptureSource
+    private lateinit var demoGpuVideoProcessor: DemoGpuVideoProcessor
+    private lateinit var cpuVideoProcessor: DemoCpuVideoProcessor
+    private var isUsingCameraCaptureSource = true
+    private var isLocalVideoStarted = false
+    private var isUsingGpuProcessor = false
+    private var isUsingCpuVideoProcessor = false
     private lateinit var listener: RosterViewEventListener
     override val scoreCallbackIntervalMs: Int? get() = 1000
 
@@ -93,9 +93,6 @@ class MeetingFragment : Fragment(),
     // Append to attendee name if it's for content share
     private val CONTENT_NAME_SUFFIX = "<<Content>>"
 
-    private val WEBRTC_PERM = arrayOf(
-        Manifest.permission.CAMERA
-    )
     private val DATA_MESSAGE_TOPIC = "chat"
     private val DATA_MESSAGE_LIFETIME_MS = 300000
 
@@ -112,6 +109,7 @@ class MeetingFragment : Fragment(),
     private lateinit var buttonMute: ImageButton
     private lateinit var buttonCamera: ImageButton
     private lateinit var deviceAlertDialogBuilder: AlertDialog.Builder
+    private lateinit var moreMenuAlertDialogBuilder: AlertDialog.Builder
     private lateinit var viewChat: LinearLayout
     private lateinit var recyclerViewMetrics: RecyclerView
     private lateinit var recyclerViewRoster: RecyclerView
@@ -161,6 +159,10 @@ class MeetingFragment : Fragment(),
 
         credentials = (activity as MeetingActivity).getMeetingSessionCredentials()
         audioVideo = activity.getAudioVideo()
+        cameraCaptureSource = activity.getCameraCaptureSource()
+        demoGpuVideoProcessor = DemoGpuVideoProcessor(logger, activity.getEglCoreFactory())
+        cpuVideoProcessor = DemoCpuVideoProcessor()
+
 
         view.findViewById<TextView>(R.id.textViewMeetingId)?.text = arguments?.getString(
             HomeActivity.MEETING_ID_KEY
@@ -169,6 +171,7 @@ class MeetingFragment : Fragment(),
         setupSubViews(view)
         setupTab(view)
         setupAudioDeviceSelectionDialog()
+        setupMoreMenuDialog()
 
         noVideoOrScreenShareAvailable = view.findViewById(R.id.noVideoOrScreenShareAvailable)
         refreshNoVideosOrScreenShareAvailableText()
@@ -188,6 +191,9 @@ class MeetingFragment : Fragment(),
         buttonCamera = view.findViewById(R.id.buttonCamera)
         buttonCamera.setImageResource(if (meetingModel.isCameraOn) R.drawable.button_camera_on else R.drawable.button_camera)
         buttonCamera.setOnClickListener { toggleVideo() }
+
+        view.findViewById<ImageButton>(R.id.buttonMore)
+            ?.setOnClickListener { toggleMore() }
 
         view.findViewById<ImageButton>(R.id.buttonSpeaker)
             ?.setOnClickListener { toggleSpeaker() }
@@ -211,6 +217,7 @@ class MeetingFragment : Fragment(),
         videoTileAdapter = VideoAdapter(
             meetingModel.currentVideoTiles.values,
             audioVideo,
+            cameraCaptureSource,
             context
         )
         recyclerViewVideoCollection.adapter = videoTileAdapter
@@ -223,6 +230,7 @@ class MeetingFragment : Fragment(),
             VideoAdapter(
                 meetingModel.currentScreenTiles.values,
                 audioVideo,
+                null,
                 context
             )
         recyclerViewScreenShareCollection.adapter = screenTileAdapter
@@ -351,12 +359,44 @@ class MeetingFragment : Fragment(),
         }
     }
 
+    private fun setupMoreMenuDialog() {
+        moreMenuAlertDialogBuilder = AlertDialog.Builder(activity)
+        moreMenuAlertDialogBuilder.setTitle(R.string.alert_title_additional_options)
+        moreMenuAlertDialogBuilder.setNegativeButton(R.string.cancel) { dialog, _ ->
+            dialog.dismiss()
+            meetingModel.isMoreMenuDialogOn = false
+        }
+        val additionalToggles= arrayOf(
+            context?.getString(R.string.toggle_torch),
+            context?.getString(R.string.toggle_filter),
+            context?.getString(R.string.toggle_internal_external_capture_source)
+        )
+        moreMenuAlertDialogBuilder.setItems(additionalToggles) { _, which ->
+            when (which) {
+                0 -> toggleTorch()
+                1 -> toggleDemoFilter()
+                2 -> toggleInternalExternalCaptureSource()
+            }
+        }
+        moreMenuAlertDialogBuilder.setOnDismissListener {
+            meetingModel.isMoreMenuDialogOn = false
+        }
+
+        if (meetingModel.isMoreMenuDialogOn) {
+            moreMenuAlertDialogBuilder.create().show()
+        }
+    }
+
     override fun onAudioDeviceChanged(freshAudioDeviceList: List<MediaDevice>) {
         meetingModel.currentMediaDevices = freshAudioDeviceList
             .filter { device -> device.type != MediaDeviceType.OTHER }
         deviceListAdapter.clear()
         deviceListAdapter.addAll(meetingModel.currentMediaDevices)
         deviceListAdapter.notifyDataSetChanged()
+    }
+
+    override fun onVideoDeviceChanged(freshVideoDeviceList: List<MediaDevice>) {
+
     }
 
     override fun onVolumeChanged(volumeUpdates: Array<VolumeUpdate>) {
@@ -538,21 +578,60 @@ class MeetingFragment : Fragment(),
 
     private fun toggleVideo() {
         if (meetingModel.isCameraOn) {
-            audioVideo.stopLocalVideo()
-            buttonCamera.setImageResource(R.drawable.button_camera)
+            stopLocalVideo()
         } else {
-            if (hasPermissionsAlready()) {
-                startLocalVideo()
-                logWithFunctionName("getActiveCamera", "${audioVideo.getActiveCamera()?.type}")
-            } else {
-                requestPermissions(
-                    WEBRTC_PERM,
-                    WEBRTC_PERMISSION_REQUEST_CODE
-                )
-            }
+            startLocalVideo()
         }
         meetingModel.isCameraOn = !meetingModel.isCameraOn
         refreshNoVideosOrScreenShareAvailableText()
+    }
+
+    private fun toggleMore() {
+        moreMenuAlertDialogBuilder.create()
+        moreMenuAlertDialogBuilder.show()
+        meetingModel.isMoreMenuDialogOn = true
+    }
+
+    private fun toggleTorch() {
+        logger.info(TAG, "Toggling torch")
+        if (!isUsingCameraCaptureSource) {
+            logger.warn(TAG,"Cannot toggle torch without using external camera capture source")
+            val alert = AlertDialog.Builder(context)
+                .create()
+            alert.setTitle("Oops!")
+            alert.setMessage("Flash not available in this device...")
+            alert.setButton(DialogInterface.BUTTON_POSITIVE, "OK") { _, _ ->  }
+            alert.show()
+        }
+        cameraCaptureSource.torchEnabled = !cameraCaptureSource.torchEnabled
+    }
+
+    private fun toggleDemoFilter() {
+        logger.info(TAG, "Toggling filter")
+        if (!isUsingCameraCaptureSource) {
+            logger.warn(TAG,"Cannot toggle filter without using external camera capture source")
+            val alert = AlertDialog.Builder(context)
+                .create()
+            alert.setTitle("Oops!")
+            alert.setMessage("Flash not available in this device...")
+            alert.setButton(DialogInterface.BUTTON_POSITIVE, "OK") { _, _ -> }
+            alert.show()
+        }
+
+        isUsingGpuProcessor = !isUsingGpuProcessor
+        if (isLocalVideoStarted) {
+            stopLocalVideo()
+            startLocalVideo()
+        }
+    }
+
+    private fun toggleInternalExternalCaptureSource() {
+        logger.info(TAG, "Toggling internal external capture source")
+        isUsingCameraCaptureSource = !isUsingCameraCaptureSource
+        if (isLocalVideoStarted) {
+            stopLocalVideo()
+            startLocalVideo()
+        }
     }
 
     private fun refreshNoVideosOrScreenShareAvailableText() {
@@ -576,8 +655,29 @@ class MeetingFragment : Fragment(),
     }
 
     private fun startLocalVideo() {
-        audioVideo.startLocalVideo()
+        isLocalVideoStarted = true
+        if (isUsingCameraCaptureSource) {
+            if (isUsingGpuProcessor) {
+                cameraCaptureSource.addVideoSink(cpuVideoProcessor)
+                audioVideo.startLocalVideo(cpuVideoProcessor)
+            } else {
+                audioVideo.startLocalVideo(cameraCaptureSource)
+            }
+            cameraCaptureSource.start()
+        } else {
+            audioVideo.startLocalVideo()
+        }
         buttonCamera.setImageResource(R.drawable.button_camera_on)
+        selectTab(SubTab.Video.position)
+    }
+
+    private fun stopLocalVideo() {
+        isLocalVideoStarted = false
+        if (isUsingCameraCaptureSource) {
+            cameraCaptureSource.stop()
+        }
+        audioVideo.stopLocalVideo()
+        buttonCamera.setImageResource(R.drawable.button_camera)
         selectTab(SubTab.Video.position)
     }
 
@@ -603,12 +703,6 @@ class MeetingFragment : Fragment(),
                 }
                 return
             }
-        }
-    }
-
-    private fun hasPermissionsAlready(): Boolean {
-        return WEBRTC_PERM.all {
-            ContextCompat.checkSelfPermission(context!!, it) == PackageManager.PERMISSION_GRANTED
         }
     }
 
@@ -733,7 +827,7 @@ class MeetingFragment : Fragment(),
         uiScope.launch {
             logger.info(
                 TAG,
-                "Video track added, titleId: ${tileState.tileId}, attendeeId: ${tileState.attendeeId}" +
+                "Video tile added, tileId: ${tileState.tileId}, attendeeId: ${tileState.attendeeId}" +
                         ", isContent ${tileState.isContent} with size ${tileState.videoStreamContentWidth}*${tileState.videoStreamContentHeight}"
             )
             if (tileState.isContent) {
@@ -763,7 +857,7 @@ class MeetingFragment : Fragment(),
 
             logger.info(
                 TAG,
-                "Video track removed, titleId: $tileId, attendeeId: ${tileState.attendeeId}"
+                "Video track removed, tileId: $tileId, attendeeId: ${tileState.attendeeId}"
             )
             audioVideo.unbindVideoView(tileId)
             if (meetingModel.currentVideoTiles.containsKey(tileId)) {

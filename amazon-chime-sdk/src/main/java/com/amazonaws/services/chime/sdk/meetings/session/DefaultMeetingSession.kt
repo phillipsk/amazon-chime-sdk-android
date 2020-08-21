@@ -6,12 +6,17 @@
 package com.amazonaws.services.chime.sdk.meetings.session
 
 import android.content.Context
+import android.opengl.EGL14
+import android.opengl.EGLContext
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.DefaultAudioVideoController
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.DefaultAudioVideoFacade
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.audio.activespeakerdetector.DefaultActiveSpeakerDetector
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoTileController
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoTileFactory
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultCameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultSurfaceTextureCaptureSourceFactory
 import com.amazonaws.services.chime.sdk.meetings.device.DefaultDeviceController
 import com.amazonaws.services.chime.sdk.meetings.internal.audio.AudioClientFactory
 import com.amazonaws.services.chime.sdk.meetings.internal.audio.DefaultAudioClientController
@@ -28,8 +33,9 @@ import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 class DefaultMeetingSession(
     override val configuration: MeetingSessionConfiguration,
     override val logger: Logger,
-    context: Context
-) : MeetingSession {
+    context: Context,
+    eglCoreFactory: EglCoreFactory
+    ) : MeetingSession {
 
     override val audioVideo: AudioVideoFacade
 
@@ -77,6 +83,14 @@ class DefaultMeetingSession(
                 configuration.urls.urlRewriter
             )
 
+        val surfaceTextureCaptureSourceFactory = DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory)
+        val cameraCaptureSource =
+            DefaultCameraCaptureSource(
+                context,
+                logger,
+                surfaceTextureCaptureSourceFactory
+            )
+
         val videoClientController =
             DefaultVideoClientController(
                 context,
@@ -84,8 +98,11 @@ class DefaultMeetingSession(
                 videoClientStateController,
                 videoClientObserver,
                 configuration,
-                DefaultVideoClientFactory()
+                DefaultVideoClientFactory(),
+                cameraCaptureSource,
+                eglCoreFactory
             )
+
 
         val videoTileFactory = DefaultVideoTileFactory(logger)
 
@@ -93,10 +110,11 @@ class DefaultMeetingSession(
             DefaultVideoTileController(
                 logger,
                 videoClientController,
-                videoTileFactory
+                videoTileFactory,
+                eglCoreFactory
             )
-
         videoClientObserver.subscribeToVideoTileChange(videoTileController)
+
         val deviceController =
             DefaultDeviceController(
                 context,

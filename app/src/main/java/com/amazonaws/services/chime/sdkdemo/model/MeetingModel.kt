@@ -25,6 +25,7 @@ class MeetingModel : ViewModel() {
     var isMuted = false
     var isCameraOn = false
     var isDeviceListDialogOn = false
+    var isMoreMenuDialogOn = false
     var lastReceivedMessageTimestamp = 0L
     var tabIndex = 0
 }

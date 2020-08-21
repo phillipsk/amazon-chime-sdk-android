@@ -28,18 +28,6 @@ interface DeviceController {
     fun chooseAudioDevice(mediaDevice: MediaDevice)
 
     /**
-     * Get the active local camera in the meeting, return null if there isn't any.
-     *
-     * @return the active local camera
-     */
-    fun getActiveCamera(): MediaDevice?
-
-    /**
-     * Switch between front and back camera in the meeting.
-     */
-    fun switchCamera()
-
-    /**
      * Adds an observer to receive callbacks about device changes.
      *
      * @param observer device change observer
@@ -52,4 +40,23 @@ interface DeviceController {
      * @param observer device change observer
      */
     fun removeDeviceChangeObserver(observer: DeviceChangeObserver)
+
+    /**
+     * Get the active local camera in the meeting, return null if there isn't any.
+     *
+     * @return the active local camera
+     */
+    fun getActiveCamera(): MediaDevice?
+
+    /**
+     * Switch between front and back camera in the meeting.
+     */
+    fun switchCamera()
+
+    /**
+     * Lists currently available video devices.
+     *
+     * @return a list of currently available video devices.
+     */
+    fun listVideoDevices(): List<MediaDevice>
 }

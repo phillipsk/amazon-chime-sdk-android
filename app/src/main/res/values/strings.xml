@@ -12,10 +12,13 @@
     <string name="meeting_join">Join</string>
     <string name="meeting_leave">Leave Meeting</string>
     <string name="meeting_mute">Toggle Mute</string>
-    <string name="test_url"></string>
+    <string name="test_url">https://kdi44vsm4b.execute-api.us-east-1.amazonaws.com/Prod/</string>
     <string name="preview_meeting_info">Ready to join meeting %1$s as %2$s.</string>
     <string name="device_management_title">Select devices</string>
     <string name="audio_device_title">Audio Device</string>
+    <string name="video_device_title">Video Device</string>
+    <string name="video_format_title">Video Format</string>
+    <string name="video_preview_title">Video Preview</string>
     <string name="volume_indicator">Volume Indicator</string>
     <string name="active_speaker_indicator">Active Speaker Indicator</string>
     <string name="switch_camera">Switch Camera</string>
@@ -28,11 +31,16 @@
 
     <!-- toggle tab -->
     <string name="toggle_camera">Toggle Camera</string>
+    <string name="toggle_additional_options_menu">Toggle Additional Options Menu</string>
+    <string name="toggle_torch">Toggle torch</string>
+    <string name="toggle_filter">Toggle demo filter</string>
+    <string name="toggle_internal_external_capture_source">Toggle internal/external capture source</string>
     <string name="toggle_mute">Toggle Mute</string>
 
     <!-- Alert -->
     <string name="cancel">Cancel</string>
     <string name="alert_title_choose_audio">Choose a device</string>
+    <string name="alert_title_additional_options">Additional Options</string>
 
     <!-- Notify users for errors -->
     <string name="user_notification_meeting_id_invalid">Meeting ID is invalid</string>

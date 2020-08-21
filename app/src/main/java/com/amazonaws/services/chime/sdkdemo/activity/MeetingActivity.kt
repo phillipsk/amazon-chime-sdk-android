@@ -10,6 +10,11 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultEglCoreFactory
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultCameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultSurfaceTextureCaptureSourceFactory
 import com.amazonaws.services.chime.sdk.meetings.session.CreateAttendeeResponse
 import com.amazonaws.services.chime.sdk.meetings.session.CreateMeetingResponse
 import com.amazonaws.services.chime.sdk.meetings.session.DefaultMeetingSession
@@ -34,6 +39,9 @@ class MeetingActivity : AppCompatActivity(),
     private lateinit var meetingId: String
     private lateinit var name: String
 
+    private val eglCoreFactory: EglCoreFactory = DefaultEglCoreFactory()
+    private lateinit var cameraCaptureSource: CameraCaptureSource
+
     private val TAG = "InMeetingActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,7 +59,8 @@ class MeetingActivity : AppCompatActivity(),
                 DefaultMeetingSession(
                     it,
                     logger,
-                    applicationContext
+                    applicationContext,
+                    eglCoreFactory
                 )
             }
 
@@ -66,6 +75,8 @@ class MeetingActivity : AppCompatActivity(),
                 meetingSessionModel.setMeetingSession(meetingSession)
             }
 
+            val surfaceTextureCaptureSourceFactory = DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory)
+            cameraCaptureSource = DefaultCameraCaptureSource(applicationContext, logger, surfaceTextureCaptureSourceFactory)
             val deviceManagementFragment = DeviceManagementFragment.newInstance(meetingId, name)
             supportFragmentManager
                 .beginTransaction()
@@ -94,6 +105,10 @@ class MeetingActivity : AppCompatActivity(),
     fun getAudioVideo(): AudioVideoFacade = meetingSessionModel.audioVideo
 
     fun getMeetingSessionCredentials(): MeetingSessionCredentials = meetingSessionModel.credentials
+
+    fun getEglCoreFactory(): EglCoreFactory = eglCoreFactory
+
+    fun getCameraCaptureSource(): CameraCaptureSource = cameraCaptureSource
 
     private fun urlRewriter(url: String): String {
         // You can change urls by url.replace("example.com", "my.example.com")

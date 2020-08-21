@@ -11,6 +11,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.hardware.camera2.CameraManager
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
@@ -21,17 +22,20 @@ import com.amazonaws.services.chime.sdk.meetings.internal.utils.ObserverUtils
 import com.amazonaws.services.chime.sdk.meetings.internal.video.VideoClientController
 import com.xodee.client.audio.audioclient.AudioClient
 
+
 class DefaultDeviceController(
     private val context: Context,
     private val audioClientController: AudioClientController,
     private val videoClientController: VideoClientController,
     private val audioManager: AudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager,
+    private val cameraManager: CameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager,
     private val buildVersion: Int = Build.VERSION.SDK_INT
 ) : DeviceController {
     private val deviceChangeObservers = mutableSetOf<DeviceChangeObserver>()
 
     // TODO: remove code blocks for lower API level after the minimum SDK version becomes 23
     private val AUDIO_MANAGER_API_LEVEL = 23
+    private val CAMERA_MANAGER_API_LEVEL = 23
 
     init {
         @SuppressLint("NewApi")
@@ -60,6 +64,19 @@ class DefaultDeviceController(
             context.registerReceiver(
                 receiver, IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED)
             )
+        }
+
+        if (buildVersion >= CAMERA_MANAGER_API_LEVEL) {
+            cameraManager.registerAvailabilityCallback(object :
+                CameraManager.AvailabilityCallback() {
+                override fun onCameraAvailable(cameraId: String) {
+                    notifyVideoDeviceChange()
+                }
+
+                override fun onCameraUnavailable(cameraId: String) {
+                    notifyVideoDeviceChange()
+                }
+            }, null)
         }
     }
 
@@ -187,17 +204,16 @@ class DefaultDeviceController(
     }
 
     override fun getActiveCamera(): MediaDevice? {
-        val activeCamera = videoClientController.getActiveCamera()
-        return activeCamera?.let {
-            MediaDevice(
-                activeCamera.name,
-                if (activeCamera.isFrontFacing) MediaDeviceType.VIDEO_FRONT_CAMERA else MediaDeviceType.VIDEO_BACK_CAMERA
-            )
-        }
+        return videoClientController.getActiveCamera()
     }
 
     override fun switchCamera() {
         videoClientController.switchCamera()
+    }
+
+    override fun listVideoDevices(): List<MediaDevice> {
+        return MediaDevice.listVideoDevices(cameraManager)
+
     }
 
     override fun addDeviceChangeObserver(observer: DeviceChangeObserver) {
@@ -210,6 +226,19 @@ class DefaultDeviceController(
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun notifyAudioDeviceChange() {
-        ObserverUtils.notifyObserverOnMainThread(deviceChangeObservers) { it.onAudioDeviceChanged(listAudioDevices()) }
+        ObserverUtils.notifyObserverOnMainThread(deviceChangeObservers) {
+            it.onAudioDeviceChanged(
+                listAudioDevices()
+            )
+        }
+    }
+
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    fun notifyVideoDeviceChange() {
+        ObserverUtils.notifyObserverOnMainThread(deviceChangeObservers) {
+            it.onAudioDeviceChanged(
+                listAudioDevices()
+            )
+        }
     }
 }
