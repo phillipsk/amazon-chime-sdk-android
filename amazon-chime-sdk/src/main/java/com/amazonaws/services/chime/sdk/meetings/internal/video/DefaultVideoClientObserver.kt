@@ -6,10 +6,15 @@
 package com.amazonaws.services.chime.sdk.meetings.internal.video
 
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoObserver
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoPauseState
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileController
 import com.amazonaws.services.chime.sdk.meetings.internal.metric.ClientMetricsCollector
 import com.amazonaws.services.chime.sdk.meetings.internal.utils.ObserverUtils
+import com.amazonaws.services.chime.sdk.meetings.internal.video.adapters.VideoFrameBufferAdapter
+import com.amazonaws.services.chime.sdk.meetings.internal.video.adapters.VideoFrameI420BufferAdapter
+import com.amazonaws.services.chime.sdk.meetings.internal.video.adapters.VideoFrameTextureBufferAdapter
 import com.amazonaws.services.chime.sdk.meetings.realtime.datamessage.DataMessage
 import com.amazonaws.services.chime.sdk.meetings.realtime.datamessage.DataMessageObserver
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionStatus
@@ -34,6 +39,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.security.InvalidParameterException
 
 class DefaultVideoClientObserver(
     private val logger: Logger,
@@ -135,14 +141,34 @@ class DefaultVideoClientObserver(
             VIDEO_CLIENT_REMOTE_PAUSED_BY_LOCAL_BAD_NETWORK -> VideoPauseState.PausedForPoorConnection
             else -> VideoPauseState.Unpaused
         }
+
+        val sdkFrame = (frame as? com.xodee.client.video.VideoFrame)?.let {
+            val bufferAdapter: VideoFrameBuffer = when (frame.buffer) {
+                is com.xodee.client.video.VideoFrameTextureBuffer -> VideoFrameTextureBufferAdapter.MediaToSDK(
+                    frame.buffer as com.xodee.client.video.VideoFrameTextureBuffer
+                )
+                is com.xodee.client.video.VideoFrameI420Buffer -> VideoFrameI420BufferAdapter.MediaToSDK(
+                    frame.buffer as com.xodee.client.video.VideoFrameI420Buffer
+                )
+                is com.xodee.client.video.VideoFrameBuffer -> VideoFrameBufferAdapter.MediaToSDK(
+                    frame.buffer as com.xodee.client.video.VideoFrameBuffer
+                )
+                else -> throw InvalidParameterException("Video frame must have non null buffer")
+            }
+            VideoFrame(frame.timestamp, bufferAdapter, frame.rotation.toInt())
+        }
+
         notifyVideoTileObserver { observer ->
             observer.onReceiveFrame(
-                frame,
+                sdkFrame,
                 videoId,
                 profileId,
                 pauseState
             )
         }
+
+        sdkFrame?.release()
+//        sdkFrame?.release()
     }
 
     override fun onMetrics(metrics: IntArray?, values: DoubleArray?) {
