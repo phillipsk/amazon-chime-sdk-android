@@ -212,10 +212,12 @@ class DefaultAudioClientObserver(
     override fun onLogMessage(logLevel: Int, message: String?) {
         if (message == null) return
 
-        // Only print error and fatal as the Media team's request to avoid noise
-        // Will be changed back to respect logger settings once sanitize the logs
+        // Only print error and fatal as per request to avoid noise. Restriction can be lifted
+        // once logs are sanitized.
         if (logLevel == AudioClient.L_ERROR || logLevel == AudioClient.L_FATAL) {
             logger.error(TAG, message)
+        } else {
+            logger.debug(TAG, message)
         }
     }
 
