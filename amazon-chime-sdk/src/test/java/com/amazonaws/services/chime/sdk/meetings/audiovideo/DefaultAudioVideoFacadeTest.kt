@@ -209,6 +209,12 @@ class DefaultAudioVideoFacadeTest {
     }
 
     @Test
+    fun `toggleFlashlight should call audioVideoController toggleFlashlight`() {
+        audioVideoFacade.toggleFlashlight()
+        verify { audioVideoController.toggleFlashlight() }
+    }
+
+    @Test
     fun `getActiveCamera should call deviceController getActiveCamera`() {
         every { deviceController.getActiveCamera() } returns mediaDevice
 

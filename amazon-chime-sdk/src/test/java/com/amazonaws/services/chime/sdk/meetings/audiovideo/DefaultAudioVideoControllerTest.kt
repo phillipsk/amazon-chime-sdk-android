@@ -166,6 +166,13 @@ class DefaultAudioVideoControllerTest {
     }
 
     @Test
+    fun `toggleFlashlight should call VideoClientCapturer's toggleFlashlight`() {
+        audioVideoController.toggleFlashlight()
+
+        verify { VideoClientCapturer.toggleFlashlight() }
+    }
+
+    @Test
     fun `startRemoteVideo should call videoClientController startRemoteVideo`() {
         audioVideoController.startRemoteVideo()
 
