@@ -83,6 +83,10 @@ class DefaultAudioVideoFacade(
         audioVideoController.stopLocalVideo()
     }
 
+    override fun toggleFlashlight(): Boolean {
+        return audioVideoController.toggleFlashlight()
+    }
+
     override fun startRemoteVideo() {
         audioVideoController.startRemoteVideo()
     }

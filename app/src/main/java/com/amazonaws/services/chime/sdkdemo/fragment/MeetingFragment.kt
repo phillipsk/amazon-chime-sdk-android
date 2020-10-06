@@ -14,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -111,6 +112,7 @@ class MeetingFragment : Fragment(),
     private lateinit var editTextMessage: EditText
     private lateinit var buttonMute: ImageButton
     private lateinit var buttonCamera: ImageButton
+    private lateinit var buttonFlashlight: Button
     private lateinit var deviceAlertDialogBuilder: AlertDialog.Builder
     private lateinit var viewChat: LinearLayout
     private lateinit var recyclerViewMetrics: RecyclerView
@@ -188,6 +190,9 @@ class MeetingFragment : Fragment(),
         buttonCamera = view.findViewById(R.id.buttonCamera)
         buttonCamera.setImageResource(if (meetingModel.isCameraOn) R.drawable.button_camera_on else R.drawable.button_camera)
         buttonCamera.setOnClickListener { toggleVideo() }
+
+        buttonFlashlight = view.findViewById(R.id.buttonFlashlight)
+        buttonFlashlight.setOnClickListener { toggleFlashlight() }
 
         view.findViewById<ImageButton>(R.id.buttonSpeaker)
             ?.setOnClickListener { toggleSpeaker() }
@@ -552,7 +557,17 @@ class MeetingFragment : Fragment(),
             }
         }
         meetingModel.isCameraOn = !meetingModel.isCameraOn
+
         refreshNoVideosOrScreenShareAvailableText()
+    }
+
+    private fun toggleFlashlight() {
+        var isFlashlightOn = audioVideo.toggleFlashlight()
+        if (isFlashlightOn) {
+            logger.info(TAG, "flashlight is ON")
+        } else {
+            logger.info(TAG, "flashlight is OFF")
+        }
     }
 
     private fun refreshNoVideosOrScreenShareAvailableText() {

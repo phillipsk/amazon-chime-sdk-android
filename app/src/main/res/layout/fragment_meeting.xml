@@ -193,6 +193,17 @@
             android:src="@drawable/button_camera"
             android:tint="?android:attr/textColorPrimary" />
 
+        <Button
+            android:id="@+id/buttonFlashlight"
+            android:layout_width="15dp"
+            android:layout_height="35dp"
+            android:layout_weight="1"
+            android:background="@null"
+            android:contentDescription="@string/toggle_flashlight"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="Flash" />
+
         <ImageButton
             android:id="@+id/buttonLeave"
             android:layout_width="0dp"

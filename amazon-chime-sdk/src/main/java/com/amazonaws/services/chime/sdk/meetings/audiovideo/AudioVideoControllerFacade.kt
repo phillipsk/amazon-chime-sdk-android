@@ -68,4 +68,10 @@ interface AudioVideoControllerFacade {
      * Stop remote video.
      */
     fun stopRemoteVideo()
+
+    /**
+     * Turn On/Off flashlight.
+     * @return true if flashlight is ON, false if flashlight is OFF.
+     */
+    fun toggleFlashlight(): Boolean
 }

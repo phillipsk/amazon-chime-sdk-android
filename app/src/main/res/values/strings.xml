@@ -29,6 +29,7 @@
     <!-- toggle tab -->
     <string name="toggle_camera">Toggle Camera</string>
     <string name="toggle_mute">Toggle Mute</string>
+    <string name="toggle_flashlight">Toggle Flashlight</string>
 
     <!-- Alert -->
     <string name="cancel">Cancel</string>

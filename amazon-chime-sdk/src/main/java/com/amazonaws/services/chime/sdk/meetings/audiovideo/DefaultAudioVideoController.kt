@@ -12,6 +12,7 @@ import com.amazonaws.services.chime.sdk.meetings.internal.metric.ClientMetricsCo
 import com.amazonaws.services.chime.sdk.meetings.internal.video.VideoClientController
 import com.amazonaws.services.chime.sdk.meetings.internal.video.VideoClientObserver
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionConfiguration
+import com.xodee.client.video.VideoClientCapturer
 
 class DefaultAudioVideoController(
     private val audioClientController: AudioClientController,
@@ -52,6 +53,10 @@ class DefaultAudioVideoController(
 
     override fun stopRemoteVideo() {
         videoClientController.stopRemoteVideo()
+    }
+
+    override fun toggleFlashlight(): Boolean {
+        return VideoClientCapturer.toggleFlashlight()
     }
 
     override fun addAudioVideoObserver(observer: AudioVideoObserver) {
