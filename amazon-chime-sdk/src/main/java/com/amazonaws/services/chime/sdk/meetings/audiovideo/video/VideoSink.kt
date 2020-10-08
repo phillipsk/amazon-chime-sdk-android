@@ -1,7 +1,7 @@
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
 
 /**
- * [VideoSink] implemetations consume video frames, typically from a [VideoSource]
+ * A [VideoSink] consumes video frames, typically from a [VideoSource]
  */
 interface VideoSink {
     /**

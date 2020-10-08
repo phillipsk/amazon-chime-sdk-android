@@ -35,6 +35,13 @@ data class MediaDevice(
     override fun toString(): String = label
 
     companion object {
+        /**
+         * Lists currently available video devices.
+         *
+         * @param cameraManager: [CameraManager] - Camera manager to use for enumeration
+         *
+         * @return [List<MediaDevice>] - A list of currently available video devices.
+         */
         fun listVideoDevices(cameraManager: CameraManager): List<MediaDevice> {
             return cameraManager.cameraIdList.map { id ->
                 val characteristics = cameraManager.getCameraCharacteristics(id)

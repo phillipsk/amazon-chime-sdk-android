@@ -10,17 +10,7 @@ class DefaultVideoFrameRGBABuffer(
         override val stride: Int,
         releaseCallback: Runnable
 ) : VideoFrameRGBABuffer {
-
-    private val refCountDelegate =
-            RefCountDelegate(
-                    releaseCallback
-            )
-
-    override fun retain() {
-        refCountDelegate.retain()
-    }
-
-    override fun release() {
-        refCountDelegate.release()
-    }
+    private val refCountDelegate = RefCountDelegate(releaseCallback)
+    override fun retain() = refCountDelegate.retain()
+    override fun release() = refCountDelegate.release()
 }

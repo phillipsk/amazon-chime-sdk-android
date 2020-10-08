@@ -15,8 +15,6 @@ import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.*
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCore
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
 import com.amazonaws.services.chime.sdk.meetings.internal.utils.ObserverUtils
@@ -26,7 +24,10 @@ import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
 
-
+/**
+ * [DefaultCameraCaptureSource] will configure a reasonably standard capture stream which will
+ * use the [Surface] provided by the capture source provided by a [SurfaceTextureCaptureSourceFactory]
+ */
 class DefaultCameraCaptureSource(
     private val context: Context,
     private val logger: Logger,
@@ -62,7 +63,7 @@ class DefaultCameraCaptureSource(
         handler = Handler(thread.looper)
     }
 
-    override var torchEnabled: Boolean = false
+    override var flashlightEnabled: Boolean = false
         @RequiresApi(Build.VERSION_CODES.M)
         set(value) {
             field = value
@@ -293,7 +294,7 @@ class DefaultCameraCaptureSource(
             )
             captureRequestBuilder.set(CaptureRequest.CONTROL_AE_LOCK, false)
 
-            if (torchEnabled) {
+            if (flashlightEnabled) {
                 captureRequestBuilder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_TORCH)
             } else {
                 captureRequestBuilder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_OFF)

@@ -43,20 +43,21 @@ interface DeviceController {
 
     /**
      * Get the active local camera in the meeting, return null if there isn't any.
+     * This also returns null when a custom video source is being used.
      *
      * @return the active local camera
      */
     fun getActiveCamera(): MediaDevice?
 
     /**
-     * Switch between front and back camera in the meeting.
+     * Switch between front and back camera in the meeting.  This has no effect on custom video sources.
      */
     fun switchCamera()
 
     /**
      * Lists currently available video devices.
      *
-     * @return a list of currently available video devices.
+     * @return [List<MediaDevice>] - A list of currently available video devices.
      */
     fun listVideoDevices(): List<MediaDevice>
 }

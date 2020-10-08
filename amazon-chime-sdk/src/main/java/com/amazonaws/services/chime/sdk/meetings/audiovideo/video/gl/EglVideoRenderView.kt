@@ -6,8 +6,9 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRenderVie
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 
 /**
- * [EglVideoRenderView] is a [VideoRenderView] which requires EGL initialization to render [VideoFrameTextureBuffer] buffers.  The [VideoTileController] should
- * automatically manage ([init] and [release]) any bound tiles, but if a developer intends to use a view outside of the controller (e.g. in pre-meeting device selection), they will
+ * [EglVideoRenderView] is a [VideoRenderView] which requires EGL initialization to render [VideoFrameTextureBuffer] buffers.
+ * The [VideoTileController] should automatically manage ([init] and [release]) any bound tiles, but if it
+ * is desired to use a view outside of the controller (e.g. in pre-meeting device selection), users will
  * need to call [init] and [release] themselves
  */
 interface EglVideoRenderView : VideoRenderView {

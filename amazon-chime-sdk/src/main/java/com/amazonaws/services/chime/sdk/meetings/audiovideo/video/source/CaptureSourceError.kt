@@ -17,12 +17,7 @@ enum class CaptureSourceError(val value: Int) {
     /**
      * A failure observer during configuration
      */
-    ConfigurationFailure(2),
-
-    /**
-     * An unexpected stop of capturing before stop() is called
-     */
-    UnexpectedStop(3);
+    ConfigurationFailure(2);
 
     companion object {
         fun from(intValue: Int): CaptureSourceError? = values().find { it.value == intValue }
