@@ -20,9 +20,12 @@ import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 import com.xodee.client.video.TimestampAligner
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
-import java.util.*
 import kotlin.random.Random.Default.nextInt
 
+/**
+ * [DefaultSurfaceTextureCaptureSource] will provide a [Surface] which it will listen to
+ * and convert to [VideoFrameTextureBuffer] objects
+ */
 class DefaultSurfaceTextureCaptureSource(
     private val logger: Logger,
     private val width: Int,

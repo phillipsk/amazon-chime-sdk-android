@@ -51,6 +51,8 @@ object GlUtil {
 
     /**
      * Generate texture with standard parameters.
+     *
+     * @param target: [Int] - OpenGLES texture type (e.g. [GLES20.GL_TEXTURE_2D])
      */
     fun generateTexture(target: Int): Int {
         val textureArray = IntArray(1)
@@ -66,7 +68,11 @@ object GlUtil {
     }
 
     /**
-     * Converts android.graphics.Matrix to a float[16] matrix array used by surfaces and OpenGL.
+     * Converts [android.graphics.Matrix] to a float[16] matrix array used by surfaces and OpenGL.
+     *
+     * @param matrix: [Matrix] - Input matrix
+     *
+     * @return [FloatArray] - Newly created array containing float[16] matrix array
      */
     fun convertToGlTransformMatrix(matrix: Matrix): FloatArray {
         val values = FloatArray(9)
@@ -81,6 +87,8 @@ object GlUtil {
 
     /**
      * Converts float[16] matrix array used by surfaces and OpenGL to a android.graphics.Matrix.
+     * @param matrix: [FloatArray] - Input array containing float[16] matrix array
+     * @return [Matrix] - Newly created converted matrix
      */
     fun convertToMatrix(transformMatrix: FloatArray): Matrix {
         val values = floatArrayOf(
@@ -96,6 +104,9 @@ object GlUtil {
     /**
      * Creates a OpenGLES program from vertex and fragment shader sources.
      * Will throw exception on failures.
+     *
+     * @param vertexSource: [String] - Input vertex shader
+     * @param fragmentSource: [String] - Input fragment shader
      */
     fun createProgram(vertexSource: String, fragmentSource: String): Int {
         val vertexShader: Int = loadShader(GLES20.GL_VERTEX_SHADER, vertexSource)

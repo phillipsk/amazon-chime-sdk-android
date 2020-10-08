@@ -17,8 +17,8 @@ import kotlin.math.roundToInt
 
 /**
  * [GenericGlVideoFrameDrawer] is a helper class for making a [GlVideoFrameDrawer] which supports all available
- * [VideoFrameBuffer] types with minimal boilerplate.  This class only supports fragment shaders.  To use
- * pass in a base fragment with the following features.
+ * [VideoFrameBuffer] types with minimal boilerplate.  This class only supports passing in fragment shaders.
+ * To use, pass in a base fragment with the following considerations:
  *     * Do not add `#extension GL_OES_EGL_image_external : require` which will be added automatically if OES input is used
  *     * Do not add `precision mediump float;` which will be added automatically
  *     * Use [INPUT_TEXTURE_COORDINATE_NAME] as the texture coordinate in your shader

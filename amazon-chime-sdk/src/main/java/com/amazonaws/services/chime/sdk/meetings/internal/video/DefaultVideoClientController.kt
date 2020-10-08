@@ -5,22 +5,12 @@
 
 package com.amazonaws.services.chime.sdk.meetings.internal.video
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
-import android.opengl.EGL14
-import android.opengl.EGLContext
-import androidx.core.content.ContextCompat
 import com.amazonaws.services.chime.sdk.BuildConfig
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileController
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultEglCore
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultCameraCaptureSource
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
-import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
-import com.amazonaws.services.chime.sdk.meetings.internal.video.adapters.LocalRenderAdapter
 import com.amazonaws.services.chime.sdk.meetings.internal.video.adapters.VideoSourceAdapter
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionConfiguration
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger

@@ -4,12 +4,12 @@ import java.nio.ByteBuffer
 
 interface VideoFrameRGBABuffer: VideoFrameBuffer {
     /**
-     * Y plane data of video frame in memory
+     * RGBA plane data of video frame in memory
      */
     val data: ByteBuffer
 
     /**
-     * Stride of Y plane of video frame
+     * Stride of RGBA plane of video frame
      */
     val stride: Int
 }

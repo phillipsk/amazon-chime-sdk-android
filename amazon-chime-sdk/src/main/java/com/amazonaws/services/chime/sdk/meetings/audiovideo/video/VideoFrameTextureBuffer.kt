@@ -11,6 +11,8 @@ import android.os.Handler
 interface VideoFrameTextureBuffer : VideoFrameBuffer {
     /**
      * Wrapper enum of underlying supported GL texture types
+     *
+     * @param glTarget: [Int] - Underlying OpenGLES type
      */
     enum class Type(val glTarget: Int) {
         TEXTURE_OES(GLES11Ext.GL_TEXTURE_EXTERNAL_OES),

@@ -7,7 +7,8 @@ import android.opengl.EGLContext
  */
 interface EglCoreFactory {
     /**
-     * Shared context which will be used for any [EglCore] objects created by this factory]
+     * Shared context which will be used for any [EglCore] objects created by this factory.  Can be used to explicitly
+     * share the context without having to make a new [EglCore] object
      */
     val sharedContext: EGLContext
 

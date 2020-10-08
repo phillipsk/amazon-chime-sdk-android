@@ -4,6 +4,10 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.*
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.ContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
 
+/**
+ * [VideoSourceAdapter] provides two classes to adapt [VideoSource] to
+ * [com.xodee.client.video.VideoSource].  Reverse will never occur.
+ */
 class VideoSourceAdapter(private val source: VideoSource) : VideoSink, com.xodee.client.video.VideoSource {
     private var sinks = mutableSetOf<com.xodee.client.video.VideoSink>()
 

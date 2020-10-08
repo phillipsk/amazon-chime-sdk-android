@@ -8,8 +8,9 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
  */
 interface GlVideoFrameDrawer {
     /**
-     * Draw a frame to the current EGL surface using the provided viewport and matrix.
+     * Draw a [VideoFrame] to the current EGL surface using the provided viewport and matrix.
      * [additionalRenderMatrix] will be applied on top of any matrices attached to the video frame buffer.
+     * The resulting draw will have the rotation and any internal transform matrices applied.
      *
      * @param frame: [VideoFrame] - Video frame to draw
      * @param viewportX: [Int] - X coordinate of target viewport

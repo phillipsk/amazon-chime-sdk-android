@@ -62,12 +62,12 @@ class VideoFrame(
     }
 
     /**
-     * Helper function to call retain on the owned buffer
+     * Helper function to call [VideoFrameBuffer.retain] on the owned buffer
      */
     fun retain() = buffer.retain()
 
     /**
-     * Helper function to call release on the owned buffer
+     * Helper function to call [VideoFrameBuffer.release] on the owned buffer
      */
     fun release() = buffer.release()
 }
