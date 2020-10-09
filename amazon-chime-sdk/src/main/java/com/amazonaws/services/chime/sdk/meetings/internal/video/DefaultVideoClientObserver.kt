@@ -156,7 +156,7 @@ class DefaultVideoClientObserver(
         if (message == null) return
         // Only print error and fatal as the Media team's request to avoid noise
         // Will be changed back to respect logger settings once sanitize the logs
-        logger.debug(TAG, message)
+        logger.error(TAG, message)
     }
 
     override fun requestTurnCreds(client: VideoClient?) {
