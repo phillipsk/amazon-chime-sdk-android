@@ -54,8 +54,7 @@ class DefaultSurfaceTextureCaptureSource(
 
     private var sinks = mutableSetOf<VideoSink>()
 
-    private val ID = nextInt(0, 100)
-    private val TAG = "SurfaceTextureCaptureSource $ID"
+    private val TAG = "SurfaceTextureCaptureSource"
 
     init {
         thread.start()
@@ -76,14 +75,13 @@ class DefaultSurfaceTextureCaptureSource(
             @SuppressLint("Recycle")
             surface = Surface(surfaceTexture)
 
-            logger.info(TAG, "Created surface texture for video source")
+            logger.info(TAG, "Created surface texture for video source with dimensions $width x $height")
         }
     }
 
     override fun start() {
         handler.post {
             surfaceTexture.setOnFrameAvailableListener({
-                logger.error(TAG, "Frame available")
                 pendingTexture = true
                 tryCapturingFrame()
             }, handler)
@@ -152,7 +150,6 @@ class DefaultSurfaceTextureCaptureSource(
     private fun frameReleased() {
         // Cannot assume this occurs on correct thread
         handler.post {
-            logger.info(TAG, "Current frame released")
             textureInUse = false
             if (released) {
                 this.completeRelease()

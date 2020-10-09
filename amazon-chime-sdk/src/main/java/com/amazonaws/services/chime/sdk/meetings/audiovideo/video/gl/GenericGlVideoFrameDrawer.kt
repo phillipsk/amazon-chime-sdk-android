@@ -77,7 +77,7 @@ open class GenericGlVideoFrameDrawer(
                         it[i] = GlUtil.generateTexture(GLES20.GL_TEXTURE_2D)
                     }
                 }
-                return yuvTextures as IntArray
+                return@run yuvTextures as IntArray
             }
 
             // Upload each plane.

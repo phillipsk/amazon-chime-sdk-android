@@ -26,6 +26,7 @@ import com.amazonaws.services.chime.sdkdemo.R
 import com.amazonaws.services.chime.sdkdemo.data.JoinMeetingResponse
 import com.amazonaws.services.chime.sdkdemo.fragment.DeviceManagementFragment
 import com.amazonaws.services.chime.sdkdemo.fragment.MeetingFragment
+import com.amazonaws.services.chime.sdkdemo.model.MeetingModel
 import com.amazonaws.services.chime.sdkdemo.model.MeetingSessionModel
 import com.google.gson.Gson
 
@@ -36,11 +37,9 @@ class MeetingActivity : AppCompatActivity(),
     private val logger = ConsoleLogger(LogLevel.DEBUG)
     private val gson = Gson()
     private val meetingSessionModel: MeetingSessionModel by lazy { ViewModelProvider(this)[MeetingSessionModel::class.java] }
+    private val meetingModel: MeetingModel by lazy { ViewModelProvider(this)[MeetingModel::class.java] }
     private lateinit var meetingId: String
     private lateinit var name: String
-
-    private val eglCoreFactory: EglCoreFactory = DefaultEglCoreFactory()
-    private lateinit var cameraCaptureSource: CameraCaptureSource
 
     private val TAG = "InMeetingActivity"
 
@@ -60,7 +59,7 @@ class MeetingActivity : AppCompatActivity(),
                     it,
                     logger,
                     applicationContext,
-                    eglCoreFactory
+                    meetingModel.eglCoreFactory
                 )
             }
 
@@ -75,8 +74,7 @@ class MeetingActivity : AppCompatActivity(),
                 meetingSessionModel.setMeetingSession(meetingSession)
             }
 
-            val surfaceTextureCaptureSourceFactory = DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory)
-            cameraCaptureSource = DefaultCameraCaptureSource(applicationContext, logger, surfaceTextureCaptureSourceFactory)
+
             val deviceManagementFragment = DeviceManagementFragment.newInstance(meetingId, name)
             supportFragmentManager
                 .beginTransaction()
@@ -106,9 +104,15 @@ class MeetingActivity : AppCompatActivity(),
 
     fun getMeetingSessionCredentials(): MeetingSessionCredentials = meetingSessionModel.credentials
 
-    fun getEglCoreFactory(): EglCoreFactory = eglCoreFactory
+    fun getEglCoreFactory(): EglCoreFactory = meetingModel.eglCoreFactory
 
-    fun getCameraCaptureSource(): CameraCaptureSource = cameraCaptureSource
+    fun getCameraCaptureSource(): CameraCaptureSource {
+        if (meetingModel.cameraCaptureSource  == null) {
+            val surfaceTextureCaptureSourceFactory = DefaultSurfaceTextureCaptureSourceFactory(logger, meetingModel.eglCoreFactory)
+            meetingModel.cameraCaptureSource = DefaultCameraCaptureSource(applicationContext, logger, surfaceTextureCaptureSourceFactory)
+        }
+        return meetingModel.cameraCaptureSource!!
+    }
 
     private fun urlRewriter(url: String): String {
         // You can change urls by url.replace("example.com", "my.example.com")
