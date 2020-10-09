@@ -158,19 +158,18 @@ class DefaultCameraCaptureSource(
     override var device: MediaDevice? = MediaDevice.listVideoDevices(cameraManager)
         .firstOrNull { it.type == MediaDeviceType.VIDEO_FRONT_CAMERA }
         set(value) {
-            handler.post {
-                logger.info(TAG, "Setting capture device: $value")
-                if (field == value) {
-                    logger.info(TAG, "Already using device: $value; ignoring")
-                    return@post
-                }
+            logger.info(TAG, "Setting capture device: $value")
+            if (field == value) {
+                logger.info(TAG, "Already using device: $value; ignoring")
+                return
+            }
 
-                field = value
-                // Restart capture if already running (i.e. we have a valid surface texture source)
-                surfaceTextureSource?.let {
-                    stop()
-                    start()
-                }
+            field = value
+
+            // Restart capture if already running (i.e. we have a valid surface texture source)
+            surfaceTextureSource?.let {
+                stop()
+                start()
             }
         }
 
@@ -223,12 +222,6 @@ class DefaultCameraCaptureSource(
         logger.info(TAG, "Stopping camera capture source")
         val sink: VideoSink = this
         runBlocking(handler.asCoroutineDispatcher().immediate) {
-            // Stop Surface capture source
-            surfaceTextureSource?.removeVideoSink(sink)
-            surfaceTextureSource?.stop()
-            surfaceTextureSource?.release()
-            surfaceTextureSource = null
-
             // Close camera capture session
             cameraCaptureSession?.close()
             cameraCaptureSession = null
@@ -236,24 +229,28 @@ class DefaultCameraCaptureSource(
             // Close camera device
             cameraDevice?.close()
             cameraDevice = null
+
+            // Stop Surface capture source
+            surfaceTextureSource?.removeVideoSink(sink)
+            surfaceTextureSource?.stop()
+            surfaceTextureSource?.release()
+            surfaceTextureSource = null
         }
     }
 
     override fun onVideoFrameReceived(frame: VideoFrame) {
-        val processedBuffer: VideoFrameBuffer = createTextureBufferWithModifiedTransformMatrix(
+        val processedBuffer: VideoFrameBuffer = updateBufferForCameraOrientation(
             frame.buffer as VideoFrameTextureBuffer,
-            !isCameraFrontFacing, -cameraOrientation
+            isCameraFrontFacing, -cameraOrientation
         )
 
-        val processedFrame = VideoFrame(frame.timestamp, processedBuffer, getFrameOrientation())
+        val processedFrame = VideoFrame(frame.timestampNs, processedBuffer, getFrameOrientation())
         sinks.forEach { it.onVideoFrameReceived(processedFrame) }
         processedBuffer.release()
     }
 
     override fun addVideoSink(sink: VideoSink) {
-        handler.post {
-            sinks.add(sink)
-        }
+        handler.post { sinks.add(sink) }
     }
 
     override fun removeVideoSink(sink: VideoSink) {
@@ -374,12 +371,13 @@ class DefaultCameraCaptureSource(
             else -> 0
         }
         if (!isCameraFrontFacing) {
+            // Account for mirror
             rotation = 360 - rotation
         }
         return (cameraOrientation + rotation) % 360
     }
 
-    private fun createTextureBufferWithModifiedTransformMatrix(
+    private fun updateBufferForCameraOrientation(
         buffer: VideoFrameTextureBuffer, mirror: Boolean, rotation: Int
     ): VideoFrameTextureBuffer {
         val transformMatrix = Matrix()

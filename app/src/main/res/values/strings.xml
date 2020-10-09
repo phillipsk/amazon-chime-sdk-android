@@ -12,7 +12,7 @@
     <string name="meeting_join">Join</string>
     <string name="meeting_leave">Leave Meeting</string>
     <string name="meeting_mute">Toggle Mute</string>
-    <string name="test_url">https://kdi44vsm4b.execute-api.us-east-1.amazonaws.com/Prod/</string>
+    <string name="test_url">https://g4eowuwvpf.execute-api.us-east-1.amazonaws.com/Prod/</string>
     <string name="preview_meeting_info">Ready to join meeting %1$s as %2$s.</string>
     <string name="device_management_title">Select devices</string>
     <string name="audio_device_title">Audio Device</string>
@@ -32,9 +32,10 @@
     <!-- toggle tab -->
     <string name="toggle_camera">Toggle Camera</string>
     <string name="toggle_additional_options_menu">Toggle Additional Options Menu</string>
-    <string name="toggle_torch">Toggle torch</string>
-    <string name="toggle_filter">Toggle demo filter</string>
-    <string name="toggle_internal_external_capture_source">Toggle internal/external capture source</string>
+    <string name="toggle_flashlight">Toggle flashlight on current camera</string>
+    <string name="toggle_cpu_filter">Toggle demo filter (CPU)</string>
+    <string name="toggle_gpu_filter">Toggle demo filter (GPU)</string>
+    <string name="toggle_custom_capture_source">Toggle using custom capture source</string>
     <string name="toggle_mute">Toggle Mute</string>
 
     <!-- Alert -->

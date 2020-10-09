@@ -57,6 +57,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.security.InvalidParameterException
 import java.util.*
 
 class MeetingFragment : Fragment(),
@@ -74,7 +75,7 @@ class MeetingFragment : Fragment(),
     private lateinit var cpuVideoProcessor: DemoCpuVideoProcessor
     private var isUsingCameraCaptureSource = true
     private var isLocalVideoStarted = false
-    private var isUsingGpuProcessor = false
+    private var isUsingGpuVideoProcessor = false
     private var isUsingCpuVideoProcessor = false
     private lateinit var listener: RosterViewEventListener
     override val scoreCallbackIntervalMs: Int? get() = 1000
@@ -364,15 +365,17 @@ class MeetingFragment : Fragment(),
             meetingModel.isMoreMenuDialogOn = false
         }
         val additionalToggles= arrayOf(
-            context?.getString(R.string.toggle_torch),
-            context?.getString(R.string.toggle_filter),
-            context?.getString(R.string.toggle_internal_external_capture_source)
+            context?.getString(R.string.toggle_flashlight),
+                context?.getString(R.string.toggle_cpu_filter),
+                context?.getString(R.string.toggle_gpu_filter),
+            context?.getString(R.string.toggle_custom_capture_source)
         )
         moreMenuAlertDialogBuilder.setItems(additionalToggles) { _, which ->
             when (which) {
                 0 -> toggleTorch()
-                1 -> toggleDemoFilter()
-                2 -> toggleInternalExternalCaptureSource()
+                1 -> toggleCpuDemoFilter()
+                2 -> toggleGpuDemoFilter()
+                3 -> toggleCustomCaptureSource()
             }
         }
         moreMenuAlertDialogBuilder.setOnDismissListener {
@@ -603,8 +606,7 @@ class MeetingFragment : Fragment(),
         cameraCaptureSource.flashlightEnabled = !cameraCaptureSource.flashlightEnabled
     }
 
-    private fun toggleDemoFilter() {
-        logger.info(TAG, "Toggling filter")
+    private fun toggleCpuDemoFilter() {
         if (!isUsingCameraCaptureSource) {
             logger.warn(TAG,"Cannot toggle filter without using external camera capture source")
             val alert = AlertDialog.Builder(context)
@@ -614,16 +616,35 @@ class MeetingFragment : Fragment(),
             alert.setButton(DialogInterface.BUTTON_POSITIVE, "OK") { _, _ -> }
             alert.show()
         }
-
-        isUsingGpuProcessor = !isUsingGpuProcessor
+        logger.info(TAG, "Toggling CPU demo filter from $isUsingCpuVideoProcessor to ${!isUsingCpuVideoProcessor}")
+        isUsingCpuVideoProcessor = !isUsingCpuVideoProcessor
         if (isLocalVideoStarted) {
             stopLocalVideo()
             startLocalVideo()
         }
     }
 
-    private fun toggleInternalExternalCaptureSource() {
-        logger.info(TAG, "Toggling internal external capture source")
+    private fun toggleGpuDemoFilter() {
+        if (!isUsingCameraCaptureSource) {
+            logger.warn(TAG,"Cannot toggle filter without using external camera capture source")
+            val alert = AlertDialog.Builder(context)
+                    .create()
+            alert.setTitle("Oops!")
+            alert.setMessage("Flash not available in this device...")
+            alert.setButton(DialogInterface.BUTTON_POSITIVE, "OK") { _, _ -> }
+            alert.show()
+        }
+        logger.info(TAG, "Toggling GPU demo filter from $isUsingGpuVideoProcessor to ${!isUsingGpuVideoProcessor}")
+        isUsingGpuVideoProcessor = !isUsingGpuVideoProcessor
+        if (isLocalVideoStarted) {
+            stopLocalVideo()
+            startLocalVideo()
+        }
+    }
+
+
+    private fun toggleCustomCaptureSource() {
+        logger.info(TAG, "Toggling using custom camera source from $isUsingCameraCaptureSource to ${!isUsingCameraCaptureSource}")
         isUsingCameraCaptureSource = !isUsingCameraCaptureSource
         if (isLocalVideoStarted) {
             stopLocalVideo()
@@ -654,7 +675,7 @@ class MeetingFragment : Fragment(),
     private fun startLocalVideo() {
         isLocalVideoStarted = true
         if (isUsingCameraCaptureSource) {
-            if (isUsingGpuProcessor) {
+            if (isUsingGpuVideoProcessor) {
                 cameraCaptureSource.addVideoSink(cpuVideoProcessor)
                 audioVideo.startLocalVideo(cpuVideoProcessor)
             } else {

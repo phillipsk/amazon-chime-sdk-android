@@ -45,8 +45,6 @@ class DefaultVideoTileController(
         val videoStreamContentWidth = frame?.width ?: 0
         val videoStreamContentHeight = frame?.height ?: 0
 
-        frame?.retain()
-        logger.info(TAG, "onReceiveFrame $videoStreamContentWidth x $videoStreamContentHeight")
         if (tile != null) {
             if (frame == null && pauseState == VideoPauseState.Unpaused) {
                 logger.info(

@@ -129,7 +129,7 @@ class DemoGpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreF
         val processedBuffer =
                 DefaultVideoFrameTextureBuffer(frame.getRotatedWidth(), frame.getRotatedHeight(), textureFrameBuffer.textureId, null, VideoFrameTextureBuffer.Type.TEXTURE_2D, Runnable { frameReleased() })
         // Drawer gets rid of any rotation
-        val processedFrame = VideoFrame(frame.timestamp, processedBuffer)
+        val processedFrame = VideoFrame(frame.timestampNs, processedBuffer)
 
         sinks.forEach { it.onVideoFrameReceived(processedFrame) }
         processedFrame.release()

@@ -56,7 +56,7 @@ class DemoCpuVideoProcessor: VideoSource, VideoSink {
 
         convertToBlackAndWhite(rgbaBuffer)
 
-        val processedFrame = VideoFrame(frame.timestamp, rgbaBuffer)
+        val processedFrame = VideoFrame(frame.timestampNs, rgbaBuffer)
 
         sinks.forEach { it.onVideoFrameReceived(processedFrame) }
     }

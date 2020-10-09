@@ -16,10 +16,13 @@ import android.widget.Button
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoRenderView
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRenderView
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultCameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultSurfaceTextureCaptureSourceFactory
 import com.amazonaws.services.chime.sdk.meetings.device.DeviceChangeObserver
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
@@ -28,13 +31,16 @@ import com.amazonaws.services.chime.sdk.meetings.utils.logger.LogLevel
 import com.amazonaws.services.chime.sdkdemo.R
 import com.amazonaws.services.chime.sdkdemo.activity.HomeActivity
 import com.amazonaws.services.chime.sdkdemo.activity.MeetingActivity
+import com.amazonaws.services.chime.sdkdemo.model.MeetingModel
 import com.amazonaws.services.chime.sdkdemo.utils.DemoCpuVideoProcessor
 import com.amazonaws.services.chime.sdkdemo.utils.DemoGpuVideoProcessor
+import com.amazonaws.services.chime.sdkdemo.utils.isLandscapeMode
 import java.lang.ClassCastException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.security.InvalidParameterException
 
 class DeviceManagementFragment : Fragment(),
     DeviceChangeObserver {
@@ -54,6 +60,8 @@ class DeviceManagementFragment : Fragment(),
 
     private lateinit var audioDeviceArrayAdapter: ArrayAdapter<MediaDevice>
     private lateinit var videoDeviceArrayAdapter: ArrayAdapter<MediaDevice>
+
+    private val VIDEO_ASPECT_RATIO_16_9 = 0.5625
 
     companion object {
         fun newInstance(meetingId: String, name: String): DeviceManagementFragment {
@@ -121,6 +129,14 @@ class DeviceManagementFragment : Fragment(),
 
         cameraCaptureSource = (activity as MeetingActivity).getCameraCaptureSource()
         view.findViewById<DefaultVideoRenderView>(R.id.videoPreview)?.let{
+            val displayMetrics = context.resources.displayMetrics
+            val width = if (isLandscapeMode(context) == true) displayMetrics.widthPixels / 2 else displayMetrics.widthPixels
+            val height = (width * VIDEO_ASPECT_RATIO_16_9).toInt()
+            it.layoutParams.width = width
+            it.layoutParams.height = height
+
+            it.mirror = cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
+
             it.init((activity as MeetingActivity).getEglCoreFactory())
             cameraCaptureSource.addVideoSink(it)
             videoPreview = it
@@ -130,13 +146,12 @@ class DeviceManagementFragment : Fragment(),
         return view
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    override fun onDestroy() {
+        super.onDestroy()
 
         cameraCaptureSource.stop()
-        super.getView()?.findViewById<DefaultVideoRenderView>(R.id.videoPreview)?.let{
-            cameraCaptureSource.removeVideoSink(it)
-        }
+        cameraCaptureSource.removeVideoSink(videoPreview)
+        videoPreview.release()
     }
 
     private val onAudioDeviceSelected = object : AdapterView.OnItemSelectedListener {
@@ -153,9 +168,7 @@ class DeviceManagementFragment : Fragment(),
             currentVideoDevice = parent?.getItemAtPosition(position) as MediaDevice
             cameraCaptureSource.device = currentVideoDevice
 
-            if (currentVideoDevice.type == MediaDeviceType.VIDEO_FRONT_CAMERA) {
-                videoPreview.mirror = true
-            }
+            videoPreview.mirror = currentVideoDevice.type == MediaDeviceType.VIDEO_FRONT_CAMERA
         }
 
         override fun onNothingSelected(parent: AdapterView<*>?) {

@@ -6,6 +6,9 @@
 package com.amazonaws.services.chime.sdkdemo.model
 
 import androidx.lifecycle.ViewModel
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultEglCoreFactory
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdkdemo.data.Message
 import com.amazonaws.services.chime.sdkdemo.data.MetricData
@@ -28,4 +31,7 @@ class MeetingModel : ViewModel() {
     var isMoreMenuDialogOn = false
     var lastReceivedMessageTimestamp = 0L
     var tabIndex = 0
+
+    var eglCoreFactory: EglCoreFactory = DefaultEglCoreFactory()
+    var cameraCaptureSource: CameraCaptureSource? = null
 }

@@ -14,6 +14,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.util.AttributeSet
+import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
@@ -304,7 +305,9 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     }
 
     private fun renderPendingFrame() {
-        if (eglCore?.eglSurface == EGL14.EGL_NO_SURFACE) return
+        if (eglCore?.eglSurface == EGL14.EGL_NO_SURFACE) {
+            return
+        }
 
         // Fetch pending frame
         var frame: VideoFrame
@@ -317,8 +320,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
         }
 
         // Setup draw matrix
-        val frameAspectRatio =
-            frame.getRotatedWidth() / frame.getRotatedHeight().toFloat()
+        val frameAspectRatio = frame.getRotatedWidth().toFloat() / frame.getRotatedHeight()
         val drawnAspectRatio = if (layoutAspectRatio != 0f) layoutAspectRatio else frameAspectRatio
         val scaleX: Float
         val scaleY: Float
@@ -334,9 +336,6 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
         drawMatrix.preScale(if (mirror) -1f else 1f, 1f)
         drawMatrix.preScale(scaleX, scaleY)
         drawMatrix.preTranslate(-0.5f, -0.5f)
-
-        GLES20.glClearColor(1f, 0f, 0f, 1f)
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
 
         // Get current surface size so we can set viewport correctly
         val widthArray = IntArray(1)

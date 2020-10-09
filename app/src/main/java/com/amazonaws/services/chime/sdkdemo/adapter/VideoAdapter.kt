@@ -6,6 +6,7 @@
 package com.amazonaws.services.chime.sdkdemo.adapter
 
 import android.content.Context
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
@@ -109,10 +110,9 @@ class VideoHolder(
 
 
     private fun updateLocalVideoMirror() {
-        if (audioVideo.getActiveCamera()?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
-                || audioVideo.getActiveCamera() == null && cameraCaptureSource?.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA) {
-            view.video_surface.mirror = true
-        }
+        Log.e("HELPME", "${audioVideo.getActiveCamera()} ${audioVideo.getActiveCamera() == null} ${cameraCaptureSource?.device}")
+        view.video_surface.mirror = (audioVideo.getActiveCamera()?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
+                || (audioVideo.getActiveCamera() == null && cameraCaptureSource?.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA))
     }
 
 }
