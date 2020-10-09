@@ -212,7 +212,7 @@ open class GenericGlVideoFrameDrawer(
         if (frame.buffer is VideoFrameI420Buffer) {
             renderMatrix.preScale(1f, -1f) // I420-frames are upside down
         }
-        renderMatrix.preRotate(frame.rotation.toFloat())
+        renderMatrix.preRotate(frame.rotation.degrees.toFloat())
         renderMatrix.preTranslate(-0.5f, -0.5f)
         if (additionalRenderMatrix != null) {
             renderMatrix.preConcat(additionalRenderMatrix)

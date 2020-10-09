@@ -5,7 +5,10 @@ import android.opengl.EGLConfig
 import android.opengl.EGLContext
 import android.opengl.EGLExt
 
-class DefaultEglCore(sharedContext: EGLContext = EGL14.EGL_NO_CONTEXT) : EglCore {
+class DefaultEglCore(
+        private val releaseCallback: Runnable? = null,
+        sharedContext: EGLContext = EGL14.EGL_NO_CONTEXT
+) : EglCore {
     override var eglContext = EGL14.EGL_NO_CONTEXT
     override var eglSurface = EGL14.EGL_NO_SURFACE
     override var eglDisplay = EGL14.EGL_NO_DISPLAY
@@ -59,6 +62,8 @@ class DefaultEglCore(sharedContext: EGLContext = EGL14.EGL_NO_CONTEXT) : EglCore
         }
         eglDisplay = EGL14.EGL_NO_DISPLAY
         eglContext = EGL14.EGL_NO_CONTEXT
+
+        releaseCallback?.run()
     }
 
 

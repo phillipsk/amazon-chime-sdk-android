@@ -5,10 +5,14 @@
 
 package com.amazonaws.services.chime.sdk.meetings.device
 
+import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CameraMetadata
 import android.media.AudioDeviceInfo
+import android.util.Size
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoCaptureFormat
+import kotlin.math.roundToInt
 
 /**
  * Media device with its info.
@@ -35,6 +39,8 @@ data class MediaDevice(
     override fun toString(): String = label
 
     companion object {
+        private val NANO_SECONDS_PER_SECOND = 1.0e9
+
         /**
          * Lists currently available video devices.
          *
@@ -52,6 +58,49 @@ data class MediaDevice(
                 return@map MediaDevice("$id ($MediaDeviceType.OTHER)", MediaDeviceType.OTHER)
             }
         }
+
+        /**
+         * Lists currently available video devices.
+         *
+         * @param cameraManager: [CameraManager] - Camera manager to use for enumeration
+         * @param mediaDevice: [MediaDevice] - Media device to inspect
+         *
+         * @return [List<VideoCaptureFormat>] - A list of supported formats for the given device
+         */
+        fun getSupportedVideoCaptureFormats(
+                cameraManager: CameraManager,
+                mediaDevice: MediaDevice
+        ): List<VideoCaptureFormat> {
+            val characteristics = cameraManager.getCameraCharacteristics(mediaDevice.id)
+
+            val sizes = getSupportedSizes(characteristics)
+
+            val streamMap =
+                    characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                            ?: return emptyList()
+
+            return sizes.map { size ->
+                val minFrameDurationNs = streamMap.getOutputMinFrameDuration(
+                        SurfaceTexture::class.java, Size(size.width, size.height))
+                val maxFps = (NANO_SECONDS_PER_SECOND / minFrameDurationNs).roundToInt()
+                VideoCaptureFormat(
+                        size.width,
+                        size.height,
+                        maxFps
+                )
+            }
+        }
+
+        private fun getSupportedSizes(cameraCharacteristics: CameraCharacteristics): List<Size> {
+            val streamMap =
+                    cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                            ?: return emptyList()
+            val nativeSizes = streamMap.getOutputSizes(SurfaceTexture::class.java)
+                    ?: return emptyList()
+
+            return nativeSizes.toList()
+        }
+
     }
 }
 

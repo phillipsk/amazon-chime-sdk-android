@@ -9,7 +9,7 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.Content
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
 import com.xodee.client.video.JniUtil
 
-class DemoCpuVideoProcessor: VideoSource, VideoSink {
+class CpuVideoProcessor: VideoSource, VideoSink {
     private val sinks = mutableSetOf<VideoSink>()
 
     // The camera capture source currently output OES texture frames, so we draw them to a frame buffer that

@@ -6,6 +6,7 @@
 package com.amazonaws.services.chime.sdkdemo.fragment
 
 import android.content.Context
+import android.hardware.camera2.CameraManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,13 +17,10 @@ import android.widget.Button
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoRenderView
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRenderView
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultCameraCaptureSource
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultSurfaceTextureCaptureSourceFactory
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoCaptureFormat
 import com.amazonaws.services.chime.sdk.meetings.device.DeviceChangeObserver
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
@@ -31,16 +29,9 @@ import com.amazonaws.services.chime.sdk.meetings.utils.logger.LogLevel
 import com.amazonaws.services.chime.sdkdemo.R
 import com.amazonaws.services.chime.sdkdemo.activity.HomeActivity
 import com.amazonaws.services.chime.sdkdemo.activity.MeetingActivity
-import com.amazonaws.services.chime.sdkdemo.model.MeetingModel
-import com.amazonaws.services.chime.sdkdemo.utils.DemoCpuVideoProcessor
-import com.amazonaws.services.chime.sdkdemo.utils.DemoGpuVideoProcessor
 import com.amazonaws.services.chime.sdkdemo.utils.isLandscapeMode
+import kotlinx.coroutines.*
 import java.lang.ClassCastException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.security.InvalidParameterException
 
 class DeviceManagementFragment : Fragment(),
     DeviceChangeObserver {
@@ -48,8 +39,9 @@ class DeviceManagementFragment : Fragment(),
     private val uiScope = CoroutineScope(Dispatchers.Main)
     private val audioDevices = mutableListOf<MediaDevice>()
     private val videoDevices = mutableListOf<MediaDevice>()
+    private val videoFormats = mutableListOf<VideoCaptureFormat>()
 
-    private lateinit var currentVideoDevice: MediaDevice
+    private lateinit var cameraManager: CameraManager
 
     private lateinit var listener: DeviceManagementEventListener
     private lateinit var audioVideo: AudioVideoFacade
@@ -60,6 +52,7 @@ class DeviceManagementFragment : Fragment(),
 
     private lateinit var audioDeviceArrayAdapter: ArrayAdapter<MediaDevice>
     private lateinit var videoDeviceArrayAdapter: ArrayAdapter<MediaDevice>
+    private lateinit var videoCaptureFormatArrayAdapter: ArrayAdapter<VideoCaptureFormat>
 
     private val VIDEO_ASPECT_RATIO_16_9 = 0.5625
 
@@ -120,12 +113,15 @@ class DeviceManagementFragment : Fragment(),
         spinnerVideoDevice.adapter = videoDeviceArrayAdapter
         spinnerVideoDevice.onItemSelectedListener = onVideoDeviceSelected
 
+        val spinnerVideoFormat = view.findViewById<Spinner>(R.id.spinnerVideoFormat)
+        videoCaptureFormatArrayAdapter =
+                createVideoCaptureFormatSpinnerAdapter(context, videoFormats)
+        spinnerVideoFormat.adapter = videoCaptureFormatArrayAdapter
+        spinnerVideoFormat.onItemSelectedListener = onVideoFormatSelected
+
         audioVideo.addDeviceChangeObserver(this)
 
-        uiScope.launch {
-            populateAudioDeviceList(listAudioDevices())
-            populateVideoDeviceList(listVideoDevices())
-        }
+        cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
         cameraCaptureSource = (activity as MeetingActivity).getCameraCaptureSource()
         view.findViewById<DefaultVideoRenderView>(R.id.videoPreview)?.let{
@@ -135,13 +131,21 @@ class DeviceManagementFragment : Fragment(),
             it.layoutParams.width = width
             it.layoutParams.height = height
 
-            it.mirror = cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
-
             it.init((activity as MeetingActivity).getEglCoreFactory())
             cameraCaptureSource.addVideoSink(it)
             videoPreview = it
         }
-        cameraCaptureSource.start()
+
+
+        uiScope.launch {
+            populateAudioDeviceList(listAudioDevices())
+            populateVideoDeviceList(listVideoDevices())
+            populateVideoFormatList(listVideoFormats())
+
+            videoPreview.mirror = cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
+            cameraCaptureSource.start()
+        }
+
 
         return view
     }
@@ -165,17 +169,23 @@ class DeviceManagementFragment : Fragment(),
 
     private val onVideoDeviceSelected = object : AdapterView.OnItemSelectedListener {
         override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-            currentVideoDevice = parent?.getItemAtPosition(position) as MediaDevice
-            cameraCaptureSource.device = currentVideoDevice
+            cameraCaptureSource.device = parent?.getItemAtPosition(position) as MediaDevice
 
-            videoPreview.mirror = currentVideoDevice.type == MediaDeviceType.VIDEO_FRONT_CAMERA
+            videoPreview.mirror = cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
         }
 
         override fun onNothingSelected(parent: AdapterView<*>?) {
         }
     }
 
+    private val onVideoFormatSelected = object : AdapterView.OnItemSelectedListener {
+        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            cameraCaptureSource.format = parent?.getItemAtPosition(position) as VideoCaptureFormat
+        }
 
+        override fun onNothingSelected(parent: AdapterView<*>?) {
+        }
+    }
 
     private fun populateAudioDeviceList(freshAudioDeviceList: List<MediaDevice>) {
         audioDevices.clear()
@@ -199,10 +209,26 @@ class DeviceManagementFragment : Fragment(),
         )
         videoDeviceArrayAdapter.notifyDataSetChanged()
         if (videoDevices.isNotEmpty()) {
-            currentVideoDevice = videoDevices[0]
+            cameraCaptureSource.device = videoDevices[0]
         }
-
     }
+
+    private fun populateVideoFormatList(freshVideoCaptureFormatList: List<VideoCaptureFormat>) {
+        videoFormats.clear()
+
+        val filteredFormats = freshVideoCaptureFormatList.filter { it.height <= 800 }
+
+        for (format in filteredFormats) {
+            videoFormats.add(format)
+            // Add additional 15 FPS option
+            videoFormats.add(VideoCaptureFormat(format.width, format.height, 15))
+        }
+        videoCaptureFormatArrayAdapter.notifyDataSetChanged()
+        if (videoFormats.isNotEmpty()) {
+            cameraCaptureSource.format = videoFormats[0]
+        }
+    }
+
 
     private suspend fun listAudioDevices(): List<MediaDevice> {
         return withContext(Dispatchers.Default) {
@@ -216,10 +242,24 @@ class DeviceManagementFragment : Fragment(),
         }
     }
 
+    private suspend fun listVideoFormats(): List<VideoCaptureFormat> {
+        return withContext(Dispatchers.Default) {
+            val device = cameraCaptureSource.device ?: return@withContext emptyList<VideoCaptureFormat>()
+            MediaDevice.getSupportedVideoCaptureFormats(cameraManager, device)
+        }
+    }
+
     private fun createMediaDeviceSpinnerAdapter(
         context: Context,
         list: List<MediaDevice>
     ): ArrayAdapter<MediaDevice> {
+        return ArrayAdapter(context, android.R.layout.simple_spinner_item, list)
+    }
+
+    private fun createVideoCaptureFormatSpinnerAdapter(
+            context: Context,
+            list: List<VideoCaptureFormat>
+    ): ArrayAdapter<VideoCaptureFormat> {
         return ArrayAdapter(context, android.R.layout.simple_spinner_item, list)
     }
 
