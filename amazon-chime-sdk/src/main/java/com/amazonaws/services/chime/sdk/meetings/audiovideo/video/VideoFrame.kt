@@ -5,7 +5,7 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
  */
 class VideoFrame(
         /**
-         * Timestamp at which the video frame was captured
+         * Timestamp in nanoseconds at which the video frame was captured
          */
         val timestampNs: Long,
 
@@ -17,7 +17,7 @@ class VideoFrame(
         /**
          * Rotation of the video frame buffer in degrees clockwise
          */
-        val rotation: Int = 0
+        val rotation: VideoRotation = VideoRotation.Rotation0
 ) {
     /**
      * Width of the video frame
@@ -41,7 +41,7 @@ class VideoFrame(
      * @return [Int] - Frame width when rotation is removed
      */
     fun getRotatedWidth(): Int {
-        return if (rotation % 180 == 0) {
+        return if (rotation.degrees % 180 == 0) {
             buffer.width
         } else {
             buffer.height
@@ -54,7 +54,7 @@ class VideoFrame(
      * @return [Int] - Frame height when rotation is removed
      */
     fun getRotatedHeight(): Int {
-        return if (rotation % 180 == 0) {
+        return if (rotation.degrees % 180 == 0) {
             buffer.height
         } else {
             buffer.width

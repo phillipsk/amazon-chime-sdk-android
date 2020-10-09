@@ -2,24 +2,45 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
 
 import android.opengl.EGL14
 import android.opengl.EGLContext
+import android.util.Log
+import com.amazonaws.services.chime.sdk.meetings.utils.RefCountDelegate
 
+/**
+ * [DefaultEglCoreFactory] will create a root [EglCore] lazily if no shared context is provided.
+ * It will track all child [EglCore] objects, and if they are all release, will release the root core
+ */
 class DefaultEglCoreFactory(override var sharedContext: EGLContext = EGL14.EGL_NO_CONTEXT) :
-    EglCoreFactory {
-    var rootEglCore: EglCore? = null
+        EglCoreFactory {
+    private var rootEglCoreLock = Any()
+    private var rootEglCore: EglCore? = null
+    private var refCountDelegate: RefCountDelegate? = null
 
-    init {
-        if (sharedContext == EGL14.EGL_NO_CONTEXT) {
-            rootEglCore = DefaultEglCore().also {
-                sharedContext = it.eglContext
+    override fun createEglCore(): EglCore {
+        synchronized(rootEglCoreLock) {
+            if (rootEglCore == null && sharedContext == EGL14.EGL_NO_CONTEXT) {
+                refCountDelegate = RefCountDelegate(Runnable { release() })
+                rootEglCore = DefaultEglCore().also {
+                    sharedContext = it.eglContext
+                }
+            } else {
+                refCountDelegate?.retain()
             }
+            return DefaultEglCore(Runnable { eglCoreReleased() }, sharedContext)
         }
     }
 
-    override fun release() {
-        rootEglCore?.release()
+    private fun eglCoreReleased() {
+        refCountDelegate?.release()
     }
 
-    override fun createEglCore(): EglCore {
-        return DefaultEglCore(sharedContext)
+    private fun release() {
+        synchronized(rootEglCoreLock) {
+            if (rootEglCore != null) {
+                rootEglCore?.release()
+                rootEglCore = null
+                sharedContext = EGL14.EGL_NO_CONTEXT
+                refCountDelegate = null
+            }
+        }
     }
 }

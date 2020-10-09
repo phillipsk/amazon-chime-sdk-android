@@ -6,10 +6,7 @@
 package com.amazonaws.services.chime.sdk.meetings.internal.video
 
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoObserver
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameBuffer
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoPauseState
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileController
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.*
 import com.amazonaws.services.chime.sdk.meetings.internal.metric.ClientMetricsCollector
 import com.amazonaws.services.chime.sdk.meetings.internal.utils.ObserverUtils
 import com.amazonaws.services.chime.sdk.meetings.internal.video.adapters.VideoFrameBufferAdapter
@@ -155,7 +152,7 @@ class DefaultVideoClientObserver(
                 )
                 else -> throw InvalidParameterException("Video frame must have non null buffer")
             }
-            VideoFrame(frame.timestamp, bufferAdapter, frame.rotation.toInt())
+            VideoFrame(frame.timestamp, bufferAdapter, VideoRotation.from(frame.rotation.toInt()) ?: VideoRotation.Rotation0)
         }
 
         notifyVideoTileObserver { observer ->

@@ -19,6 +19,7 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRotation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.android.asCoroutineDispatcher
@@ -110,7 +111,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     // Accessed only on the main thread.
     private var rotatedFrameWidth = 0
     private var rotatedFrameHeight = 0
-    private var frameRotation = 0
+    private var frameRotation = VideoRotation.Rotation0
 
     private var surfaceWidth = 0
     private var surfaceHeight = 0

@@ -96,7 +96,9 @@ class MeetingActivity : AppCompatActivity(),
     }
 
     override fun onBackPressed() {
+        logger.info(TAG, "STOPPING")
         meetingSessionModel.audioVideo.stop()
+        meetingModel.cameraCaptureSource?.stop()
         super.onBackPressed()
     }
 

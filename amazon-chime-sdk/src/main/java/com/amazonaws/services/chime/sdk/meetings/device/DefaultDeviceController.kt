@@ -213,7 +213,6 @@ class DefaultDeviceController(
 
     override fun listVideoDevices(): List<MediaDevice> {
         return MediaDevice.listVideoDevices(cameraManager)
-
     }
 
     override fun addDeviceChangeObserver(observer: DeviceChangeObserver) {

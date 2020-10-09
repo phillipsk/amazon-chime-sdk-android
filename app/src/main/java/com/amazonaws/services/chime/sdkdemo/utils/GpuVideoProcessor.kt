@@ -19,7 +19,7 @@ import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 
-class DemoGpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFactory) : VideoSource, VideoSink {
+class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFactory) : VideoSource, VideoSink {
     override val contentHint: ContentHint = ContentHint.Motion
 
     // Pending frame to render. Serves as a queue with size 1. Synchronized on |frameLock|.
@@ -163,6 +163,7 @@ class DemoGpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreF
         rectDrawer.release()
         bwDrawer.release()
         textureFrameBuffer.release()
+        eglCore.release()
 
         handler.looper.quit();
     }

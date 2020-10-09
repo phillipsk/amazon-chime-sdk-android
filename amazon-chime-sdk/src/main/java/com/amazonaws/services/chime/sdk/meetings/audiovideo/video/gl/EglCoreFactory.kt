@@ -18,9 +18,4 @@ interface EglCoreFactory {
      * @return [EglCore] - Newly created and initialized [EglCore] object
      */
     fun createEglCore(): EglCore
-
-    /**
-     * Release any manually allocated state or resources
-     */
-    fun release()
 }

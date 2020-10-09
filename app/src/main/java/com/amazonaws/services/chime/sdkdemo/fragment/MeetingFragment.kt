@@ -48,8 +48,8 @@ import com.amazonaws.services.chime.sdkdemo.data.MetricData
 import com.amazonaws.services.chime.sdkdemo.data.RosterAttendee
 import com.amazonaws.services.chime.sdkdemo.data.VideoCollectionTile
 import com.amazonaws.services.chime.sdkdemo.model.MeetingModel
-import com.amazonaws.services.chime.sdkdemo.utils.DemoCpuVideoProcessor
-import com.amazonaws.services.chime.sdkdemo.utils.DemoGpuVideoProcessor
+import com.amazonaws.services.chime.sdkdemo.utils.CpuVideoProcessor
+import com.amazonaws.services.chime.sdkdemo.utils.GpuVideoProcessor
 import com.amazonaws.services.chime.sdkdemo.utils.isLandscapeMode
 import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.CoroutineScope
@@ -57,7 +57,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.security.InvalidParameterException
 import java.util.*
 
 class MeetingFragment : Fragment(),
@@ -71,8 +70,8 @@ class MeetingFragment : Fragment(),
     private lateinit var credentials: MeetingSessionCredentials
     private lateinit var audioVideo: AudioVideoFacade
     private lateinit var cameraCaptureSource: CameraCaptureSource
-    private lateinit var demoGpuVideoProcessor: DemoGpuVideoProcessor
-    private lateinit var cpuVideoProcessor: DemoCpuVideoProcessor
+    private lateinit var gpuVideoProcessor: GpuVideoProcessor
+    private lateinit var cpuVideoProcessor: CpuVideoProcessor
     private var isUsingCameraCaptureSource = true
     private var isLocalVideoStarted = false
     private var isUsingGpuVideoProcessor = false
@@ -158,8 +157,8 @@ class MeetingFragment : Fragment(),
         credentials = (activity as MeetingActivity).getMeetingSessionCredentials()
         audioVideo = activity.getAudioVideo()
         cameraCaptureSource = activity.getCameraCaptureSource()
-        demoGpuVideoProcessor = DemoGpuVideoProcessor(logger, activity.getEglCoreFactory())
-        cpuVideoProcessor = DemoCpuVideoProcessor()
+        gpuVideoProcessor = GpuVideoProcessor(logger, activity.getEglCoreFactory())
+        cpuVideoProcessor = CpuVideoProcessor()
 
 
         view.findViewById<TextView>(R.id.textViewMeetingId)?.text = arguments?.getString(
@@ -179,6 +178,12 @@ class MeetingFragment : Fragment(),
         audioVideo.start()
         audioVideo.startRemoteVideo()
         return view
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        gpuVideoProcessor.release()
     }
 
     private fun setupButtonsBar(view: View) {
@@ -645,8 +650,12 @@ class MeetingFragment : Fragment(),
 
     private fun toggleCustomCaptureSource() {
         logger.info(TAG, "Toggling using custom camera source from $isUsingCameraCaptureSource to ${!isUsingCameraCaptureSource}")
+        val wasUsingCameraCaptureSource = isUsingCameraCaptureSource
         isUsingCameraCaptureSource = !isUsingCameraCaptureSource
         if (isLocalVideoStarted) {
+            if (wasUsingCameraCaptureSource) {
+                cameraCaptureSource.stop()
+            }
             stopLocalVideo()
             startLocalVideo()
         }
