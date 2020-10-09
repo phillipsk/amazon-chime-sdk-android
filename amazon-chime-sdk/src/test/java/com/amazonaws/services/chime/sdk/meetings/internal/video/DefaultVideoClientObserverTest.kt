@@ -201,7 +201,7 @@ class DefaultVideoClientObserverTest {
     fun `onLogMessage should call logger`() {
         testVideoClientObserver.onLogMessage(AudioClient.L_ERROR, testMessage)
 
-        verify { mockLogger.debug(any(), testMessage) }
+        verify { mockLogger.error(any(), testMessage) }
     }
 
     @Test
