@@ -19,13 +19,12 @@ import android.view.SurfaceView
 import android.view.View
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRotation
+import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlin.math.roundToInt
-
 
 open class DefaultEglVideoRenderView @JvmOverloads constructor(
     context: Context,
@@ -144,8 +143,8 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     }
 
     override fun init(eglCoreFactory: EglCoreFactory) {
-        rotatedFrameWidth = 0;
-        rotatedFrameHeight = 0;
+        rotatedFrameWidth = 0
+        rotatedFrameHeight = 0
 
         val thread = HandlerThread("DefaultEglVideoRenderView")
         thread.start()
@@ -156,7 +155,6 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             eglCore = eglCoreFactory.createEglCore()
             surface?.let { createEglSurface(it) }
         }
-
     }
 
     override fun release() {
@@ -164,27 +162,26 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
         runBlocking(validRenderHandler.asCoroutineDispatcher().immediate) {
             eglCore?.release()
             eglCore = null
-
         }
         this.renderHandler?.looper?.quitSafely()
         this.renderHandler = null
 
         synchronized(pendingFrameLock) {
-            pendingFrame?.release();
-            pendingFrame = null;
+            pendingFrame?.release()
+            pendingFrame = null
         }
     }
 
     override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {}
 
     override fun surfaceDestroyed(holder: SurfaceHolder?) {
-        releaseEglSurface();
+        releaseEglSurface()
     }
 
     override fun surfaceCreated(holder: SurfaceHolder?) {
-        surfaceWidth = 0;
-        surfaceHeight = 0;
-        updateSurfaceSize();
+        surfaceWidth = 0
+        surfaceHeight = 0
+        updateSurfaceSize()
 
         holder?.let {
             createEglSurface(it.surface)
@@ -212,17 +209,17 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     }
 
     override fun onVideoFrameReceived(frame: VideoFrame) {
-        if (rotatedFrameWidth != frame.getRotatedWidth()
-            || rotatedFrameHeight != frame.getRotatedHeight()
-            || frameRotation != frame.rotation
+        if (rotatedFrameWidth != frame.getRotatedWidth() ||
+            rotatedFrameHeight != frame.getRotatedHeight() ||
+            frameRotation != frame.rotation
         ) {
-            rotatedFrameWidth = frame.getRotatedWidth();
-            rotatedFrameHeight = frame.getRotatedHeight();
-            frameRotation = frame.rotation;
+            rotatedFrameWidth = frame.getRotatedWidth()
+            rotatedFrameHeight = frame.getRotatedHeight()
+            frameRotation = frame.rotation
 
             CoroutineScope(Dispatchers.Main).launch {
-                updateSurfaceSize();
-                requestLayout();
+                updateSurfaceSize()
+                requestLayout()
             }
         }
 
@@ -288,7 +285,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             // Discard any old frame
             synchronized(pendingFrameLock) {
                 pendingFrame?.release()
-                pendingFrame = null;
+                pendingFrame = null
             }
         }
     }
@@ -304,7 +301,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
                 EGL14.EGL_NO_CONTEXT
             )
             EGL14.eglDestroySurface(eglCore?.eglDisplay, eglCore?.eglSurface)
-            eglCore?.eglSurface = EGL14.EGL_NO_SURFACE;
+            eglCore?.eglSurface = EGL14.EGL_NO_SURFACE
         }
     }
 
@@ -313,7 +310,6 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
         if (eglCore?.eglSurface == EGL14.EGL_NO_SURFACE) {
             return
         }
-
 
         // Fetch pending frame
         var frame: VideoFrame

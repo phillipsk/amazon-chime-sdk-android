@@ -3,7 +3,6 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
 import android.graphics.Matrix
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
-import android.os.Handler
 
 /**
  * [VideoFrameTextureBuffer] is a buffer which maintains a OpenGLES texture

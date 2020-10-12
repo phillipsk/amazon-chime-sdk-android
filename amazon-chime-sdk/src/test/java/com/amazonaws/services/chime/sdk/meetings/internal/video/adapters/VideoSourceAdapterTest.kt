@@ -1,10 +1,18 @@
 package com.amazonaws.services.chime.sdk.meetings.internal.video.adapters
 
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.*
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameI420Buffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameRGBABuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameTextureBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRotation
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.ContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.slot
+import io.mockk.verify
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -112,4 +120,3 @@ class VideoSourceAdapterTest {
         assert(slot.captured.buffer is com.xodee.client.video.VideoFrameTextureBuffer)
     }
 }
-

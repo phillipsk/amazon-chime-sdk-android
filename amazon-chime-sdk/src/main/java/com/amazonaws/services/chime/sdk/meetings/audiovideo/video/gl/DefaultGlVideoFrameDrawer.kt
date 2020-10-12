@@ -95,7 +95,6 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
             }
             return validYuvTextures
         }
-
     }
 
     /**
@@ -162,9 +161,7 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
             )
             return textureId
         }
-
     }
-
 
     private var currentShaderType: ShaderType? = null
 
@@ -245,9 +242,12 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
             val textureId = rgbaUploader?.uploadFromBuffer(frame.buffer)
             if (textureId != null) {
                 drawRgb(
-                    textureId, GlUtil.convertToGlTransformMatrix(renderMatrix),
-                    viewportX, viewportY,
-                    viewportWidth, viewportHeight
+                    textureId,
+                    GlUtil.convertToGlTransformMatrix(renderMatrix),
+                    viewportX,
+                    viewportY,
+                    viewportWidth,
+                    viewportHeight
                 )
             }
         }
@@ -256,7 +256,9 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
     // Calculate the frame size after |renderMatrix| is applied. Stores the output in member variables
     // |renderWidth| and |renderHeight| to avoid allocations since this function is called for every frame.
     private fun calculateTransformedRenderSize(
-        frameWidth: Int, frameHeight: Int, renderMatrix: Matrix?
+        frameWidth: Int,
+        frameHeight: Int,
+        renderMatrix: Matrix?
     ) {
         if (renderMatrix == null) {
             renderWidth = frameWidth
@@ -291,8 +293,12 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
     }
 
     private fun drawOes(
-        oesTextureId: Int, texMatrix: FloatArray?,
-        viewportX: Int, viewportY: Int, viewportWidth: Int, viewportHeight: Int
+        oesTextureId: Int,
+        texMatrix: FloatArray?,
+        viewportX: Int,
+        viewportY: Int,
+        viewportWidth: Int,
+        viewportHeight: Int
     ) {
         prepareShader(ShaderType.OES, texMatrix)
 
@@ -310,8 +316,12 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
     }
 
     private fun drawRgb(
-        textureId: Int, texMatrix: FloatArray?,
-        viewportX: Int, viewportY: Int, viewportWidth: Int, viewportHeight: Int
+        textureId: Int,
+        texMatrix: FloatArray?,
+        viewportX: Int,
+        viewportY: Int,
+        viewportWidth: Int,
+        viewportHeight: Int
     ) {
         prepareShader(ShaderType.RGB, texMatrix)
 
@@ -329,8 +339,12 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
     }
 
     private fun drawYuv(
-        yuvTextures: IntArray?, texMatrix: FloatArray?,
-        viewportX: Int, viewportY: Int, viewportWidth: Int, viewportHeight: Int
+        yuvTextures: IntArray?,
+        texMatrix: FloatArray?,
+        viewportX: Int,
+        viewportY: Int,
+        viewportWidth: Int,
+        viewportHeight: Int
     ) {
         prepareShader(ShaderType.YUV, texMatrix)
 
@@ -350,9 +364,7 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
         }
     }
 
-    private fun prepareShader(
-        shaderType: ShaderType, texMatrix: FloatArray?
-    ) {
+    private fun prepareShader(shaderType: ShaderType, texMatrix: FloatArray?) {
         if (currentShaderType != shaderType) {
             // Allocate new shader.
             var fragmentShader: String
@@ -396,15 +408,18 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
         // Upload the vertex coordinates.
         GLES20.glEnableVertexAttribArray(vertexPositionLocation)
         GLES20.glVertexAttribPointer(
-            vertexPositionLocation, 2, GLES20.GL_FLOAT,
-            false, 0, GlUtil.FULL_RECTANGLE_BUFFER
+            vertexPositionLocation, 2, GLES20.GL_FLOAT, false, 0, GlUtil.FULL_RECTANGLE_BUFFER
         )
 
         // Upload the texture coordinates.
         GLES20.glEnableVertexAttribArray(textureCoordinateLocation)
         GLES20.glVertexAttribPointer(
-            textureCoordinateLocation, 2, GLES20.GL_FLOAT,
-            false, 0, GlUtil.FULL_RECTANGLE_TEXTURE_BUFFER
+            textureCoordinateLocation,
+            2,
+            GLES20.GL_FLOAT,
+            false,
+            0,
+            GlUtil.FULL_RECTANGLE_TEXTURE_BUFFER
         )
 
         // Upload the texture transformation matrix.
@@ -425,7 +440,6 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
             GLES20.glDeleteProgram(program)
             program = -1
         }
-
     }
 
     companion object {

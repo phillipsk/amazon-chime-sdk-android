@@ -30,8 +30,11 @@ import com.amazonaws.services.chime.sdkdemo.R
 import com.amazonaws.services.chime.sdkdemo.activity.HomeActivity
 import com.amazonaws.services.chime.sdkdemo.activity.MeetingActivity
 import com.amazonaws.services.chime.sdkdemo.utils.isLandscapeMode
-import kotlinx.coroutines.*
 import java.lang.ClassCastException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class DeviceManagementFragment : Fragment(),
     DeviceChangeObserver {
@@ -115,7 +118,7 @@ class DeviceManagementFragment : Fragment(),
 
         val spinnerVideoFormat = view.findViewById<Spinner>(R.id.spinnerVideoFormat)
         videoCaptureFormatArrayAdapter =
-                createVideoCaptureFormatSpinnerAdapter(context, videoFormats)
+            createVideoCaptureFormatSpinnerAdapter(context, videoFormats)
         spinnerVideoFormat.adapter = videoCaptureFormatArrayAdapter
         spinnerVideoFormat.onItemSelectedListener = onVideoFormatSelected
 
@@ -124,9 +127,10 @@ class DeviceManagementFragment : Fragment(),
         cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
         cameraCaptureSource = (activity as MeetingActivity).getCameraCaptureSource()
-        view.findViewById<DefaultVideoRenderView>(R.id.videoPreview)?.let{
+        view.findViewById<DefaultVideoRenderView>(R.id.videoPreview)?.let {
             val displayMetrics = context.resources.displayMetrics
-            val width = if (isLandscapeMode(context) == true) displayMetrics.widthPixels / 2 else displayMetrics.widthPixels
+            val width =
+                if (isLandscapeMode(context) == true) displayMetrics.widthPixels / 2 else displayMetrics.widthPixels
             val height = (width * VIDEO_ASPECT_RATIO_16_9).toInt()
             it.layoutParams.width = width
             it.layoutParams.height = height
@@ -136,16 +140,15 @@ class DeviceManagementFragment : Fragment(),
             videoPreview = it
         }
 
-
         uiScope.launch {
             populateAudioDeviceList(listAudioDevices())
             populateVideoDeviceList(listVideoDevices())
             populateVideoFormatList(listVideoFormats())
 
-            videoPreview.mirror = cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
+            videoPreview.mirror =
+                cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
             cameraCaptureSource.start()
         }
-
 
         return view
     }
@@ -171,7 +174,8 @@ class DeviceManagementFragment : Fragment(),
         override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
             cameraCaptureSource.device = parent?.getItemAtPosition(position) as MediaDevice
 
-            videoPreview.mirror = cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
+            videoPreview.mirror =
+                cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
         }
 
         override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -228,7 +232,6 @@ class DeviceManagementFragment : Fragment(),
         }
     }
 
-
     private suspend fun listAudioDevices(): List<MediaDevice> {
         return withContext(Dispatchers.Default) {
             audioVideo.listAudioDevices()
@@ -243,7 +246,8 @@ class DeviceManagementFragment : Fragment(),
 
     private suspend fun listVideoFormats(): List<VideoCaptureFormat> {
         return withContext(Dispatchers.Default) {
-            val device = cameraCaptureSource.device ?: return@withContext emptyList<VideoCaptureFormat>()
+            val device =
+                cameraCaptureSource.device ?: return@withContext emptyList<VideoCaptureFormat>()
             MediaDevice.getSupportedVideoCaptureFormats(cameraManager, device)
         }
     }
@@ -256,17 +260,13 @@ class DeviceManagementFragment : Fragment(),
     }
 
     private fun createVideoCaptureFormatSpinnerAdapter(
-            context: Context,
-            list: List<VideoCaptureFormat>
+        context: Context,
+        list: List<VideoCaptureFormat>
     ): ArrayAdapter<VideoCaptureFormat> {
         return ArrayAdapter(context, android.R.layout.simple_spinner_item, list)
     }
 
     override fun onAudioDeviceChanged(freshAudioDeviceList: List<MediaDevice>) {
         populateAudioDeviceList(freshAudioDeviceList)
-    }
-
-    override fun onVideoDeviceChanged(freshVideoDeviceList: List<MediaDevice>) {
-        populateVideoDeviceList(freshVideoDeviceList)
     }
 }

@@ -24,7 +24,8 @@ import kotlin.math.roundToInt
 data class MediaDevice(
     val label: String,
     val type: MediaDeviceType,
-    val id: String = "") {
+    val id: String = ""
+) {
     val order: Int = when (type) {
         MediaDeviceType.AUDIO_BLUETOOTH -> 0
         MediaDeviceType.AUDIO_WIRED_HEADSET -> 1
@@ -68,39 +69,39 @@ data class MediaDevice(
          * @return [List<VideoCaptureFormat>] - A list of supported formats for the given device
          */
         fun getSupportedVideoCaptureFormats(
-                cameraManager: CameraManager,
-                mediaDevice: MediaDevice
+            cameraManager: CameraManager,
+            mediaDevice: MediaDevice
         ): List<VideoCaptureFormat> {
             val characteristics = cameraManager.getCameraCharacteristics(mediaDevice.id)
 
             val sizes = getSupportedSizes(characteristics)
 
             val streamMap =
-                    characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-                            ?: return emptyList()
+                characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                    ?: return emptyList()
 
             return sizes.map { size ->
                 val minFrameDurationNs = streamMap.getOutputMinFrameDuration(
-                        SurfaceTexture::class.java, Size(size.width, size.height))
+                    SurfaceTexture::class.java, Size(size.width, size.height)
+                )
                 val maxFps = (NANO_SECONDS_PER_SECOND / minFrameDurationNs).roundToInt()
                 VideoCaptureFormat(
-                        size.width,
-                        size.height,
-                        maxFps
+                    size.width,
+                    size.height,
+                    maxFps
                 )
             }
         }
 
         private fun getSupportedSizes(cameraCharacteristics: CameraCharacteristics): List<Size> {
             val streamMap =
-                    cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-                            ?: return emptyList()
-            val nativeSizes = streamMap.getOutputSizes(SurfaceTexture::class.java)
+                cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
                     ?: return emptyList()
+            val nativeSizes = streamMap.getOutputSizes(SurfaceTexture::class.java)
+                ?: return emptyList()
 
             return nativeSizes.toList()
         }
-
     }
 }
 

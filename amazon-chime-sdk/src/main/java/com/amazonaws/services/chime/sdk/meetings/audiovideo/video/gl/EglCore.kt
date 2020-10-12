@@ -1,6 +1,9 @@
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
 
-import android.opengl.*
+import android.opengl.EGLConfig
+import android.opengl.EGLContext
+import android.opengl.EGLDisplay
+import android.opengl.EGLSurface
 
 /**
  * [EGLCore] is an interface for containing all EGL state in one component.  In the future it may contain additional helper methods.

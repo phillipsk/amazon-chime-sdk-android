@@ -1,13 +1,12 @@
 package com.amazonaws.services.chime.sdkdemo.utils
 
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlVideoFrameDrawer
-
 import android.graphics.Matrix
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameTextureBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlVideoFrameDrawer
 import java.security.InvalidParameterException
 import kotlin.math.hypot
 import kotlin.math.roundToInt
@@ -28,12 +27,12 @@ class BlackAndWhiteGlVideoFrameDrawer : GlVideoFrameDrawer {
     private var renderHeight = 0
 
     override fun drawFrame(
-            frame: VideoFrame,
-            viewportX: Int,
-            viewportY: Int,
-            viewportWidth: Int,
-            viewportHeight: Int,
-            additionalRenderMatrix: Matrix?
+        frame: VideoFrame,
+        viewportX: Int,
+        viewportY: Int,
+        viewportWidth: Int,
+        viewportHeight: Int,
+        additionalRenderMatrix: Matrix?
     ) {
         val isTextureFrame = frame.buffer is VideoFrameTextureBuffer
         val textureBuffer = frame.buffer as VideoFrameTextureBuffer
@@ -79,9 +78,7 @@ class BlackAndWhiteGlVideoFrameDrawer : GlVideoFrameDrawer {
 
     // Calculate the frame size after |renderMatrix| is applied. Stores the output in member variables
     // |renderWidth| and |renderHeight| to avoid allocations since this function is called for every frame.
-    private fun calculateTransformedRenderSize(
-            frameWidth: Int, frameHeight: Int, renderMatrix: Matrix?
-    ) {
+    private fun calculateTransformedRenderSize(frameWidth: Int, frameHeight: Int, renderMatrix: Matrix?) {
         if (renderMatrix == null) {
             renderWidth = frameWidth
             renderHeight = frameHeight
@@ -100,8 +97,18 @@ class BlackAndWhiteGlVideoFrameDrawer : GlVideoFrameDrawer {
             return hypot(x1 - x0.toDouble(), y1 - y0.toDouble()).roundToInt()
         }
         // Get the length of the sides of the transformed rectangle in terms of pixels.
-        renderWidth = distance(renderDestinationPoints[0], renderDestinationPoints[1], renderDestinationPoints[2], renderDestinationPoints[3])
-        renderHeight = distance(renderDestinationPoints[0], renderDestinationPoints[1], renderDestinationPoints[4], renderDestinationPoints[5])
+        renderWidth = distance(
+            renderDestinationPoints[0],
+            renderDestinationPoints[1],
+            renderDestinationPoints[2],
+            renderDestinationPoints[3]
+        )
+        renderHeight = distance(
+            renderDestinationPoints[0],
+            renderDestinationPoints[1],
+            renderDestinationPoints[4],
+            renderDestinationPoints[5]
+        )
     }
 
     private fun prepareShader(texMatrix: FloatArray) {
@@ -116,8 +123,10 @@ class BlackAndWhiteGlVideoFrameDrawer : GlVideoFrameDrawer {
 
             // Get input locations
             textureMatrixLocation = GLES20.glGetUniformLocation(program, TEXTURE_MATRIX_NAME)
-            vertexPositionLocation = GLES20.glGetAttribLocation(program, INPUT_VERTEX_COORDINATE_NAME)
-            textureCoordinateLocation = GLES20.glGetAttribLocation(program, INPUT_TEXTURE_COORDINATE_NAME)
+            vertexPositionLocation =
+                GLES20.glGetAttribLocation(program, INPUT_VERTEX_COORDINATE_NAME)
+            textureCoordinateLocation =
+                GLES20.glGetAttribLocation(program, INPUT_TEXTURE_COORDINATE_NAME)
             if (textureMatrixLocation == -1 || vertexPositionLocation == -1 || textureCoordinateLocation == -1) {
                 throw InvalidParameterException("Failed to get shader locations")
             }
@@ -128,14 +137,16 @@ class BlackAndWhiteGlVideoFrameDrawer : GlVideoFrameDrawer {
         // Upload the vertex coordinates.
         GLES20.glEnableVertexAttribArray(vertexPositionLocation)
         GLES20.glVertexAttribPointer(
-                vertexPositionLocation, 2, GLES20.GL_FLOAT,
-                false, 0, GlUtil.FULL_RECTANGLE_BUFFER)
+            vertexPositionLocation, 2, GLES20.GL_FLOAT,
+            false, 0, GlUtil.FULL_RECTANGLE_BUFFER
+        )
 
         // Upload the texture coordinates.
         GLES20.glEnableVertexAttribArray(textureCoordinateLocation)
         GLES20.glVertexAttribPointer(
-                textureCoordinateLocation, 2, GLES20.GL_FLOAT,
-                false, 0, GlUtil.FULL_RECTANGLE_TEXTURE_BUFFER)
+            textureCoordinateLocation, 2, GLES20.GL_FLOAT,
+            false, 0, GlUtil.FULL_RECTANGLE_TEXTURE_BUFFER
+        )
 
         // Upload the texture transformation matrix.
         GLES20.glUniformMatrix4fv(textureMatrixLocation, 1, false, texMatrix, 0)
@@ -148,7 +159,6 @@ class BlackAndWhiteGlVideoFrameDrawer : GlVideoFrameDrawer {
             GLES20.glDeleteProgram(program)
             program = -1
         }
-
     }
 
     companion object {
@@ -159,7 +169,7 @@ class BlackAndWhiteGlVideoFrameDrawer : GlVideoFrameDrawer {
         private val INPUT_TEXTURE_COORDINATE_NAME = "aTextureCoordinate"
         private val TEXTURE_MATRIX_NAME = "uTextureMatrix"
         private val VERTEX_SHADER =
-                """
+            """
         varying vec2 vTextureCoordinate;
         attribute vec4 aPosition;
         attribute vec4 aTextureCoordinate;
@@ -172,7 +182,7 @@ class BlackAndWhiteGlVideoFrameDrawer : GlVideoFrameDrawer {
 
         private val INPUT_TEXTURE_NAME = "sTexture"
         private val FRAGMENT_SHADER_OES =
-                """
+            """
         #extension GL_OES_EGL_image_external : require
         precision mediump float;
         varying vec2 vTextureCoordinate;

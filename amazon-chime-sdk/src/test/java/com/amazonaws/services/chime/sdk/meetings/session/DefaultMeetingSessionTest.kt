@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.res.AssetManager
 import android.hardware.camera2.CameraManager
 import android.media.AudioManager
-import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.util.Log
@@ -18,8 +17,15 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFact
 import com.amazonaws.services.chime.sdk.meetings.internal.audio.AudioClientFactory
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 import com.xodee.client.audio.audioclient.AudioClient
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.just
+import io.mockk.mockkClass
+import io.mockk.mockkConstructor
+import io.mockk.mockkObject
+import io.mockk.mockkStatic
+import io.mockk.runs
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test

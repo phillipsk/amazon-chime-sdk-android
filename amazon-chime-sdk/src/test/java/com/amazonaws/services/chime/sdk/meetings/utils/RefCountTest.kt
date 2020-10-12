@@ -1,13 +1,11 @@
 package com.amazonaws.services.chime.sdk.meetings.utils
 
-import android.util.Log
-import com.xodee.client.video.VideoClient
-import io.mockk.*
+import io.mockk.MockKAnnotations
 import io.mockk.impl.annotations.MockK
+import io.mockk.verify
+import java.lang.Exception
 import org.junit.Before
 import org.junit.Test
-import java.lang.Exception
-import org.junit.Assert.*
 
 // For some reason, this test won't be recognized as a test if it is called `RefCountDelegateTest`
 class RefCountTest {

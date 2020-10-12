@@ -19,13 +19,4 @@ interface DeviceChangeObserver {
      * @param freshAudioDeviceList: List<[MediaDevice]> - An updated list of audio devices.
      */
     fun onAudioDeviceChanged(freshAudioDeviceList: List<MediaDevice>)
-
-    /**
-     * Called when video devices are changed.
-     *
-     * Note: this callback will be called on main thread.
-     *
-     * @param freshVideoDeviceList: List<[MediaDevice]> - An updated list of audio devices.
-     */
-    fun onVideoDeviceChanged(freshVideoDeviceList: List<MediaDevice>)
 }

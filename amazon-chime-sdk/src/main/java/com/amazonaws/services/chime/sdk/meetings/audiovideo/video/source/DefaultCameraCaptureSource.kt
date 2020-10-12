@@ -4,7 +4,14 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Matrix
-import android.hardware.camera2.*
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraCaptureSession
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraDevice
+import android.hardware.camera2.CameraManager
+import android.hardware.camera2.CameraMetadata
+import android.hardware.camera2.CaptureFailure
+import android.hardware.camera2.CaptureRequest
 import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
@@ -13,16 +20,21 @@ import android.view.Surface
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.*
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoFrameTextureBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameTextureBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRotation
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
 import com.amazonaws.services.chime.sdk.meetings.internal.utils.ObserverUtils
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
+import kotlin.math.abs
+import kotlin.math.min
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
-import kotlin.math.abs
-import kotlin.math.min
 
 /**
  * [DefaultCameraCaptureSource] will configure a reasonably standard capture stream which will
@@ -138,7 +150,6 @@ class DefaultCameraCaptureSource(
             throw SecurityException("Missing necessary camera permissions")
         }
 
-
         logger.info(TAG, "Starting camera capture with device: $device")
         val device = device ?: return
 
@@ -223,7 +234,6 @@ class DefaultCameraCaptureSource(
         }
     }
 
-
     // Implement and store callbacks as private constants since we can't inherit from all of them
 
     private val cameraCaptureSessionCaptureCallback =
@@ -260,7 +270,6 @@ class DefaultCameraCaptureSource(
             session.close()
         }
     }
-
 
     private val cameraDeviceStateCallback = object : CameraDevice.StateCallback() {
         override fun onOpened(device: CameraDevice) {
@@ -407,7 +416,9 @@ class DefaultCameraCaptureSource(
     }
 
     private fun updateBufferForCameraOrientation(
-        buffer: VideoFrameTextureBuffer, mirror: Boolean, rotation: Int
+        buffer: VideoFrameTextureBuffer,
+        mirror: Boolean,
+        rotation: Int
     ): VideoFrameTextureBuffer {
         val transformMatrix = Matrix()
         // Perform mirror and rotation around (0.5, 0.5) since that is the center of the texture.
@@ -423,7 +434,12 @@ class DefaultCameraCaptureSource(
         val newMatrix = Matrix(buffer.transformMatrix)
         newMatrix.preConcat(transformMatrix)
         buffer.retain()
-        return DefaultVideoFrameTextureBuffer(buffer.width, buffer.height,
-            buffer.textureId, newMatrix, buffer.type, Runnable { buffer.release() })
+        return DefaultVideoFrameTextureBuffer(
+            buffer.width,
+            buffer.height,
+            buffer.textureId,
+            newMatrix,
+            buffer.type,
+            Runnable { buffer.release() })
     }
 }
