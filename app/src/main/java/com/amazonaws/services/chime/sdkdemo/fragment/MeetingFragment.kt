@@ -632,6 +632,15 @@ class MeetingFragment : Fragment(),
             ).show()
             return
         }
+        if (isUsingGpuVideoProcessor) {
+            logger.warn(TAG,"Cannot toggle filter when other filter is enabled")
+            Toast.makeText(
+                    context!!,
+                    getString(R.string.user_notification_filter_both_enabled_error),
+                    Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
         logger.info(TAG, "Toggling CPU demo filter from $isUsingCpuVideoProcessor to ${!isUsingCpuVideoProcessor}")
         isUsingCpuVideoProcessor = !isUsingCpuVideoProcessor
         if (isLocalVideoStarted) {
@@ -646,6 +655,15 @@ class MeetingFragment : Fragment(),
             Toast.makeText(
                     context!!,
                     getString(R.string.user_notification_filter_custom_source_error),
+                    Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+        if (isUsingCpuVideoProcessor) {
+            logger.warn(TAG,"Cannot toggle filter when other filter is enabled")
+            Toast.makeText(
+                    context!!,
+                    getString(R.string.user_notification_filter_both_enabled_error),
                     Toast.LENGTH_SHORT
             ).show()
             return
