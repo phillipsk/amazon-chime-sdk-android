@@ -8,6 +8,7 @@ import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
+import android.util.Log
 import android.view.Surface
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
@@ -20,7 +21,6 @@ import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 import com.xodee.client.video.TimestampAligner
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
-import kotlin.random.Random.Default.nextInt
 
 /**
  * [DefaultSurfaceTextureCaptureSource] will provide a [Surface] which it will listen to
@@ -63,8 +63,8 @@ class DefaultSurfaceTextureCaptureSource(
         runBlocking(handler.asCoroutineDispatcher().immediate) {
             eglCore = eglCoreFactory.createEglCore()
 
-            val surfaceAttribs = intArrayOf(EGL14.EGL_WIDTH, width, EGL14.EGL_HEIGHT, height, EGL14.EGL_NONE)
-            eglCore.eglSurface = EGL14.eglCreatePbufferSurface(eglCore.eglDisplay, eglCore.eglConfig, surfaceAttribs, 0)
+            val surfaceAttributes = intArrayOf(EGL14.EGL_WIDTH, width, EGL14.EGL_HEIGHT, height, EGL14.EGL_NONE)
+            eglCore.eglSurface = EGL14.eglCreatePbufferSurface(eglCore.eglDisplay, eglCore.eglConfig, surfaceAttributes, 0)
             EGL14.eglMakeCurrent(eglCore.eglDisplay, eglCore.eglSurface, eglCore.eglSurface, eglCore.eglContext)
             GlUtil.checkGlError("Failed to set dummy surface to initialize surface texture video source")
 
@@ -163,10 +163,15 @@ class DefaultSurfaceTextureCaptureSource(
     private fun completeRelease() {
         check(Looper.myLooper() == handler.looper)
 
-        surface.release()
-        surfaceTexture.release()
         GLES20.glDeleteTextures(1, intArrayOf(textureId), 0);
+        surfaceTexture.release()
+        surface.release()
+
+        EGL14.eglMakeCurrent(
+                eglCore.eglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT)
+        EGL14.eglDestroySurface(eglCore.eglDisplay, eglCore.eglSurface);
         eglCore.release()
+
         timestampAligner.dispose()
         logger.info(TAG, "Finished releasing surface texture capture source")
 

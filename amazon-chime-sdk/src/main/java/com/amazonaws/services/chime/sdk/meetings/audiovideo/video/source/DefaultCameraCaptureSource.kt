@@ -22,6 +22,7 @@ import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
+import kotlin.math.min
 
 /**
  * [DefaultCameraCaptureSource] will configure a reasonably standard capture stream which will
@@ -91,11 +92,13 @@ class DefaultCameraCaptureSource(
     override var flashlightEnabled: Boolean = false
         @RequiresApi(Build.VERSION_CODES.M)
         set(value) {
-            field = value
             if (cameraCharacteristics?.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == false) {
                 logger.warn(TAG, "Torch not supported on current camera, setting value and returning")
                 return
             }
+
+            field = value
+
             if (cameraDevice == null) {
                 // If not in a session, use the CameraManager API
                 device?.id?.let { cameraManager.setTorchMode(it, field) }
@@ -112,7 +115,10 @@ class DefaultCameraCaptureSource(
                 return
             }
 
-            field = value
+            if (value.maxFps > 15) {
+                logger.info(TAG, "Limiting capture to 15 FPS to avoid frame drops")
+            }
+            field = VideoCaptureFormat(value.width, value.height, min(value.maxFps, 15))
 
             // Restart capture if already running (i.e. we have a valid surface texture source)
             surfaceTextureSource?.let {
@@ -132,7 +138,7 @@ class DefaultCameraCaptureSource(
         }
 
 
-        logger.info(TAG, "Starting camera capture with  device: $device")
+        logger.info(TAG, "Starting camera capture with device: $device")
         val device = device ?: return
 
 
@@ -146,10 +152,10 @@ class DefaultCameraCaptureSource(
         }
         val surfaceTextureFormat: VideoCaptureFormat = chosenCaptureFormat ?: return
         surfaceTextureSource =
-            surfaceTextureCaptureSourceFactory.createSurfaceTextureCaptureSource(
-                surfaceTextureFormat.width,
-                surfaceTextureFormat.height,
-                contentHint)
+                surfaceTextureCaptureSourceFactory.createSurfaceTextureCaptureSource(
+                        surfaceTextureFormat.width,
+                        surfaceTextureFormat.height,
+                        contentHint)
         surfaceTextureSource?.start()
         surfaceTextureSource?.addVideoSink(this)
 

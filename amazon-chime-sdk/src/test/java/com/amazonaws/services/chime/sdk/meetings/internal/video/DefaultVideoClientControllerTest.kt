@@ -9,6 +9,10 @@ import android.content.Context
 import android.content.pm.PackageInfo
 import android.util.Log
 import com.amazonaws.services.chime.sdk.meetings.TestConstant
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCore
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionConfiguration
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 import com.xodee.client.video.VideoClient
@@ -55,8 +59,20 @@ class DefaultVideoClientControllerTest {
     @MockK
     private lateinit var mockVideoClientFactory: DefaultVideoClientFactory
 
+    @MockK
+    private lateinit var mockCameraCaptureSource: CameraCaptureSource
+
+    @MockK
+    private lateinit var mockEglCoreFactory: EglCoreFactory
+
+    @MockK(relaxed = true)
+    private lateinit var mockEglCore: EglCore
+
     @InjectMockKs
     private lateinit var testVideoClientController: DefaultVideoClientController
+
+    @MockK
+    private lateinit var mockVideoSource: VideoSource
 
     @Before
     fun setUp() {
@@ -65,23 +81,61 @@ class DefaultVideoClientControllerTest {
         every { System.loadLibrary(any()) } just runs
         MockKAnnotations.init(this, relaxUnitFun = true)
         every { mockVideoClient.sendDataMessage(any(), any(), any()) } just runs
+        every { mockVideoClient.setExternalVideoSource(any(), any()) } just runs
+        every { mockVideoClient.setSending(any()) } just runs
         every { mockVideoClientFactory.getVideoClient(mockVideoClientObserver) } returns mockVideoClient
+        every { mockEglCoreFactory.createEglCore() } returns mockEglCore
     }
 
     @Test
-    fun `start should call VideoClientStateController start`() {
+    fun `start should call VideoClientStateController start and create EglCore`() {
         testVideoClientController.start()
 
+        verify { mockEglCoreFactory.createEglCore() }
         verify { mockVideoClientStateController.start() }
     }
 
     @Test
-    fun `startLocalVideo should call VideoClientStateController stop`() {
+    fun `stopAndDestroy should call VideoClientStateController stop and release EglCore`() {
         runBlockingTest {
             testVideoClientController.stopAndDestroy()
         }
 
         coVerify(exactly = 1, timeout = TestConstant.globalScopeTimeoutMs) { mockVideoClientStateController.stop() }
+        coVerify { mockEglCore.release() }
+    }
+
+    @Test
+    fun `startLocalVideo without source should start camera capture and then video client`() {
+        every { mockVideoClientStateController.canAct(any()) } returns true
+
+        testVideoClientController.startLocalVideo()
+
+        verify { mockCameraCaptureSource.start() }
+        verify { mockVideoClient.setExternalVideoSource(any(), any()) }
+        verify { mockVideoClient.setSending(true) }
+    }
+
+    @Test
+    fun `startLocalVideo with source should not start camera capture and then video client`() {
+        every { mockVideoClientStateController.canAct(any()) } returns true
+
+        testVideoClientController.startLocalVideo(mockVideoSource)
+
+        verify(exactly = 0) { mockCameraCaptureSource.start() }
+        verify { mockVideoClient.setExternalVideoSource(any(), any()) }
+        verify { mockVideoClient.setSending(true) }
+    }
+
+    @Test
+    fun `stopLocalVideo should stop camera capture source if startLocalVideo was called with no source`() {
+        every { mockVideoClientStateController.canAct(any()) } returns true
+
+        testVideoClientController.startLocalVideo()
+        testVideoClientController.stopLocalVideo()
+
+        verify { mockCameraCaptureSource.stop() }
+        verify { mockVideoClient.setSending(false) }
     }
 
     @Test

@@ -116,7 +116,6 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     private var surfaceWidth = 0
     private var surfaceHeight = 0
 
-
     // EGL and GL resources for drawing YUV/OES textures. After initialization, these are only
     // accessed from the render thread.
     private var eglCore: EglCore? = null
@@ -134,7 +133,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     var mirror = false
     private var layoutAspectRatio = 0f
 
-    private var frameDrawer: DefaultGlVideoFrameDrawer? = null
+    private var frameDrawer = DefaultGlVideoFrameDrawer()
     private val videoLayoutMeasure: VideoLayoutMeasure = VideoLayoutMeasure()
 
     init {
@@ -146,14 +145,12 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
         rotatedFrameWidth = 0;
         rotatedFrameHeight = 0;
 
-        val thread = HandlerThread("SurfaceTextureVideoSource")
+        val thread = HandlerThread("DefaultEglVideoRenderView")
         thread.start()
         this.renderHandler = Handler(thread.looper)
 
-        frameDrawer = DefaultGlVideoFrameDrawer()
-
-        val handler = this.renderHandler ?: throw UnknownError("No handler in init")
-        runBlocking(handler.asCoroutineDispatcher().immediate) {
+        val validRenderHandler = renderHandler ?: throw UnknownError("No handler in release")
+        runBlocking(validRenderHandler.asCoroutineDispatcher().immediate) {
             eglCore = eglCoreFactory.createEglCore()
             surface?.let { createEglSurface(it) }
         }
@@ -161,26 +158,18 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     }
 
     override fun release() {
-        val handler = renderHandler ?: throw UnknownError("No handler in release")
-        runBlocking(handler.asCoroutineDispatcher().immediate) {
-            // This may log warning if we are not currently attached to context
-            // This is expected and we still want to make sure we are releasing
-            frameDrawer?.release()
-            frameDrawer = null
-
+        val validRenderHandler = renderHandler ?: throw UnknownError("No handler in release")
+        runBlocking(validRenderHandler.asCoroutineDispatcher().immediate) {
             eglCore?.release()
             eglCore = null
+
         }
-        val renderLooper: Looper = handler.looper
-        renderLooper.quitSafely()
+        this.renderHandler?.looper?.quitSafely()
         this.renderHandler = null
 
         synchronized(pendingFrameLock) {
-            if (pendingFrame != null) {
-                pendingFrame?.release();
-                pendingFrame = null;
-
-            }
+            pendingFrame?.release();
+            pendingFrame = null;
         }
     }
 
@@ -213,7 +202,8 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
         right: Int,
         bottom: Int
     ) {
-        runBlocking(handler.asCoroutineDispatcher().immediate) {
+        val validRenderHandler = renderHandler ?: throw UnknownError("No handler in release")
+        runBlocking(validRenderHandler.asCoroutineDispatcher().immediate) {
             layoutAspectRatio = ((right - left) / (bottom - top).toFloat())
         }
         updateSurfaceSize()
@@ -224,7 +214,6 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             || rotatedFrameHeight != frame.getRotatedHeight()
             || frameRotation != frame.rotation
         ) {
-
             rotatedFrameWidth = frame.getRotatedWidth();
             rotatedFrameHeight = frame.getRotatedHeight();
             frameRotation = frame.rotation;
@@ -235,15 +224,13 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             }
         }
 
-
         synchronized(pendingFrameLock) {
-            if (pendingFrame != null) {
-                pendingFrame?.release()
-            }
+            // Release any current frame before setting to the latest
+            pendingFrame?.release()
             pendingFrame = frame
+
             pendingFrame?.retain()
-            val handler = renderHandler ?: throw UnknownError("No handler in render function")
-            handler.post(::renderPendingFrame)
+            renderHandler?.post(::renderPendingFrame)
         }
     }
 
@@ -279,23 +266,32 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
 
     private fun createEglSurface(surface: Any) {
         renderHandler?.post {
-            if (eglCore != null && eglCore?.eglSurface == android.opengl.EGL14.EGL_NO_SURFACE) {
-                val surfaceAttribs = intArrayOf(EGL14.EGL_NONE)
+            if (eglCore != null && eglCore?.eglSurface == EGL14.EGL_NO_SURFACE) {
+                val surfaceAttributess = intArrayOf(EGL14.EGL_NONE)
                 eglCore?.eglSurface = EGL14.eglCreateWindowSurface(
                     eglCore?.eglDisplay, eglCore?.eglConfig, surface,
-                    surfaceAttribs, 0
+                    surfaceAttributess, 0
                 )
                 EGL14.eglMakeCurrent(eglCore?.eglDisplay, eglCore?.eglSurface, eglCore?.eglSurface, eglCore?.eglContext)
 
                 // Necessary for YUV frames with odd width.
                 GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 1)
             }
+
+            // Discard any old frame
+            synchronized(pendingFrameLock) {
+                pendingFrame?.release()
+                pendingFrame = null;
+            }
         }
     }
 
     private fun releaseEglSurface() {
-        val handler = this.renderHandler ?: return
-        runBlocking(handler.asCoroutineDispatcher().immediate) {
+        val validRenderHandler = this.renderHandler ?: return
+        runBlocking(validRenderHandler.asCoroutineDispatcher().immediate) {
+            // Release frame drawer while we have a valid current context
+            frameDrawer?.release()
+
             EGL14.eglMakeCurrent(
                 eglCore?.eglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE,
                 EGL14.EGL_NO_CONTEXT
@@ -306,6 +302,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     }
 
     private fun renderPendingFrame() {
+        // View could be updating and surface may not be valid
         if (eglCore?.eglSurface == EGL14.EGL_NO_SURFACE) {
             return
         }
@@ -349,6 +346,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
         // Draw frame
         frameDrawer?.drawFrame(frame, 0, 0, widthArray[0], heightArray[0], drawMatrix)
         EGL14.eglSwapBuffers(eglCore?.eglDisplay, eglCore?.eglSurface)
+
         frame.release()
     }
 }

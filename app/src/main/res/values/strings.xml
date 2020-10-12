@@ -47,6 +47,9 @@
     <string name="user_notification_meeting_id_invalid">Meeting ID is invalid</string>
     <string name="user_notification_attendee_name_invalid">Attendee name is invalid</string>
     <string name="user_notification_permission_error">WebRTC cannot work without permissions</string>
+    <string name="user_notification_flashlight_unavailable_error">Flashlight not available on current device</string>
+    <string name="user_notification_flashlight_custom_source_error">Cannot toggle flashlight without using custom camera capture source</string>
+    <string name="user_notification_filter_custom_source_error">Cannot toggle filters without using custom camera capture source</string>
     <string name="user_notification_meeting_url_error">Your url is invalid</string>
     <string name="user_notification_meeting_start_error">There was an error starting the meeting. Please try again</string>
     <string name="enter_message">Enter message</string>

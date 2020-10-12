@@ -110,7 +110,6 @@ class VideoHolder(
 
 
     private fun updateLocalVideoMirror() {
-        Log.e("HELPME", "${audioVideo.getActiveCamera()} ${audioVideo.getActiveCamera() == null} ${cameraCaptureSource?.device}")
         view.video_surface.mirror = (audioVideo.getActiveCamera()?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
                 || (audioVideo.getActiveCamera() == null && cameraCaptureSource?.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA))
     }

@@ -7,6 +7,7 @@ package com.amazonaws.services.chime.sdk.meetings.internal.video
 
 import android.content.Context
 import com.amazonaws.services.chime.sdk.BuildConfig
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCore
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
@@ -52,13 +53,22 @@ class DefaultVideoClientController(
 
     private var videoClient: VideoClient? = null
 
+    private var eglCore: EglCore? = null
+
     override fun start() {
+        if (eglCore == null) {
+            eglCore = eglCoreFactory.createEglCore()
+        }
+
         videoClientStateController.start()
     }
 
     override fun stopAndDestroy() {
         GlobalScope.launch {
             videoClientStateController.stop()
+
+            eglCore?.release()
+            eglCore = null
         }
     }
 
@@ -67,7 +77,7 @@ class DefaultVideoClientController(
 
         videoSourceAdapter = VideoSourceAdapter(cameraCaptureSource)
         logger.info(TAG, "Setting external video source in media client to internal camera source")
-        videoClient?.setExternalVideoSource(videoSourceAdapter, eglCoreFactory.sharedContext)
+        videoClient?.setExternalVideoSource(videoSourceAdapter, eglCore?.eglContext)
         videoClient?.setSending(true)
 
         cameraCaptureSource.start()
@@ -79,7 +89,7 @@ class DefaultVideoClientController(
 
         videoSourceAdapter = VideoSourceAdapter(source)
         logger.info(TAG, "Setting external video source in media client to custom source")
-        videoClient?.setExternalVideoSource(videoSourceAdapter, eglCoreFactory.sharedContext)
+        videoClient?.setExternalVideoSource(videoSourceAdapter, eglCore?.eglContext)
         videoClient?.setSending(true)
         isUsingInternalCaptureSource = false
     }
@@ -176,10 +186,10 @@ class DefaultVideoClientController(
             false,
             0,
             flag,
-            eglCoreFactory.sharedContext
+            eglCore?.eglContext
         )
 
-        videoSourceAdapter?.let {  videoClient?.setExternalVideoSource(it, eglCoreFactory.sharedContext) }
+        videoSourceAdapter?.let {  videoClient?.setExternalVideoSource(it, eglCore?.eglContext) }
     }
 
     override fun stopVideoClient() {

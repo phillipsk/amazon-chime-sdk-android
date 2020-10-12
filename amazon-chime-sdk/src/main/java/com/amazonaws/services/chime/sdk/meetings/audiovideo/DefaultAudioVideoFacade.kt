@@ -138,10 +138,6 @@ class DefaultAudioVideoFacade(
         deviceController.switchCamera()
     }
 
-    override fun listVideoDevices(): List<MediaDevice> {
-        return deviceController.listVideoDevices()
-    }
-
     override fun addDeviceChangeObserver(observer: DeviceChangeObserver) {
         deviceController.addDeviceChangeObserver(observer)
     }

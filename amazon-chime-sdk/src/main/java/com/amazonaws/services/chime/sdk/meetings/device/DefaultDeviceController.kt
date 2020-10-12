@@ -28,14 +28,12 @@ class DefaultDeviceController(
     private val audioClientController: AudioClientController,
     private val videoClientController: VideoClientController,
     private val audioManager: AudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager,
-    private val cameraManager: CameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager,
     private val buildVersion: Int = Build.VERSION.SDK_INT
 ) : DeviceController {
     private val deviceChangeObservers = mutableSetOf<DeviceChangeObserver>()
 
     // TODO: remove code blocks for lower API level after the minimum SDK version becomes 23
     private val AUDIO_MANAGER_API_LEVEL = 23
-    private val CAMERA_MANAGER_API_LEVEL = 23
 
     init {
         @SuppressLint("NewApi")
@@ -64,19 +62,6 @@ class DefaultDeviceController(
             context.registerReceiver(
                 receiver, IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED)
             )
-        }
-
-        if (buildVersion >= CAMERA_MANAGER_API_LEVEL) {
-            cameraManager.registerAvailabilityCallback(object :
-                CameraManager.AvailabilityCallback() {
-                override fun onCameraAvailable(cameraId: String) {
-                    notifyVideoDeviceChange()
-                }
-
-                override fun onCameraUnavailable(cameraId: String) {
-                    notifyVideoDeviceChange()
-                }
-            }, null)
         }
     }
 
@@ -211,10 +196,6 @@ class DefaultDeviceController(
         videoClientController.switchCamera()
     }
 
-    override fun listVideoDevices(): List<MediaDevice> {
-        return MediaDevice.listVideoDevices(cameraManager)
-    }
-
     override fun addDeviceChangeObserver(observer: DeviceChangeObserver) {
         deviceChangeObservers.add(observer)
     }
@@ -225,15 +206,6 @@ class DefaultDeviceController(
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     fun notifyAudioDeviceChange() {
-        ObserverUtils.notifyObserverOnMainThread(deviceChangeObservers) {
-            it.onAudioDeviceChanged(
-                listAudioDevices()
-            )
-        }
-    }
-
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun notifyVideoDeviceChange() {
         ObserverUtils.notifyObserverOnMainThread(deviceChangeObservers) {
             it.onAudioDeviceChanged(
                 listAudioDevices()

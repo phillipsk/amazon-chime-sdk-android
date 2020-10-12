@@ -53,11 +53,4 @@ interface DeviceController {
      * Switch between front and back camera in the meeting.  This has no effect on custom video sources.
      */
     fun switchCamera()
-
-    /**
-     * Lists currently available video devices.
-     *
-     * @return [List<MediaDevice>] - A list of currently available video devices.
-     */
-    fun listVideoDevices(): List<MediaDevice>
 }
