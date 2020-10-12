@@ -5,7 +5,10 @@ import android.opengl.EGL14
 import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.*
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoFrameRGBABuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameRGBABuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultGlVideoFrameDrawer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCore
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
@@ -17,7 +20,8 @@ import com.xodee.client.video.JniUtil
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 
-class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFactory): VideoSource, VideoSink {
+class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFactory) : VideoSource,
+    VideoSink {
     private val sinks = mutableSetOf<VideoSink>()
 
     private lateinit var eglCore: EglCore
@@ -42,8 +46,18 @@ class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
 
             // We need to create a dummy surface before we can set the cotext as current
             val surfaceAttribs = intArrayOf(EGL14.EGL_WIDTH, 1, EGL14.EGL_HEIGHT, 1, EGL14.EGL_NONE)
-            eglCore.eglSurface = EGL14.eglCreatePbufferSurface(eglCore.eglDisplay, eglCore.eglConfig, surfaceAttribs, 0)
-            EGL14.eglMakeCurrent(eglCore.eglDisplay, eglCore.eglSurface, eglCore.eglSurface, eglCore.eglContext)
+            eglCore.eglSurface = EGL14.eglCreatePbufferSurface(
+                eglCore.eglDisplay,
+                eglCore.eglConfig,
+                surfaceAttribs,
+                0
+            )
+            EGL14.eglMakeCurrent(
+                eglCore.eglDisplay,
+                eglCore.eglSurface,
+                eglCore.eglSurface,
+                eglCore.eglContext
+            )
             GlUtil.checkGlError("Failed to set dummy surface to initialize surface texture video source")
 
             logger.info(TAG, "Created demo GPU video processor")
@@ -73,19 +87,34 @@ class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
             // Unshift following flip
             matrix.preTranslate(-0.5f, -0.5f)
             // Note the draw call will account for any rotation, so we need to account for that in viewport width/height
-            rectDrawer.drawFrame(frame, 0, 0, frame.getRotatedWidth(), frame.getRotatedHeight(), matrix)
+            rectDrawer.drawFrame(
+                frame,
+                0,
+                0,
+                frame.getRotatedWidth(),
+                frame.getRotatedHeight(),
+                matrix
+            )
 
             // Read RGBA data to native byte buffer
-            val rgbaData = JniUtil.nativeAllocateByteBuffer(frame.width * frame.height * 4);
-            GLES20.glReadPixels(0, 0, frame.getRotatedWidth(), frame.getRotatedHeight(), GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, rgbaData);
-            GlUtil.checkGlError("glReadPixels");
+            val rgbaData = JniUtil.nativeAllocateByteBuffer(frame.width * frame.height * 4)
+            GLES20.glReadPixels(
+                0,
+                0,
+                frame.getRotatedWidth(),
+                frame.getRotatedHeight(),
+                GLES20.GL_RGBA,
+                GLES20.GL_UNSIGNED_BYTE,
+                rgbaData
+            )
+            GlUtil.checkGlError("glReadPixels")
 
             val rgbaBuffer =
-                    DefaultVideoFrameRGBABuffer(
-                            frame.getRotatedWidth(),
-                            frame.getRotatedHeight(),
-                            rgbaData, frame.getRotatedWidth() * 4,
-                            Runnable { JniUtil.nativeFreeByteBuffer(rgbaData) })
+                DefaultVideoFrameRGBABuffer(
+                    frame.getRotatedWidth(),
+                    frame.getRotatedHeight(),
+                    rgbaData, frame.getRotatedWidth() * 4,
+                    Runnable { JniUtil.nativeFreeByteBuffer(rgbaData) })
 
             convertToBlackAndWhite(rgbaBuffer)
 
@@ -119,7 +148,7 @@ class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
                 val gValue = rgbaBuffer.data[gLocation].toPositiveInt()
                 val bValue = rgbaBuffer.data[bLocation].toPositiveInt()
 
-                val newValue= ((rValue + gValue + bValue) / (3.0)).toByte()
+                val newValue = ((rValue + gValue + bValue) / (3.0)).toByte()
 
                 rgbaBuffer.data.put(rLocation, newValue)
                 rgbaBuffer.data.put(gLocation, newValue)

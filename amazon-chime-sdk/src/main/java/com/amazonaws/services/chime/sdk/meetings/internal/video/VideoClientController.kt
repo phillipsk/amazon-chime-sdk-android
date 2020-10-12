@@ -5,11 +5,9 @@
 
 package com.amazonaws.services.chime.sdk.meetings.internal.video
 
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileController
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionConfiguration
-import com.xodee.client.video.VideoDevice
 
 /**
  * [VideoClientController] uses the Video Client for video related functionality such as starting

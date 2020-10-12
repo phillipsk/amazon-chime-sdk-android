@@ -9,7 +9,6 @@ import android.content.Context
 import android.util.AttributeSet
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultEglVideoRenderView
 
-
 class DefaultVideoRenderView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,

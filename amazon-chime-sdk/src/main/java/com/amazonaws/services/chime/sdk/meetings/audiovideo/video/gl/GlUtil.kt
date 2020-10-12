@@ -17,9 +17,9 @@ object GlUtil {
     val FULL_RECTANGLE_BUFFER =
         createFloatBuffer(
             floatArrayOf(
-                -1.0f, -1.0f,  // Bottom left.
-                1.0f, -1.0f,  // Bottom right.
-                -1.0f, 1.0f,  // Top left.
+                -1.0f, -1.0f, // Bottom left.
+                1.0f, -1.0f, // Bottom right.
+                -1.0f, 1.0f, // Top left.
                 1.0f, 1.0f
             )
         )
@@ -30,9 +30,9 @@ object GlUtil {
     val FULL_RECTANGLE_TEXTURE_BUFFER =
         createFloatBuffer(
             floatArrayOf(
-                0.0f, 0.0f,  // Bottom left.
-                1.0f, 0.0f,  // Bottom right.
-                0.0f, 1.0f,  // Top left.
+                0.0f, 0.0f, // Bottom left.
+                1.0f, 0.0f, // Bottom right.
+                0.0f, 1.0f, // Top left.
                 1.0f, 1.0f // Top right.
             )
         )
@@ -153,5 +153,4 @@ object GlUtil {
         floatBuffer.position(0)
         return floatBuffer
     }
-
 }

@@ -1,11 +1,15 @@
 package com.amazonaws.services.chime.sdk.meetings.internal.video.adapters
 
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameBuffer
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.just
+import io.mockk.runs
+import io.mockk.verify
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import org.junit.Assert.assertEquals
 
 class VideoFrameBufferAdapterTest {
     @MockK

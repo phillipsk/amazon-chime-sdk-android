@@ -10,7 +10,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultEglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultCameraCaptureSource
@@ -79,7 +78,6 @@ class MeetingActivity : AppCompatActivity(),
                 meetingSessionModel.setMeetingSession(meetingSession)
             }
 
-
             val deviceManagementFragment = DeviceManagementFragment.newInstance(meetingId, name)
             supportFragmentManager
                 .beginTransaction()
@@ -114,7 +112,7 @@ class MeetingActivity : AppCompatActivity(),
     fun getEglCoreFactory(): EglCoreFactory = meetingModel.eglCoreFactory
 
     fun getCameraCaptureSource(): CameraCaptureSource {
-        if (meetingModel.cameraCaptureSource  == null) {
+        if (meetingModel.cameraCaptureSource == null) {
             val surfaceTextureCaptureSourceFactory = DefaultSurfaceTextureCaptureSourceFactory(logger, meetingModel.eglCoreFactory)
             meetingModel.cameraCaptureSource = DefaultCameraCaptureSource(applicationContext, logger, surfaceTextureCaptureSourceFactory)
         }

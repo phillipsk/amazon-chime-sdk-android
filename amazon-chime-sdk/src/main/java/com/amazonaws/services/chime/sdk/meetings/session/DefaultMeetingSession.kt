@@ -6,8 +6,6 @@
 package com.amazonaws.services.chime.sdk.meetings.session
 
 import android.content.Context
-import android.opengl.EGL14
-import android.opengl.EGLContext
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.DefaultAudioVideoController
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.DefaultAudioVideoFacade
@@ -36,7 +34,7 @@ class DefaultMeetingSession(
     override val logger: Logger,
     context: Context,
     eglCoreFactory: EglCoreFactory = DefaultEglCoreFactory()
-    ) : MeetingSession {
+) : MeetingSession {
 
     override val audioVideo: AudioVideoFacade
 
@@ -84,7 +82,8 @@ class DefaultMeetingSession(
                 configuration.urls.urlRewriter
             )
 
-        val surfaceTextureCaptureSourceFactory = DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory)
+        val surfaceTextureCaptureSourceFactory =
+            DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory)
         val cameraCaptureSource =
             DefaultCameraCaptureSource(
                 context,

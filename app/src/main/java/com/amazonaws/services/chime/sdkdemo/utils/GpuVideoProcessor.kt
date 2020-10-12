@@ -9,17 +9,18 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoFr
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultGlVideoFrameDrawer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCore
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultGlVideoFrameDrawer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.ContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 
-class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFactory) : VideoSource, VideoSink {
+class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFactory) : VideoSource,
+    VideoSink {
     override val contentHint: ContentHint = ContentHint.Motion
 
     // Pending frame to render. Serves as a queue with size 1. Synchronized on |frameLock|.
@@ -54,8 +55,18 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
 
             // We need to create a dummy surface before we can set the cotext as current
             val surfaceAttribs = intArrayOf(EGL14.EGL_WIDTH, 1, EGL14.EGL_HEIGHT, 1, EGL14.EGL_NONE)
-            eglCore.eglSurface = EGL14.eglCreatePbufferSurface(eglCore.eglDisplay, eglCore.eglConfig, surfaceAttribs, 0)
-            EGL14.eglMakeCurrent(eglCore.eglDisplay, eglCore.eglSurface, eglCore.eglSurface, eglCore.eglContext)
+            eglCore.eglSurface = EGL14.eglCreatePbufferSurface(
+                eglCore.eglDisplay,
+                eglCore.eglConfig,
+                surfaceAttribs,
+                0
+            )
+            EGL14.eglMakeCurrent(
+                eglCore.eglDisplay,
+                eglCore.eglSurface,
+                eglCore.eglSurface,
+                eglCore.eglContext
+            )
             GlUtil.checkGlError("Failed to set dummy surface to initialize surface texture video source")
 
             textureFrameBuffer = GlTextureFrameBufferHelper(GLES20.GL_RGBA)
@@ -70,7 +81,7 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
             released = true
             // We cannot release until no downstream users have access to texture buffer
             if (!textureInUse) {
-                completeRelease();
+                completeRelease()
             }
         }
     }
@@ -109,7 +120,7 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
 
         if (released || textureInUse) {
             frame.release()
-            return;
+            return
         }
         textureInUse = true
 
@@ -119,7 +130,14 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
         // Convert to black and white
         bwDrawer.drawFrame(frame, 0, 0, frame.getRotatedWidth(), frame.getRotatedHeight(), null)
         // Draw the original frame in the bottom left corner
-        rectDrawer.drawFrame(frame, 0, 0, frame.getRotatedWidth() / 2, frame.getRotatedHeight() / 2, null)
+        rectDrawer.drawFrame(
+            frame,
+            0,
+            0,
+            frame.getRotatedWidth() / 2,
+            frame.getRotatedHeight() / 2,
+            null
+        )
 
         // Must call this otherwise downstream users will not have a synchronized texture
         GLES20.glFinish()
@@ -127,7 +145,13 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
 
         val processedBuffer =
-                DefaultVideoFrameTextureBuffer(frame.getRotatedWidth(), frame.getRotatedHeight(), textureFrameBuffer.textureId, null, VideoFrameTextureBuffer.Type.TEXTURE_2D, Runnable { frameReleased() })
+            DefaultVideoFrameTextureBuffer(
+                frame.getRotatedWidth(),
+                frame.getRotatedHeight(),
+                textureFrameBuffer.textureId,
+                null,
+                VideoFrameTextureBuffer.Type.TEXTURE_2D,
+                Runnable { frameReleased() })
         // Drawer gets rid of any rotation
         val processedFrame = VideoFrame(frame.timestampNs, processedBuffer)
 
@@ -155,8 +179,8 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
 
         synchronized(pendingFrameLock) {
             if (pendingFrame != null) {
-                pendingFrame?.release();
-                pendingFrame = null;
+                pendingFrame?.release()
+                pendingFrame = null
             }
         }
 
@@ -165,6 +189,6 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
         textureFrameBuffer.release()
         eglCore.release()
 
-        handler.looper.quit();
+        handler.looper.quit()
     }
 }

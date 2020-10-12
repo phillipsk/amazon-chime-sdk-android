@@ -7,7 +7,7 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
  * [GlTextureFrameBufferHelper] is a helper class for handling OpenGL framebuffer with only color attachment and no depth or stencil buffer
  */
 class GlTextureFrameBufferHelper(
-        private val pixelFormat: Int = 0
+    private val pixelFormat: Int = 0
 ) {
     // Gets the OpenGL frame buffer id. This value is only valid after setSize() has been called
     var frameBufferId = 0
@@ -48,8 +48,8 @@ class GlTextureFrameBufferHelper(
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
         GLES20.glTexImage2D(
-                GLES20.GL_TEXTURE_2D, 0, pixelFormat, width, height, 0, pixelFormat,
-                GLES20.GL_UNSIGNED_BYTE, null
+            GLES20.GL_TEXTURE_2D, 0, pixelFormat, width, height, 0, pixelFormat,
+            GLES20.GL_UNSIGNED_BYTE, null
         )
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
         GlUtil.checkGlError("Failed to bind texture")
@@ -57,11 +57,11 @@ class GlTextureFrameBufferHelper(
         // Attach the texture to the framebuffer as color attachment.
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBufferId)
         GLES20.glFramebufferTexture2D(
-                GLES20.GL_FRAMEBUFFER,
-                GLES20.GL_COLOR_ATTACHMENT0,
-                GLES20.GL_TEXTURE_2D,
-                textureId,
-                0
+            GLES20.GL_FRAMEBUFFER,
+            GLES20.GL_COLOR_ATTACHMENT0,
+            GLES20.GL_TEXTURE_2D,
+            textureId,
+            0
         )
         GlUtil.checkGlError("Failed to bind and create framebuffer")
 

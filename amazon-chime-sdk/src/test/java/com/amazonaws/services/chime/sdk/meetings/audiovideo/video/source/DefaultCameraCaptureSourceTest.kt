@@ -2,12 +2,15 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source
 
 import android.content.Context
 import android.graphics.Matrix
-import android.hardware.camera2.*
+import android.hardware.camera2.CameraCaptureSession
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraDevice
+import android.hardware.camera2.CameraManager
+import android.hardware.camera2.CameraMetadata
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.view.WindowManager
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
@@ -16,11 +19,19 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.mockkConstructor
+import io.mockk.mockkObject
+import io.mockk.mockkStatic
+import io.mockk.runs
+import io.mockk.slot
+import io.mockk.verify
 import org.junit.Before
-
 import org.junit.Test
 
 class DefaultCameraCaptureSourceTest {
@@ -190,6 +201,5 @@ class DefaultCameraCaptureSourceTest {
         sessionCallbackSlot.captured.onConfigured(mockCameraSession)
 
         verify { mockCameraSession.setRepeatingRequest(any(), any(), any()) }
-
     }
 }

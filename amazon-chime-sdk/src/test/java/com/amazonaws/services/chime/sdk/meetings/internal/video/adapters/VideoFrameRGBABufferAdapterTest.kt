@@ -1,12 +1,16 @@
 package com.amazonaws.services.chime.sdk.meetings.internal.video.adapters
 
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameRGBABuffer
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import org.junit.Assert.*
+import io.mockk.just
+import io.mockk.runs
+import io.mockk.verify
+import java.nio.ByteBuffer
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import java.nio.ByteBuffer
 
 class VideoFrameRGBABufferAdapterTest {
 

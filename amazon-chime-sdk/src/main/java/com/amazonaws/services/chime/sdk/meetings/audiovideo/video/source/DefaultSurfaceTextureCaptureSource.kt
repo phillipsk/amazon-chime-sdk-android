@@ -8,7 +8,6 @@ import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
-import android.util.Log
 import android.view.Surface
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
@@ -35,7 +34,7 @@ class DefaultSurfaceTextureCaptureSource(
 ) : SurfaceTextureCaptureSource {
     override lateinit var surface: Surface
 
-    private var textureId: Int = 0;
+    private var textureId: Int = 0
     private lateinit var surfaceTexture: SurfaceTexture
     private lateinit var eglCore: EglCore
     private val thread: HandlerThread = HandlerThread("DefaultSurfaceTextureCaptureSource")
@@ -101,7 +100,6 @@ class DefaultSurfaceTextureCaptureSource(
                 pendingTexture = true
                 tryCapturingFrame()
             }, handler)
-
         }
     }
 
@@ -133,7 +131,7 @@ class DefaultSurfaceTextureCaptureSource(
             logger.info(TAG, "Releasing surface texture capture source")
             released = true
             if (!textureInUse) {
-                completeRelease();
+                completeRelease()
             }
         }
     }
@@ -142,7 +140,7 @@ class DefaultSurfaceTextureCaptureSource(
         check(Looper.myLooper() == handler.looper)
 
         if (released || !pendingTexture || textureInUse) {
-            return;
+            return
         }
         textureInUse = true
         pendingTexture = false
@@ -154,8 +152,12 @@ class DefaultSurfaceTextureCaptureSource(
         surfaceTexture.getTransformMatrix(transformMatrix)
 
         val buffer = DefaultVideoFrameTextureBuffer(
-            width, height, textureId, GlUtil.convertToMatrix(transformMatrix),
-            VideoFrameTextureBuffer.Type.TEXTURE_OES, Runnable { frameReleased() })
+            width,
+            height,
+            textureId,
+            GlUtil.convertToMatrix(transformMatrix),
+            VideoFrameTextureBuffer.Type.TEXTURE_OES,
+            Runnable { frameReleased() })
         val timestamp = timestampAligner.translateTimestamp(surfaceTexture.timestamp)
 
         logger.info(TAG, "timestamp before ${surfaceTexture.timestamp} after $timestamp")
@@ -181,19 +183,22 @@ class DefaultSurfaceTextureCaptureSource(
     private fun completeRelease() {
         check(Looper.myLooper() == handler.looper)
 
-        GLES20.glDeleteTextures(1, intArrayOf(textureId), 0);
+        GLES20.glDeleteTextures(1, intArrayOf(textureId), 0)
         surfaceTexture.release()
         surface.release()
 
         EGL14.eglMakeCurrent(
-            eglCore.eglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT
+            eglCore.eglDisplay,
+            EGL14.EGL_NO_SURFACE,
+            EGL14.EGL_NO_SURFACE,
+            EGL14.EGL_NO_CONTEXT
         )
-        EGL14.eglDestroySurface(eglCore.eglDisplay, eglCore.eglSurface);
+        EGL14.eglDestroySurface(eglCore.eglDisplay, eglCore.eglSurface)
         eglCore.release()
 
         timestampAligner.dispose()
         logger.info(TAG, "Finished releasing surface texture capture source")
 
-        handler.looper.quit();
+        handler.looper.quit()
     }
 }

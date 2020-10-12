@@ -1,6 +1,5 @@
 package com.amazonaws.services.chime.sdk.meetings.internal.video.adapters
 
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameI420Buffer
 import java.nio.ByteBuffer
 

@@ -1,10 +1,14 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
 
 import android.opengl.EGL14
 import android.opengl.EGLConfig
 import android.opengl.EGLContext
 import android.opengl.EGLExt
-import android.util.Log
 
 class DefaultEglCore(
     private val releaseCallback: Runnable? = null,
@@ -67,7 +71,6 @@ class DefaultEglCore(
 
         releaseCallback?.run()
     }
-
 
     private fun getConfig(): EGLConfig? {
         var renderableType = EGL14.EGL_OPENGL_ES2_BIT

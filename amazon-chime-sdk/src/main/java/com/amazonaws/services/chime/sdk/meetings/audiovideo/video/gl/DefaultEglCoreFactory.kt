@@ -1,8 +1,12 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
 
 import android.opengl.EGL14
 import android.opengl.EGLContext
-import android.util.Log
 import com.amazonaws.services.chime.sdk.meetings.utils.RefCountDelegate
 
 /**

@@ -6,10 +6,13 @@
 package com.amazonaws.services.chime.sdk.meetings.internal.video
 
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoObserver
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.*
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoPauseState
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRotation
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileController
 import com.amazonaws.services.chime.sdk.meetings.internal.metric.ClientMetricsCollector
 import com.amazonaws.services.chime.sdk.meetings.internal.utils.ObserverUtils
-import com.amazonaws.services.chime.sdk.meetings.internal.video.adapters.VideoFrameBufferAdapter
 import com.amazonaws.services.chime.sdk.meetings.internal.video.adapters.VideoFrameI420BufferAdapter
 import com.amazonaws.services.chime.sdk.meetings.internal.video.adapters.VideoFrameTextureBufferAdapter
 import com.amazonaws.services.chime.sdk.meetings.realtime.datamessage.DataMessage
@@ -30,13 +33,13 @@ import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.InvalidParameterException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.security.InvalidParameterException
 
 class DefaultVideoClientObserver(
     private val logger: Logger,

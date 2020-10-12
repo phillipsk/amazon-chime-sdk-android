@@ -6,7 +6,6 @@
 package com.amazonaws.services.chime.sdk.meetings.session
 
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 
 /**

@@ -1,9 +1,6 @@
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
 
-import android.opengl.EGL14
-import android.opengl.EGLContext
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRenderView
-import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 
 /**
  * [EglVideoRenderView] is a [VideoRenderView] which requires EGL initialization to render [VideoFrameTextureBuffer] buffers.

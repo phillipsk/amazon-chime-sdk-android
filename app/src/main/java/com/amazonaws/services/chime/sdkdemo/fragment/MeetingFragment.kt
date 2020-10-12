@@ -13,12 +13,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.*
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.*
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.AttendeeInfo
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoObserver
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.SignalUpdate
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.VolumeUpdate
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.audio.activespeakerdetector.ActiveSpeakerObserver
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.audio.activespeakerpolicy.DefaultActiveSpeakerPolicy
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.metric.MetricsObserver
@@ -41,7 +49,11 @@ import com.amazonaws.services.chime.sdk.meetings.utils.logger.LogLevel
 import com.amazonaws.services.chime.sdkdemo.R
 import com.amazonaws.services.chime.sdkdemo.activity.HomeActivity
 import com.amazonaws.services.chime.sdkdemo.activity.MeetingActivity
-import com.amazonaws.services.chime.sdkdemo.adapter.*
+import com.amazonaws.services.chime.sdkdemo.adapter.DeviceAdapter
+import com.amazonaws.services.chime.sdkdemo.adapter.MessageAdapter
+import com.amazonaws.services.chime.sdkdemo.adapter.MetricAdapter
+import com.amazonaws.services.chime.sdkdemo.adapter.RosterAdapter
+import com.amazonaws.services.chime.sdkdemo.adapter.VideoAdapter
 import com.amazonaws.services.chime.sdkdemo.data.Message
 import com.amazonaws.services.chime.sdkdemo.data.MetricData
 import com.amazonaws.services.chime.sdkdemo.data.RosterAttendee
@@ -51,12 +63,12 @@ import com.amazonaws.services.chime.sdkdemo.utils.CpuVideoProcessor
 import com.amazonaws.services.chime.sdkdemo.utils.GpuVideoProcessor
 import com.amazonaws.services.chime.sdkdemo.utils.isLandscapeMode
 import com.google.android.material.tabs.TabLayout
+import java.util.Calendar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.util.*
 
 class MeetingFragment : Fragment(),
     RealtimeObserver, AudioVideoObserver, VideoTileObserver,
@@ -158,7 +170,6 @@ class MeetingFragment : Fragment(),
         cameraCaptureSource = activity.getCameraCaptureSource()
         gpuVideoProcessor = GpuVideoProcessor(logger, activity.getEglCoreFactory())
         cpuVideoProcessor = CpuVideoProcessor(logger, activity.getEglCoreFactory())
-
 
         view.findViewById<TextView>(R.id.textViewMeetingId)?.text = arguments?.getString(
             HomeActivity.MEETING_ID_KEY
@@ -341,7 +352,8 @@ class MeetingFragment : Fragment(),
         deviceListAdapter = DeviceAdapter(
             requireContext(),
             android.R.layout.simple_list_item_1,
-            meetingModel.currentMediaDevices)
+            meetingModel.currentMediaDevices
+        )
         deviceAlertDialogBuilder = AlertDialog.Builder(activity)
         deviceAlertDialogBuilder.setTitle(R.string.alert_title_choose_audio)
         deviceAlertDialogBuilder.setNegativeButton(R.string.cancel) { dialog, _ ->
@@ -369,10 +381,10 @@ class MeetingFragment : Fragment(),
             dialog.dismiss()
             meetingModel.isMoreMenuDialogOn = false
         }
-        val additionalToggles= arrayOf(
+        val additionalToggles = arrayOf(
             context?.getString(R.string.toggle_flashlight),
-                context?.getString(R.string.toggle_cpu_filter),
-                context?.getString(R.string.toggle_gpu_filter),
+            context?.getString(R.string.toggle_cpu_filter),
+            context?.getString(R.string.toggle_gpu_filter),
             context?.getString(R.string.toggle_custom_capture_source)
         )
         moreMenuAlertDialogBuilder.setItems(additionalToggles) { _, which ->
@@ -398,10 +410,6 @@ class MeetingFragment : Fragment(),
         deviceListAdapter.clear()
         deviceListAdapter.addAll(meetingModel.currentMediaDevices)
         deviceListAdapter.notifyDataSetChanged()
-    }
-
-    override fun onVideoDeviceChanged(freshVideoDeviceList: List<MediaDevice>) {
-
     }
 
     override fun onVolumeChanged(volumeUpdates: Array<VolumeUpdate>) {
@@ -487,7 +495,10 @@ class MeetingFragment : Fragment(),
     override fun onAttendeesDropped(attendeeInfo: Array<AttendeeInfo>) {
         attendeeInfo.forEach { (_, externalUserId) ->
             notifyHandler("$externalUserId dropped")
-            logWithFunctionName(object {}.javaClass.enclosingMethod?.name, "$externalUserId dropped")
+            logWithFunctionName(
+                object {}.javaClass.enclosingMethod?.name,
+                "$externalUserId dropped"
+            )
         }
 
         uiScope.launch {
@@ -505,7 +516,10 @@ class MeetingFragment : Fragment(),
 
     override fun onAttendeesMuted(attendeeInfo: Array<AttendeeInfo>) {
         attendeeInfo.forEach { (attendeeId, externalUserId) ->
-            logWithFunctionName(object {}.javaClass.enclosingMethod?.name, "Attendee with attendeeId $attendeeId and externalUserId $externalUserId muted")
+            logWithFunctionName(
+                object {}.javaClass.enclosingMethod?.name,
+                "Attendee with attendeeId $attendeeId and externalUserId $externalUserId muted"
+            )
         }
     }
 
@@ -598,50 +612,55 @@ class MeetingFragment : Fragment(),
     }
 
     private fun toggleFlashlight() {
-        logger.info(TAG, "Toggling flashlight from ${cameraCaptureSource.flashlightEnabled} to ${!cameraCaptureSource.flashlightEnabled}")
+        logger.info(
+            TAG,
+            "Toggling flashlight from ${cameraCaptureSource.flashlightEnabled} to ${!cameraCaptureSource.flashlightEnabled}"
+        )
         if (!isUsingCameraCaptureSource) {
-            logger.warn(TAG,"Cannot toggle flashlight without using custom camera capture source")
+            logger.warn(TAG, "Cannot toggle flashlight without using custom camera capture source")
             Toast.makeText(
-                    context!!,
-                    getString(R.string.user_notification_flashlight_custom_source_error),
-                    Toast.LENGTH_SHORT
+                context!!,
+                getString(R.string.user_notification_flashlight_custom_source_error),
+                Toast.LENGTH_SHORT
             ).show()
             return
         }
         val desiredFlashlightEnabled = !cameraCaptureSource.flashlightEnabled
         cameraCaptureSource.flashlightEnabled = desiredFlashlightEnabled
         if (cameraCaptureSource.flashlightEnabled != desiredFlashlightEnabled) {
-            logger.warn(TAG,"Flashlight failed to toggle")
+            logger.warn(TAG, "Flashlight failed to toggle")
             Toast.makeText(
-                    context!!,
-                    getString(R.string.user_notification_flashlight_unavailable_error),
-                    Toast.LENGTH_SHORT
+                context!!,
+                getString(R.string.user_notification_flashlight_unavailable_error),
+                Toast.LENGTH_SHORT
             ).show()
             return
         }
-
     }
 
     private fun toggleCpuDemoFilter() {
         if (!isUsingCameraCaptureSource) {
-            logger.warn(TAG,"Cannot toggle filter without using custom camera capture source")
+            logger.warn(TAG, "Cannot toggle filter without using custom camera capture source")
             Toast.makeText(
-                    context!!,
-                    getString(R.string.user_notification_filter_custom_source_error),
-                    Toast.LENGTH_SHORT
+                context!!,
+                getString(R.string.user_notification_filter_custom_source_error),
+                Toast.LENGTH_SHORT
             ).show()
             return
         }
         if (isUsingGpuVideoProcessor) {
-            logger.warn(TAG,"Cannot toggle filter when other filter is enabled")
+            logger.warn(TAG, "Cannot toggle filter when other filter is enabled")
             Toast.makeText(
-                    context!!,
-                    getString(R.string.user_notification_filter_both_enabled_error),
-                    Toast.LENGTH_SHORT
+                context!!,
+                getString(R.string.user_notification_filter_both_enabled_error),
+                Toast.LENGTH_SHORT
             ).show()
             return
         }
-        logger.info(TAG, "Toggling CPU demo filter from $isUsingCpuVideoProcessor to ${!isUsingCpuVideoProcessor}")
+        logger.info(
+            TAG,
+            "Toggling CPU demo filter from $isUsingCpuVideoProcessor to ${!isUsingCpuVideoProcessor}"
+        )
         isUsingCpuVideoProcessor = !isUsingCpuVideoProcessor
         if (isLocalVideoStarted) {
             stopLocalVideo()
@@ -651,24 +670,27 @@ class MeetingFragment : Fragment(),
 
     private fun toggleGpuDemoFilter() {
         if (!isUsingCameraCaptureSource) {
-            logger.warn(TAG,"Cannot toggle filter without using custom camera capture source")
+            logger.warn(TAG, "Cannot toggle filter without using custom camera capture source")
             Toast.makeText(
-                    context!!,
-                    getString(R.string.user_notification_filter_custom_source_error),
-                    Toast.LENGTH_SHORT
+                context!!,
+                getString(R.string.user_notification_filter_custom_source_error),
+                Toast.LENGTH_SHORT
             ).show()
             return
         }
         if (isUsingCpuVideoProcessor) {
-            logger.warn(TAG,"Cannot toggle filter when other filter is enabled")
+            logger.warn(TAG, "Cannot toggle filter when other filter is enabled")
             Toast.makeText(
-                    context!!,
-                    getString(R.string.user_notification_filter_both_enabled_error),
-                    Toast.LENGTH_SHORT
+                context!!,
+                getString(R.string.user_notification_filter_both_enabled_error),
+                Toast.LENGTH_SHORT
             ).show()
             return
         }
-        logger.info(TAG, "Toggling GPU demo filter from $isUsingGpuVideoProcessor to ${!isUsingGpuVideoProcessor}")
+        logger.info(
+            TAG,
+            "Toggling GPU demo filter from $isUsingGpuVideoProcessor to ${!isUsingGpuVideoProcessor}"
+        )
         isUsingGpuVideoProcessor = !isUsingGpuVideoProcessor
         if (isLocalVideoStarted) {
             stopLocalVideo()
@@ -676,9 +698,11 @@ class MeetingFragment : Fragment(),
         }
     }
 
-
     private fun toggleCustomCaptureSource() {
-        logger.info(TAG, "Toggling using custom camera source from $isUsingCameraCaptureSource to ${!isUsingCameraCaptureSource}")
+        logger.info(
+            TAG,
+            "Toggling using custom camera source from $isUsingCameraCaptureSource to ${!isUsingCameraCaptureSource}"
+        )
         val wasUsingCameraCaptureSource = isUsingCameraCaptureSource
         isUsingCameraCaptureSource = !isUsingCameraCaptureSource
         if (isLocalVideoStarted) {
@@ -949,14 +973,20 @@ class MeetingFragment : Fragment(),
                         " has been paused for poor network connection," +
                         " video will automatically resume when connection improves"
             )
-            logWithFunctionName(object {}.javaClass.enclosingMethod?.name, "$attendeeName video paused")
+            logWithFunctionName(
+                object {}.javaClass.enclosingMethod?.name,
+                "$attendeeName video paused"
+            )
         }
     }
 
     override fun onVideoTileResumed(tileState: VideoTileState) {
         val attendeeName = meetingModel.currentRoster[tileState.attendeeId]?.attendeeName ?: ""
         notifyHandler("Video for attendee $attendeeName has been unpaused")
-        logWithFunctionName(object {}.javaClass.enclosingMethod?.name, "$attendeeName video resumed")
+        logWithFunctionName(
+            object {}.javaClass.enclosingMethod?.name,
+            "$attendeeName video resumed"
+        )
     }
 
     override fun onVideoTileSizeChanged(tileState: VideoTileState) {

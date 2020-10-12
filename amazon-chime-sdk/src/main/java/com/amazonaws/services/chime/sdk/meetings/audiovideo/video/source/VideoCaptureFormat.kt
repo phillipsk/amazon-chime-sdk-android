@@ -21,6 +21,5 @@ data class VideoCaptureFormat(
 ) {
     override fun toString(): String {
         return "$width x $height @ $maxFps FPS"
-
     }
 }
