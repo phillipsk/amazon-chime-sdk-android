@@ -3,8 +3,8 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 
 /**
- * [CameraCaptureSource] is a interface for camera capture sources with additional features
- * not covered by [VideoCaptureSource\]
+ * [CameraCaptureSource] is an interface for camera capture sources with additional features
+ * not covered by [VideoCaptureSource]
  */
 interface CameraCaptureSource :  VideoCaptureSource {
     /**

@@ -1,8 +1,3 @@
-/*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 package com.amazonaws.services.chime.sdk.meetings.utils
 
 import android.util.Log
@@ -12,8 +7,11 @@ import io.mockk.impl.annotations.MockK
 import org.junit.Before
 import org.junit.Test
 import java.lang.Exception
+import org.junit.Assert.*
 
-class RefCountDelegateTest {
+// For some reason, this test won't be recognized as a test if it is called `RefCountDelegateTest`
+class RefCountTest {
+
     @MockK
     private lateinit var mockCallback: Runnable
 

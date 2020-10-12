@@ -176,7 +176,7 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
     private var renderWidth = 0
     private var renderHeight = 0
 
-    private var yuvUploader: I420BufferTextureUploader? = I420BufferTextureUploader()
+    private var i420Uploader: I420BufferTextureUploader? = I420BufferTextureUploader()
     private var rgbaUploader: RGBABufferTextureUploader? = RGBABufferTextureUploader()
 
     override fun drawFrame(
@@ -226,11 +226,11 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
                 )
             }
         } else if (frame.buffer is VideoFrameI420Buffer) {
-            if (yuvUploader == null) {
-                yuvUploader = I420BufferTextureUploader()
+            if (i420Uploader == null) {
+                i420Uploader = I420BufferTextureUploader()
             }
 
-            yuvUploader?.let {
+            i420Uploader?.let {
                 it.uploadFromBuffer(frame.buffer)
                 drawYuv(
                         it.yuvTextures,
@@ -276,8 +276,6 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
         renderWidth = distance(renderDestinationPoints[0], renderDestinationPoints[1], renderDestinationPoints[2], renderDestinationPoints[3])
         renderHeight = distance(renderDestinationPoints[0], renderDestinationPoints[1], renderDestinationPoints[4], renderDestinationPoints[5])
     }
-
-
 
     private fun drawOes(
             oesTextureId: Int, texMatrix: FloatArray?,
@@ -398,8 +396,8 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
     }
 
     override fun release() {
-        yuvUploader?.release()
-        yuvUploader = null
+        i420Uploader?.release()
+        i420Uploader = null
 
         rgbaUploader?.release()
         rgbaUploader = null

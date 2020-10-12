@@ -141,6 +141,8 @@ class DefaultSurfaceTextureCaptureSource(
             width, height, textureId, GlUtil.convertToMatrix(transformMatrix),
             VideoFrameTextureBuffer.Type.TEXTURE_OES, Runnable { frameReleased() })
         val timestamp = timestampAligner.translateTimestamp(surfaceTexture.timestamp)
+
+        logger.info(TAG, "timestamp before ${surfaceTexture.timestamp} after $timestamp")
         val frame = VideoFrame(timestamp, buffer)
 
         sinks.forEach { it.onVideoFrameReceived(frame) }

@@ -35,7 +35,6 @@ class DefaultCameraCaptureSource(
     private val cameraManager: CameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
 ) : CameraCaptureSource, VideoSink {
 
-    private val thread: HandlerThread = HandlerThread("DefaultCameraCaptureSource")
     private val handler: Handler
 
     private var cameraCaptureSession: CameraCaptureSession? = null
@@ -57,6 +56,7 @@ class DefaultCameraCaptureSource(
     private val TAG = "DefaultCameraCaptureSource"
 
     init {
+        val thread = HandlerThread("DefaultCameraCaptureSource")
         thread.start()
         handler = Handler(thread.looper)
     }
@@ -98,7 +98,6 @@ class DefaultCameraCaptureSource(
             }
 
             field = value
-
             if (cameraDevice == null) {
                 // If not in a session, use the CameraManager API
                 device?.id?.let { cameraManager.setTorchMode(it, field) }
@@ -127,7 +126,6 @@ class DefaultCameraCaptureSource(
             }
         }
 
-
     override fun start() {
         if (ActivityCompat.checkSelfPermission(
                 context,
@@ -140,7 +138,6 @@ class DefaultCameraCaptureSource(
 
         logger.info(TAG, "Starting camera capture with device: $device")
         val device = device ?: return
-
 
         cameraCharacteristics = cameraManager.getCameraCharacteristics(device.id).also {
             cameraOrientation = it.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 0
