@@ -8,7 +8,8 @@ import java.nio.ByteBuffer
  * [com.xodee.client.video.VideoFrameRGBABuffer].  Reverse will never occur.
  */
 class VideoFrameRGBABufferAdapter {
-    class SDKToMedia(private val rgbaBuffer: VideoFrameRGBABuffer) : com.xodee.client.video.VideoFrameRGBABuffer {
+    class SDKToMedia(private val rgbaBuffer: VideoFrameRGBABuffer) :
+        com.xodee.client.video.VideoFrameRGBABuffer {
         override fun getWidth(): Int = rgbaBuffer.width
         override fun getHeight(): Int = rgbaBuffer.height
         override fun getData(): ByteBuffer? = rgbaBuffer.data

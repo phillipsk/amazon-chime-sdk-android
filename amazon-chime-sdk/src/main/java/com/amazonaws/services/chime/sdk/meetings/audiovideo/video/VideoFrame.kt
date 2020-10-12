@@ -4,20 +4,20 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
  * [VideoFrame] is a class which contains a [VideoFrameBuffer] and metadata necessary for transmission
  */
 class VideoFrame(
-        /**
-         * Timestamp in nanoseconds at which the video frame was captured
-         */
-        val timestampNs: Long,
+    /**
+     * Timestamp in nanoseconds at which the video frame was captured
+     */
+    val timestampNs: Long,
 
-        /**
-         * Object containing actual video frame data in some form
-         */
-        val buffer: VideoFrameBuffer,
+    /**
+     * Object containing actual video frame data in some form
+     */
+    val buffer: VideoFrameBuffer,
 
-        /**
-         * Rotation of the video frame buffer in degrees clockwise
-         */
-        val rotation: VideoRotation = VideoRotation.Rotation0
+    /**
+     * Rotation of the video frame buffer in degrees clockwise
+     */
+    val rotation: VideoRotation = VideoRotation.Rotation0
 ) {
     /**
      * Width of the video frame

@@ -8,7 +8,7 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameBuff
  */
 object VideoFrameBufferAdapter {
     class SDKToMedia(
-            private val buffer: VideoFrameBuffer
+        private val buffer: VideoFrameBuffer
     ) : com.xodee.client.video.VideoFrameBuffer {
         override fun getWidth(): Int = buffer.width
         override fun getHeight(): Int = buffer.height
@@ -17,7 +17,7 @@ object VideoFrameBufferAdapter {
     }
 
     class MediaToSDK(
-            private val buffer: com.xodee.client.video.VideoFrameBuffer
+        private val buffer: com.xodee.client.video.VideoFrameBuffer
     ) : VideoFrameBuffer {
         override val width: Int = buffer.width
         override val height: Int = buffer.height

@@ -7,8 +7,8 @@ import android.opengl.EGLExt
 import android.util.Log
 
 class DefaultEglCore(
-        private val releaseCallback: Runnable? = null,
-        sharedContext: EGLContext = EGL14.EGL_NO_CONTEXT
+    private val releaseCallback: Runnable? = null,
+    sharedContext: EGLContext = EGL14.EGL_NO_CONTEXT
 ) : EglCore {
     override var eglContext = EGL14.EGL_NO_CONTEXT
     override var eglSurface = EGL14.EGL_NO_SURFACE
@@ -26,7 +26,7 @@ class DefaultEglCore(
             throw RuntimeException("Unable to initialize EGL14")
         }
 
-        getConfig() ?.also {
+        getConfig()?.also {
             val attributeList = intArrayOf(
                 EGL14.EGL_CONTEXT_CLIENT_VERSION, 3,
                 EGL14.EGL_NONE
@@ -42,9 +42,11 @@ class DefaultEglCore(
         // Confirm with query.
         val values = IntArray(1)
         if (!EGL14.eglQueryContext(
-            eglDisplay, eglContext, EGL14.EGL_CONTEXT_CLIENT_VERSION,
-            values, 0)) {
-                throw RuntimeException("Failed to query context")
+                eglDisplay, eglContext, EGL14.EGL_CONTEXT_CLIENT_VERSION,
+                values, 0
+            )
+        ) {
+            throw RuntimeException("Failed to query context")
         }
     }
 
@@ -87,7 +89,8 @@ class DefaultEglCore(
         if (!EGL14.eglChooseConfig(
                 eglDisplay, attributeList, 0, configs, 0, configs.size,
                 numConfigs, 0
-            )) {
+            )
+        ) {
             return null
         }
         return configs[0]

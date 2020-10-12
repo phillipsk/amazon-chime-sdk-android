@@ -10,7 +10,7 @@ import java.security.InvalidParameterException
  */
 class VideoFrameTextureBufferAdapter {
     class SDKToMedia(
-            private val textureBuffer: VideoFrameTextureBuffer
+        private val textureBuffer: VideoFrameTextureBuffer
     ) : com.xodee.client.video.VideoFrameTextureBuffer {
         override fun getWidth(): Int = textureBuffer.width
         override fun getHeight(): Int = textureBuffer.height
@@ -28,7 +28,7 @@ class VideoFrameTextureBufferAdapter {
     }
 
     class MediaToSDK(
-            private val textureBuffer: com.xodee.client.video.VideoFrameTextureBuffer
+        private val textureBuffer: com.xodee.client.video.VideoFrameTextureBuffer
     ) : VideoFrameTextureBuffer {
         override val width: Int = textureBuffer.width
         override val height: Int = textureBuffer.height

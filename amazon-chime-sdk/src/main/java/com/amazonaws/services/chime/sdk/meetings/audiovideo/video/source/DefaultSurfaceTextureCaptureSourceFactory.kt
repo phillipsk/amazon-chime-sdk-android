@@ -7,14 +7,20 @@ import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
  * [DefaultSurfaceTextureCaptureSourceFactory] creates [DefaultSurfaceTextureCaptureSource] objects
  */
 class DefaultSurfaceTextureCaptureSourceFactory(
-        private val logger: Logger,
-        private val eglCoreFactory: EglCoreFactory
+    private val logger: Logger,
+    private val eglCoreFactory: EglCoreFactory
 ) : SurfaceTextureCaptureSourceFactory {
     override fun createSurfaceTextureCaptureSource(
         width: Int,
         height: Int,
         contentHint: ContentHint
     ): SurfaceTextureCaptureSource {
-        return DefaultSurfaceTextureCaptureSource(logger, width, height, contentHint, eglCoreFactory)
+        return DefaultSurfaceTextureCaptureSource(
+            logger,
+            width,
+            height,
+            contentHint,
+            eglCoreFactory
+        )
     }
 }

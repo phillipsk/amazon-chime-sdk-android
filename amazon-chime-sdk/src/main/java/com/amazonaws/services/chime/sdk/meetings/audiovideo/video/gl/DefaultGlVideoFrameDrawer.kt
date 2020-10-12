@@ -17,7 +17,7 @@ import kotlin.math.roundToInt
 /**
  * [DefaultGlVideoFrameDrawer] simply draws the frames as opaque quads onto the current surface
  */
-class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
+class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
     /**
      * Helper class for uploading YUV bytebuffer frames to textures that handles stride > width. This
      * class keeps an internal ByteBuffer to avoid unnecessary allocations for intermediate copies.
@@ -25,6 +25,7 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
     private class I420BufferTextureUploader {
         // Intermediate copy buffer for uploading yuv frames that are not packed, i.e. stride > width.
         private var copyBuffer: ByteBuffer? = null
+
         // Output texture IDs
         var yuvTextures: IntArray? = null
 
@@ -36,14 +37,14 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
 
         fun release() {
             copyBuffer = null
-            yuvTextures ?.let { GLES20.glDeleteTextures(3, it, 0) }
+            yuvTextures?.let { GLES20.glDeleteTextures(3, it, 0) }
         }
 
         private fun uploadYuvData(
-                width: Int,
-                height: Int,
-                strides: IntArray,
-                planes: Array<ByteBuffer>
+            width: Int,
+            height: Int,
+            strides: IntArray,
+            planes: Array<ByteBuffer>
         ): IntArray {
             val planeWidths = intArrayOf(width, width / 2, width / 2)
             val planeHeights = intArrayOf(height, height / 2, height / 2)
@@ -79,17 +80,17 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
                     planes[i] // Input is packed already.
                 } else {
                     YuvUtil.copyPlane(
-                            planes[i], strides[i], copyBuffer,
-                            planeWidths[i], planeWidths[i], planeHeights[i]
+                        planes[i], strides[i], copyBuffer,
+                        planeWidths[i], planeWidths[i], planeHeights[i]
                     )
                     copyBuffer ?: return IntArray(0)
                 }
 
                 GLES20.glTexImage2D(
-                        GLES20.GL_TEXTURE_2D, 0, GLES20.GL_LUMINANCE,
-                        planeWidths[i], planeHeights[i], 0,
-                        GLES20.GL_LUMINANCE, GLES20.GL_UNSIGNED_BYTE,
-                        packedByteBuffer
+                    GLES20.GL_TEXTURE_2D, 0, GLES20.GL_LUMINANCE,
+                    planeWidths[i], planeHeights[i], 0,
+                    GLES20.GL_LUMINANCE, GLES20.GL_UNSIGNED_BYTE,
+                    packedByteBuffer
                 )
             }
             return validYuvTextures
@@ -104,6 +105,7 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
     private class RGBABufferTextureUploader {
         // Intermediate copy buffer for uploading yuv frames that are not packed, i.e. stride > width.
         private var copyBuffer: ByteBuffer? = null
+
         // Output texture IDs
         var textureId: Int = 0
 
@@ -118,10 +120,10 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
         }
 
         private fun uploadRgbaData(
-                width: Int,
-                height: Int,
-                data: ByteBuffer,
-                stride: Int
+            width: Int,
+            height: Int,
+            data: ByteBuffer,
+            stride: Int
         ): Int {
             // Make a first pass to see if we need a temporary copy buffer.
             var copyCapacityNeeded = 0
@@ -134,7 +136,8 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
             }
 
             // Make sure YUV textures are allocated.
-            val textureId = if (textureId == 0) GlUtil.generateTexture(GLES20.GL_TEXTURE_2D) else textureId
+            val textureId =
+                if (textureId == 0) GlUtil.generateTexture(GLES20.GL_TEXTURE_2D) else textureId
 
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
@@ -144,18 +147,18 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
                 data // Input is packed already.
             } else {
                 YuvUtil.copyPlane(
-                        data, stride,
-                        copyBuffer, width * 4,
-                        width, height
+                    data, stride,
+                    copyBuffer, width * 4,
+                    width, height
                 )
                 copyBuffer ?: return 0
             }
 
             GLES20.glTexImage2D(
-                    GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA,
-                    width, height, 0,
-                    GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,
-                    packedByteBuffer
+                GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA,
+                width, height, 0,
+                GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,
+                packedByteBuffer
             )
             return textureId
         }
@@ -180,12 +183,12 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
     private var rgbaUploader: RGBABufferTextureUploader? = RGBABufferTextureUploader()
 
     override fun drawFrame(
-            frame: VideoFrame,
-            viewportX: Int,
-            viewportY: Int,
-            viewportWidth: Int,
-            viewportHeight: Int,
-            additionalRenderMatrix: Matrix?
+        frame: VideoFrame,
+        viewportX: Int,
+        viewportY: Int,
+        viewportWidth: Int,
+        viewportHeight: Int,
+        additionalRenderMatrix: Matrix?
     ) {
         val isTextureFrame = frame.buffer is VideoFrameTextureBuffer
 
@@ -215,14 +218,14 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
             val finalGlMatrix = GlUtil.convertToGlTransformMatrix(finalMatrix)
             when (textureBuffer.type) {
                 VideoFrameTextureBuffer.Type.TEXTURE_OES -> drawOes(
-                        textureBuffer.textureId, finalGlMatrix,
-                        viewportX, viewportY,
-                        viewportWidth, viewportHeight
+                    textureBuffer.textureId, finalGlMatrix,
+                    viewportX, viewportY,
+                    viewportWidth, viewportHeight
                 )
                 VideoFrameTextureBuffer.Type.TEXTURE_2D -> drawRgb(
-                        textureBuffer.textureId, finalGlMatrix,
-                        viewportX, viewportY,
-                        viewportWidth, viewportHeight
+                    textureBuffer.textureId, finalGlMatrix,
+                    viewportX, viewportY,
+                    viewportWidth, viewportHeight
                 )
             }
         } else if (frame.buffer is VideoFrameI420Buffer) {
@@ -233,18 +236,18 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
             i420Uploader?.let {
                 it.uploadFromBuffer(frame.buffer)
                 drawYuv(
-                        it.yuvTextures,
-                        GlUtil.convertToGlTransformMatrix(renderMatrix),
-                        viewportX, viewportY, viewportWidth, viewportHeight
+                    it.yuvTextures,
+                    GlUtil.convertToGlTransformMatrix(renderMatrix),
+                    viewportX, viewportY, viewportWidth, viewportHeight
                 )
             }
         } else if (frame.buffer is VideoFrameRGBABuffer) {
             val textureId = rgbaUploader?.uploadFromBuffer(frame.buffer)
             if (textureId != null) {
                 drawRgb(
-                        textureId, GlUtil.convertToGlTransformMatrix(renderMatrix),
-                        viewportX, viewportY,
-                        viewportWidth, viewportHeight
+                    textureId, GlUtil.convertToGlTransformMatrix(renderMatrix),
+                    viewportX, viewportY,
+                    viewportWidth, viewportHeight
                 )
             }
         }
@@ -253,7 +256,7 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
     // Calculate the frame size after |renderMatrix| is applied. Stores the output in member variables
     // |renderWidth| and |renderHeight| to avoid allocations since this function is called for every frame.
     private fun calculateTransformedRenderSize(
-            frameWidth: Int, frameHeight: Int, renderMatrix: Matrix?
+        frameWidth: Int, frameHeight: Int, renderMatrix: Matrix?
     ) {
         if (renderMatrix == null) {
             renderWidth = frameWidth
@@ -273,13 +276,23 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
             return hypot(x1 - x0.toDouble(), y1 - y0.toDouble()).roundToInt()
         }
         // Get the length of the sides of the transformed rectangle in terms of pixels.
-        renderWidth = distance(renderDestinationPoints[0], renderDestinationPoints[1], renderDestinationPoints[2], renderDestinationPoints[3])
-        renderHeight = distance(renderDestinationPoints[0], renderDestinationPoints[1], renderDestinationPoints[4], renderDestinationPoints[5])
+        renderWidth = distance(
+            renderDestinationPoints[0],
+            renderDestinationPoints[1],
+            renderDestinationPoints[2],
+            renderDestinationPoints[3]
+        )
+        renderHeight = distance(
+            renderDestinationPoints[0],
+            renderDestinationPoints[1],
+            renderDestinationPoints[4],
+            renderDestinationPoints[5]
+        )
     }
 
     private fun drawOes(
-            oesTextureId: Int, texMatrix: FloatArray?,
-            viewportX: Int, viewportY: Int, viewportWidth: Int, viewportHeight: Int
+        oesTextureId: Int, texMatrix: FloatArray?,
+        viewportX: Int, viewportY: Int, viewportWidth: Int, viewportHeight: Int
     ) {
         prepareShader(ShaderType.OES, texMatrix)
 
@@ -297,8 +310,8 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
     }
 
     private fun drawRgb(
-            textureId: Int, texMatrix: FloatArray?,
-            viewportX: Int, viewportY: Int, viewportWidth: Int, viewportHeight: Int
+        textureId: Int, texMatrix: FloatArray?,
+        viewportX: Int, viewportY: Int, viewportWidth: Int, viewportHeight: Int
     ) {
         prepareShader(ShaderType.RGB, texMatrix)
 
@@ -316,8 +329,8 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
     }
 
     private fun drawYuv(
-            yuvTextures: IntArray?, texMatrix: FloatArray?,
-            viewportX: Int, viewportY: Int, viewportWidth: Int, viewportHeight: Int
+        yuvTextures: IntArray?, texMatrix: FloatArray?,
+        viewportX: Int, viewportY: Int, viewportWidth: Int, viewportHeight: Int
     ) {
         prepareShader(ShaderType.YUV, texMatrix)
 
@@ -338,7 +351,7 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
     }
 
     private fun prepareShader(
-            shaderType: ShaderType, texMatrix: FloatArray?
+        shaderType: ShaderType, texMatrix: FloatArray?
     ) {
         if (currentShaderType != shaderType) {
             // Allocate new shader.
@@ -369,8 +382,10 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
 
             // Get input locations
             textureMatrixLocation = GLES20.glGetUniformLocation(program, TEXTURE_MATRIX_NAME)
-            vertexPositionLocation = GLES20.glGetAttribLocation(program, INPUT_VERTEX_COORDINATE_NAME)
-            textureCoordinateLocation = GLES20.glGetAttribLocation(program, INPUT_TEXTURE_COORDINATE_NAME)
+            vertexPositionLocation =
+                GLES20.glGetAttribLocation(program, INPUT_VERTEX_COORDINATE_NAME)
+            textureCoordinateLocation =
+                GLES20.glGetAttribLocation(program, INPUT_TEXTURE_COORDINATE_NAME)
             if (textureMatrixLocation == -1 || vertexPositionLocation == -1 || textureCoordinateLocation == -1) {
                 throw InvalidParameterException("Failed to get shader locations")
             }
@@ -381,17 +396,19 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
         // Upload the vertex coordinates.
         GLES20.glEnableVertexAttribArray(vertexPositionLocation)
         GLES20.glVertexAttribPointer(
-                vertexPositionLocation, 2, GLES20.GL_FLOAT,
-                false, 0, GlUtil.FULL_RECTANGLE_BUFFER)
+            vertexPositionLocation, 2, GLES20.GL_FLOAT,
+            false, 0, GlUtil.FULL_RECTANGLE_BUFFER
+        )
 
         // Upload the texture coordinates.
         GLES20.glEnableVertexAttribArray(textureCoordinateLocation)
         GLES20.glVertexAttribPointer(
-                textureCoordinateLocation, 2, GLES20.GL_FLOAT,
-                false, 0, GlUtil.FULL_RECTANGLE_TEXTURE_BUFFER)
+            textureCoordinateLocation, 2, GLES20.GL_FLOAT,
+            false, 0, GlUtil.FULL_RECTANGLE_TEXTURE_BUFFER
+        )
 
         // Upload the texture transformation matrix.
-        GLES20.glUniformMatrix4fv(textureMatrixLocation, 1 , false , texMatrix, 0)
+        GLES20.glUniformMatrix4fv(textureMatrixLocation, 1, false, texMatrix, 0)
         GlUtil.checkGlError("Failed to upload shader inputs")
     }
 
@@ -414,13 +431,14 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
     companion object {
         // These points are used to calculate the size of the part of the frame we are rendering.
         private val srcPoints = floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f)
+
         private enum class ShaderType { OES, RGB, YUV }
 
         private val INPUT_VERTEX_COORDINATE_NAME = "aPosition"
         private val INPUT_TEXTURE_COORDINATE_NAME = "aTextureCoordinate"
         private val TEXTURE_MATRIX_NAME = "uTextureMatrix"
         private val VERTEX_SHADER =
-                """
+            """
         varying vec2 vTextureCoordinate;
         attribute vec4 aPosition;
         attribute vec4 aTextureCoordinate;
@@ -433,7 +451,7 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
 
         private val INPUT_TEXTURE_NAME = "sTexture"
         private val FRAGMENT_SHADER_OES =
-                """
+            """
         #extension GL_OES_EGL_image_external : require
         precision mediump float;
         varying vec2 vTextureCoordinate;
@@ -444,7 +462,7 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
         """
 
         private val FRAGMENT_SHADER_RGB =
-                """
+            """
         precision mediump float;
         varying vec2 vTextureCoordinate;
         uniform samplerExternalOES sTexture;
@@ -458,7 +476,7 @@ class DefaultGlVideoFrameDrawer(): GlVideoFrameDrawer {
         private val INPUT_TEXTURE_V_NAME = "sTextureV"
 
         private val FRAGMENT_SHADER_YUV =
-                """
+            """
         precision mediump float;
         varying vec2 vTextureCoordinate;
         uniform sampler2D sTextureY;

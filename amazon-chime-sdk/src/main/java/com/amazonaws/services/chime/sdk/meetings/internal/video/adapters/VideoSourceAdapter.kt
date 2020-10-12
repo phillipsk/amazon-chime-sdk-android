@@ -8,7 +8,8 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSo
  * [VideoSourceAdapter] provides two classes to adapt [VideoSource] to
  * [com.xodee.client.video.VideoSource].  Reverse will never occur.
  */
-class VideoSourceAdapter(private val source: VideoSource) : VideoSink, com.xodee.client.video.VideoSource {
+class VideoSourceAdapter(private val source: VideoSource) : VideoSink,
+    com.xodee.client.video.VideoSource {
     private var sinks = mutableSetOf<com.xodee.client.video.VideoSink>()
 
     init {
@@ -24,7 +25,7 @@ class VideoSourceAdapter(private val source: VideoSource) : VideoSink, com.xodee
     }
 
     override fun getContentHint(): com.xodee.client.video.ContentHint {
-        return when(source.contentHint) {
+        return when (source.contentHint) {
             ContentHint.None -> com.xodee.client.video.ContentHint.NONE
             ContentHint.Motion -> com.xodee.client.video.ContentHint.MOTION
             ContentHint.Detail -> com.xodee.client.video.ContentHint.DETAIL
@@ -41,7 +42,8 @@ class VideoSourceAdapter(private val source: VideoSource) : VideoSink, com.xodee
         }
 
         val videoClientFrame = com.xodee.client.video.VideoFrame(
-            frame.width, frame.height, frame.timestampNs, frame.rotation.degrees, buffer)
+            frame.width, frame.height, frame.timestampNs, frame.rotation.degrees, buffer
+        )
         sinks.forEach { it.onFrameCaptured(videoClientFrame) }
     }
 }

@@ -39,6 +39,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
      */
     class VideoLayoutMeasure {
         enum class ScalingType { SCALE_ASPECT_FIT, SCALE_ASPECT_FILL }
+
         var scalingType = ScalingType.SCALE_ASPECT_FILL
 
         fun measure(
@@ -101,8 +102,10 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
                 return Point(maxDisplayWidth, maxDisplayHeight)
             }
             // Each dimension is constrained on max display size and how much we are allowed to crop.
-            val width = maxDisplayWidth.coerceAtMost((maxDisplayHeight / minVisibleFraction * videoAspectRatio).roundToInt())
-            val height = maxDisplayHeight.coerceAtMost((maxDisplayWidth / minVisibleFraction / videoAspectRatio).roundToInt())
+            val width =
+                maxDisplayWidth.coerceAtMost((maxDisplayHeight / minVisibleFraction * videoAspectRatio).roundToInt())
+            val height =
+                maxDisplayHeight.coerceAtMost((maxDisplayWidth / minVisibleFraction / videoAspectRatio).roundToInt())
             return Point(width, height)
         }
     }
@@ -271,7 +274,12 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
                     eglCore?.eglDisplay, eglCore?.eglConfig, surface,
                     surfaceAttributess, 0
                 )
-                EGL14.eglMakeCurrent(eglCore?.eglDisplay, eglCore?.eglSurface, eglCore?.eglSurface, eglCore?.eglContext)
+                EGL14.eglMakeCurrent(
+                    eglCore?.eglDisplay,
+                    eglCore?.eglSurface,
+                    eglCore?.eglSurface,
+                    eglCore?.eglContext
+                )
 
                 // Necessary for YUV frames with odd width.
                 GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 1)
@@ -338,11 +346,15 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
 
         // Get current surface size so we can set viewport correctly
         val widthArray = IntArray(1)
-        EGL14.eglQuerySurface(eglCore?.eglDisplay, eglCore?.eglSurface,
-            EGL14.EGL_WIDTH, widthArray, 0)
+        EGL14.eglQuerySurface(
+            eglCore?.eglDisplay, eglCore?.eglSurface,
+            EGL14.EGL_WIDTH, widthArray, 0
+        )
         val heightArray = IntArray(1)
-        EGL14.eglQuerySurface(eglCore?.eglDisplay, eglCore?.eglSurface,
-            EGL14.EGL_HEIGHT, heightArray, 0)
+        EGL14.eglQuerySurface(
+            eglCore?.eglDisplay, eglCore?.eglSurface,
+            EGL14.EGL_HEIGHT, heightArray, 0
+        )
 
         // Draw frame
         frameDrawer.drawFrame(frame, 0, 0, widthArray[0], heightArray[0], drawMatrix)
