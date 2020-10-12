@@ -16,17 +16,12 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSo
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionConfiguration
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 import com.xodee.client.video.VideoClient
-import io.mockk.MockKAnnotations
-import io.mockk.coVerify
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
-import io.mockk.just
-import io.mockk.mockkStatic
-import io.mockk.runs
-import io.mockk.verify
 import java.security.InvalidParameterException
 import kotlinx.coroutines.test.runBlockingTest
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
@@ -87,8 +82,17 @@ class DefaultVideoClientControllerTest {
         every { mockEglCoreFactory.createEglCore() } returns mockEglCore
     }
 
+    @After
+    fun cleanUp() {
+        clearAllMocks()
+    }
+
     @Test
     fun `start should call VideoClientStateController start and create EglCore`() {
+        // Run this first
+        runBlockingTest {
+            testVideoClientController.stopAndDestroy()
+        }
         testVideoClientController.start()
 
         verify { mockEglCoreFactory.createEglCore() }

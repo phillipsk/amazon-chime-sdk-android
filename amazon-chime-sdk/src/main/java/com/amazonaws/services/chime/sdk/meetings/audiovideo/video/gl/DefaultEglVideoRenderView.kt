@@ -12,7 +12,6 @@ import android.opengl.EGL14
 import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
-import android.os.Looper
 import android.util.AttributeSet
 import android.util.Log
 import android.view.SurfaceHolder
@@ -290,7 +289,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
         val validRenderHandler = this.renderHandler ?: return
         runBlocking(validRenderHandler.asCoroutineDispatcher().immediate) {
             // Release frame drawer while we have a valid current context
-            frameDrawer?.release()
+            frameDrawer.release()
 
             EGL14.eglMakeCurrent(
                 eglCore?.eglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE,
@@ -307,6 +306,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             return
         }
 
+
         // Fetch pending frame
         var frame: VideoFrame
         synchronized(pendingFrameLock) {
@@ -316,6 +316,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             frame = pendingFrame as VideoFrame
             pendingFrame = null
         }
+        Log.e("timestamp", "${frame.timestampNs}")
 
         // Setup draw matrix
         val frameAspectRatio = frame.getRotatedWidth().toFloat() / frame.getRotatedHeight()
@@ -344,7 +345,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             EGL14.EGL_HEIGHT, heightArray, 0)
 
         // Draw frame
-        frameDrawer?.drawFrame(frame, 0, 0, widthArray[0], heightArray[0], drawMatrix)
+        frameDrawer.drawFrame(frame, 0, 0, widthArray[0], heightArray[0], drawMatrix)
         EGL14.eglSwapBuffers(eglCore?.eglDisplay, eglCore?.eglSurface)
 
         frame.release()

@@ -49,13 +49,15 @@ class BlackAndWhiteGlVideoFrameDrawer : GlVideoFrameDrawer {
             return
         }
         renderMatrix.reset()
+        // Need to translate origin before rotating
         renderMatrix.preTranslate(0.5f, 0.5f)
         renderMatrix.preRotate(frame.rotation.degrees.toFloat())
+        // Translate back
         renderMatrix.preTranslate(-0.5f, -0.5f)
-        if (additionalRenderMatrix != null) {
-            renderMatrix.preConcat(additionalRenderMatrix)
-        }
+        // Apply additional matrix
+        additionalRenderMatrix?.let { renderMatrix.preConcat(it) }
 
+        // Apply texture frame matrix
         val finalMatrix = Matrix(textureBuffer.transformMatrix)
         finalMatrix.preConcat(renderMatrix)
         val finalGlMatrix = GlUtil.convertToGlTransformMatrix(finalMatrix)
