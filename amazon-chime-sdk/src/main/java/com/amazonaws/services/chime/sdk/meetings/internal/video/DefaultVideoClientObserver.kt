@@ -180,7 +180,7 @@ class DefaultVideoClientObserver(
         if (message == null) return
         // Only print error and fatal as the Media team's request to avoid noise
         // Will be changed back to respect logger settings once sanitize the logs
-        if (true) {
+        if (logLevel == AudioClient.L_ERROR || logLevel == AudioClient.L_FATAL) {
             logger.error(TAG, message)
         }
     }
