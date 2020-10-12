@@ -2,7 +2,7 @@ package com.amazonaws.services.chime.sdk.meetings.utils
 
 import java.util.concurrent.atomic.AtomicInteger
 
-internal class RefCountDelegate(private val releaseCallback: Runnable) {
+class RefCountDelegate(private val releaseCallback: Runnable) {
     private val refCount: AtomicInteger = AtomicInteger(1)
 
     fun retain() {

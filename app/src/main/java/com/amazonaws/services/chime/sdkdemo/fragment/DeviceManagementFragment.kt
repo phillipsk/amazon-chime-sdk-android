@@ -219,8 +219,7 @@ class DeviceManagementFragment : Fragment(),
         val filteredFormats = freshVideoCaptureFormatList.filter { it.height <= 800 }
 
         for (format in filteredFormats) {
-            videoFormats.add(format)
-            // Add additional 15 FPS option
+            // MediaSDK doesn't yet support 30FPS so anything above will lead to frame drops
             videoFormats.add(VideoCaptureFormat(format.width, format.height, 15))
         }
         videoCaptureFormatArrayAdapter.notifyDataSetChanged()
@@ -238,7 +237,7 @@ class DeviceManagementFragment : Fragment(),
 
     private suspend fun listVideoDevices(): List<MediaDevice> {
         return withContext(Dispatchers.Default) {
-            audioVideo.listVideoDevices()
+            MediaDevice.listVideoDevices(cameraManager)
         }
     }
 

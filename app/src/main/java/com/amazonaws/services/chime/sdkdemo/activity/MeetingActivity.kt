@@ -59,6 +59,11 @@ class MeetingActivity : AppCompatActivity(),
                     it,
                     logger,
                     applicationContext,
+                    // Note if the following isn't provided app will (as expected) crash if we use custom video source
+                    // since an EglCoreFactory will be internal created and will be using a different shared EGLContext.
+                    // However the internal default capture would work fine, since it is initialized using
+                    // that internally created default EglCoreFactory, and can be smoke tested by removing this
+                    // argument and toggling use of custom video source before starting video
                     meetingModel.eglCoreFactory
                 )
             }

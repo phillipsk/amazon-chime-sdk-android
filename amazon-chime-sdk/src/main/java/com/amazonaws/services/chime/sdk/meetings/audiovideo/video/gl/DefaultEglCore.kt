@@ -4,6 +4,7 @@ import android.opengl.EGL14
 import android.opengl.EGLConfig
 import android.opengl.EGLContext
 import android.opengl.EGLExt
+import android.util.Log
 
 class DefaultEglCore(
         private val releaseCallback: Runnable? = null,
@@ -34,7 +35,6 @@ class DefaultEglCore(
                 eglDisplay, it, sharedContext,
                 attributeList, 0
             )
-           GlUtil.checkGlError("Failed to create context")
             eglConfig = it
             eglContext = context
         }
@@ -77,6 +77,7 @@ class DefaultEglCore(
             EGL14.EGL_BLUE_SIZE, 8,
             EGL14.EGL_ALPHA_SIZE, 8,
             EGL14.EGL_RENDERABLE_TYPE, renderableType,
+            EGL14.EGL_SURFACE_TYPE, EGL14.EGL_PBUFFER_BIT,
             EGL14.EGL_NONE, 0,
             EGL14.EGL_NONE
         )

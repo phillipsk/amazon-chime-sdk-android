@@ -147,12 +147,9 @@ class DefaultVideoClientObserver(
                 is com.xodee.client.video.VideoFrameI420Buffer -> VideoFrameI420BufferAdapter.MediaToSDK(
                     frame.buffer as com.xodee.client.video.VideoFrameI420Buffer
                 )
-                is com.xodee.client.video.VideoFrameBuffer -> VideoFrameBufferAdapter.MediaToSDK(
-                    frame.buffer as com.xodee.client.video.VideoFrameBuffer
-                )
-                else -> throw InvalidParameterException("Video frame must have non null buffer")
+                else -> throw InvalidParameterException("Video frame must have non null I420 or texture buffer")
             }
-            VideoFrame(frame.timestamp, bufferAdapter, VideoRotation.from(frame.rotation.toInt()) ?: VideoRotation.Rotation0)
+            VideoFrame(frame.timestampNs, bufferAdapter, VideoRotation.from(frame.rotation) ?: VideoRotation.Rotation0)
         }
 
         notifyVideoTileObserver { observer ->
@@ -183,7 +180,7 @@ class DefaultVideoClientObserver(
         if (message == null) return
         // Only print error and fatal as the Media team's request to avoid noise
         // Will be changed back to respect logger settings once sanitize the logs
-        if (logLevel == AudioClient.L_ERROR || logLevel == AudioClient.L_FATAL) {
+        if (true) {
             logger.error(TAG, message)
         }
     }

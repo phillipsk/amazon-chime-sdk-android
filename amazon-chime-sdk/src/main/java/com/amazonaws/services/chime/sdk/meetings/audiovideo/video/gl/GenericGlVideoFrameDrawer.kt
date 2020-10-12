@@ -3,6 +3,7 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
 import android.graphics.Matrix
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
+import android.util.Log
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameI420Buffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameRGBABuffer
@@ -414,6 +415,7 @@ open class GenericGlVideoFrameDrawer(
             GLES20.glDeleteProgram(program)
             program = -1
         }
+
     }
 
     private fun createFragmentShaderString(shaderType: ShaderType): String {

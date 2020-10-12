@@ -7,7 +7,6 @@ package com.amazonaws.services.chime.sdkdemo.fragment
 
 import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -158,7 +157,7 @@ class MeetingFragment : Fragment(),
         audioVideo = activity.getAudioVideo()
         cameraCaptureSource = activity.getCameraCaptureSource()
         gpuVideoProcessor = GpuVideoProcessor(logger, activity.getEglCoreFactory())
-        cpuVideoProcessor = CpuVideoProcessor()
+        cpuVideoProcessor = CpuVideoProcessor(logger, activity.getEglCoreFactory())
 
 
         view.findViewById<TextView>(R.id.textViewMeetingId)?.text = arguments?.getString(
@@ -184,6 +183,7 @@ class MeetingFragment : Fragment(),
         super.onDestroyView()
 
         gpuVideoProcessor.release()
+        cpuVideoProcessor.release()
     }
 
     private fun setupButtonsBar(view: View) {
@@ -377,7 +377,7 @@ class MeetingFragment : Fragment(),
         )
         moreMenuAlertDialogBuilder.setItems(additionalToggles) { _, which ->
             when (which) {
-                0 -> toggleTorch()
+                0 -> toggleFlashlight()
                 1 -> toggleCpuDemoFilter()
                 2 -> toggleGpuDemoFilter()
                 3 -> toggleCustomCaptureSource()
@@ -597,29 +597,40 @@ class MeetingFragment : Fragment(),
         meetingModel.isMoreMenuDialogOn = true
     }
 
-    private fun toggleTorch() {
-        logger.info(TAG, "Toggling torch")
+    private fun toggleFlashlight() {
+        logger.info(TAG, "Toggling flashlight from ${cameraCaptureSource.flashlightEnabled} to ${!cameraCaptureSource.flashlightEnabled}")
         if (!isUsingCameraCaptureSource) {
-            logger.warn(TAG,"Cannot toggle torch without using external camera capture source")
-            val alert = AlertDialog.Builder(context)
-                .create()
-            alert.setTitle("Oops!")
-            alert.setMessage("Flash not available in this device...")
-            alert.setButton(DialogInterface.BUTTON_POSITIVE, "OK") { _, _ ->  }
-            alert.show()
+            logger.warn(TAG,"Cannot toggle flashlight without using custom camera capture source")
+            Toast.makeText(
+                    context!!,
+                    getString(R.string.user_notification_flashlight_custom_source_error),
+                    Toast.LENGTH_SHORT
+            ).show()
+            return
         }
-        cameraCaptureSource.flashlightEnabled = !cameraCaptureSource.flashlightEnabled
+        val desiredFlashlightEnabled = !cameraCaptureSource.flashlightEnabled
+        cameraCaptureSource.flashlightEnabled = desiredFlashlightEnabled
+        if (cameraCaptureSource.flashlightEnabled != desiredFlashlightEnabled) {
+            logger.warn(TAG,"Flashlight failed to toggle")
+            Toast.makeText(
+                    context!!,
+                    getString(R.string.user_notification_flashlight_unavailable_error),
+                    Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
     }
 
     private fun toggleCpuDemoFilter() {
         if (!isUsingCameraCaptureSource) {
-            logger.warn(TAG,"Cannot toggle filter without using external camera capture source")
-            val alert = AlertDialog.Builder(context)
-                .create()
-            alert.setTitle("Oops!")
-            alert.setMessage("Flash not available in this device...")
-            alert.setButton(DialogInterface.BUTTON_POSITIVE, "OK") { _, _ -> }
-            alert.show()
+            logger.warn(TAG,"Cannot toggle filter without using custom camera capture source")
+            Toast.makeText(
+                    context!!,
+                    getString(R.string.user_notification_filter_custom_source_error),
+                    Toast.LENGTH_SHORT
+            ).show()
+            return
         }
         logger.info(TAG, "Toggling CPU demo filter from $isUsingCpuVideoProcessor to ${!isUsingCpuVideoProcessor}")
         isUsingCpuVideoProcessor = !isUsingCpuVideoProcessor
@@ -631,13 +642,13 @@ class MeetingFragment : Fragment(),
 
     private fun toggleGpuDemoFilter() {
         if (!isUsingCameraCaptureSource) {
-            logger.warn(TAG,"Cannot toggle filter without using external camera capture source")
-            val alert = AlertDialog.Builder(context)
-                    .create()
-            alert.setTitle("Oops!")
-            alert.setMessage("Flash not available in this device...")
-            alert.setButton(DialogInterface.BUTTON_POSITIVE, "OK") { _, _ -> }
-            alert.show()
+            logger.warn(TAG,"Cannot toggle filter without using custom camera capture source")
+            Toast.makeText(
+                    context!!,
+                    getString(R.string.user_notification_filter_custom_source_error),
+                    Toast.LENGTH_SHORT
+            ).show()
+            return
         }
         logger.info(TAG, "Toggling GPU demo filter from $isUsingGpuVideoProcessor to ${!isUsingGpuVideoProcessor}")
         isUsingGpuVideoProcessor = !isUsingGpuVideoProcessor
@@ -685,6 +696,9 @@ class MeetingFragment : Fragment(),
         isLocalVideoStarted = true
         if (isUsingCameraCaptureSource) {
             if (isUsingGpuVideoProcessor) {
+                cameraCaptureSource.addVideoSink(gpuVideoProcessor)
+                audioVideo.startLocalVideo(gpuVideoProcessor)
+            } else if (isUsingCpuVideoProcessor) {
                 cameraCaptureSource.addVideoSink(cpuVideoProcessor)
                 audioVideo.startLocalVideo(cpuVideoProcessor)
             } else {
