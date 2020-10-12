@@ -10,7 +10,7 @@ import com.amazonaws.services.chime.sdk.meetings.utils.RefCountDelegate
  * It will track all child [EglCore] objects, and if they are all release, will release the root core
  */
 class DefaultEglCoreFactory(private var sharedContext: EGLContext = EGL14.EGL_NO_CONTEXT) :
-        EglCoreFactory {
+    EglCoreFactory {
     private var rootEglCoreLock = Any()
     private var rootEglCore: EglCore? = null
     private var refCountDelegate: RefCountDelegate? = null

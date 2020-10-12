@@ -47,8 +47,10 @@ class DefaultSurfaceTextureCaptureSource(
 
     // Frame available listener was called when a texture was already in use
     private var pendingTexture = false
+
     // Texture is in use, possibly in another thread
     private var textureInUse = false
+
     // Dispose has been called and we are waiting on texture to be released
     private var released = false
 
@@ -63,9 +65,20 @@ class DefaultSurfaceTextureCaptureSource(
         runBlocking(handler.asCoroutineDispatcher().immediate) {
             eglCore = eglCoreFactory.createEglCore()
 
-            val surfaceAttributes = intArrayOf(EGL14.EGL_WIDTH, width, EGL14.EGL_HEIGHT, height, EGL14.EGL_NONE)
-            eglCore.eglSurface = EGL14.eglCreatePbufferSurface(eglCore.eglDisplay, eglCore.eglConfig, surfaceAttributes, 0)
-            EGL14.eglMakeCurrent(eglCore.eglDisplay, eglCore.eglSurface, eglCore.eglSurface, eglCore.eglContext)
+            val surfaceAttributes =
+                intArrayOf(EGL14.EGL_WIDTH, width, EGL14.EGL_HEIGHT, height, EGL14.EGL_NONE)
+            eglCore.eglSurface = EGL14.eglCreatePbufferSurface(
+                eglCore.eglDisplay,
+                eglCore.eglConfig,
+                surfaceAttributes,
+                0
+            )
+            EGL14.eglMakeCurrent(
+                eglCore.eglDisplay,
+                eglCore.eglSurface,
+                eglCore.eglSurface,
+                eglCore.eglContext
+            )
             GlUtil.checkGlError("Failed to set dummy surface to initialize surface texture video source")
 
             textureId = GlUtil.generateTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES)
@@ -75,7 +88,10 @@ class DefaultSurfaceTextureCaptureSource(
             @SuppressLint("Recycle")
             surface = Surface(surfaceTexture)
 
-            logger.info(TAG, "Created surface texture for video source with dimensions $width x $height")
+            logger.info(
+                TAG,
+                "Created surface texture for video source with dimensions $width x $height"
+            )
         }
     }
 
@@ -170,7 +186,8 @@ class DefaultSurfaceTextureCaptureSource(
         surface.release()
 
         EGL14.eglMakeCurrent(
-                eglCore.eglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT)
+            eglCore.eglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT
+        )
         EGL14.eglDestroySurface(eglCore.eglDisplay, eglCore.eglSurface);
         eglCore.release()
 

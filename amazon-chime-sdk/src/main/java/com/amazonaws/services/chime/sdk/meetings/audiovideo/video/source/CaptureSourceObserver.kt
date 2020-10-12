@@ -17,7 +17,7 @@ interface CaptureSourceObserver {
     /**
      * Called when the capture source failed permanently
      *
-      @param error: [CaptureSourceError] - The reason why the source has stopped.
+    @param error: [CaptureSourceError] - The reason why the source has stopped.
      */
     fun onCaptureFailed(error: CaptureSourceError)
 }

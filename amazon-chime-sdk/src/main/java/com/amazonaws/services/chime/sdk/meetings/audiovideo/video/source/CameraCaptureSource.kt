@@ -6,7 +6,7 @@ import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
  * [CameraCaptureSource] is an interface for camera capture sources with additional features
  * not covered by [VideoCaptureSource]
  */
-interface CameraCaptureSource :  VideoCaptureSource {
+interface CameraCaptureSource : VideoCaptureSource {
     /**
      * Current camera device.  This is only null if the phone/device doesn't have any cameras
      * Capture does not need to be started to set.
