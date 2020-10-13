@@ -5,8 +5,9 @@
 
 package com.amazonaws.services.chime.sdk.meetings.internal.video
 
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
+import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionConfiguration
-import com.xodee.client.video.VideoDevice
 
 /**
  * [VideoClientController] uses the Video Client for video related functionality such as starting
@@ -24,9 +25,24 @@ interface VideoClientController {
     fun stopAndDestroy()
 
     /**
-     * Starts sending video for local attendee.
+     * Starts sending video for local attendee.  Will internally create a default [CameraCaptureSource] and
+     * start, pass to video client. [stopLocalVideo] will stop the internal capture source if being used.
+     *
+     * Calling this after passing in a custom [VideoSource] will replace it with the internal capture source.
      */
     fun startLocalVideo()
+
+    /**
+     * Start local video with a provided custom [VideoSource] which can be used to provide custom
+     * [VideoFrame]s to be transmitted to remote clients
+     *
+     * Calling this function repeatedly will replace the previous [VideoSource] as the one being
+     * transmitted.  It will also stop and replace the internal capture source if [startLocalVideo]
+     * was called with no arguments.
+     *
+     * @param source: [VideoSource] - The source of video frames to be sent to other clients
+     */
+    fun startLocalVideo(source: VideoSource)
 
     /**
      * Stops sending video for local attendee.
@@ -46,9 +62,9 @@ interface VideoClientController {
     /**
      * Get the currently active camera, if any.
      *
-     * @return [VideoDevice] - Information about the current active device used for video.
+     * @return [MediaDevice] - Information about the current active device used for video.
      */
-    fun getActiveCamera(): VideoDevice?
+    fun getActiveCamera(): MediaDevice?
 
     /**
      * Switches the currently active camera.
