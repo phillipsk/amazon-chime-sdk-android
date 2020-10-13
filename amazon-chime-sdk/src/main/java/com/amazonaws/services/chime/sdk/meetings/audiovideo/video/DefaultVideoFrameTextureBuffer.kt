@@ -4,6 +4,14 @@ import android.graphics.Matrix
 import com.amazonaws.services.chime.sdk.meetings.utils.RefCountDelegate
 import kotlinx.coroutines.Runnable
 
+// TODO: Should these buffers be in their own directory?
+// TODO: Should these buffers need interfaces?
+// TODO: Should these buffers use a base class for ref counting?
+/**
+ * [DefaultVideoFrameTextureBuffer] provides an reference counted wrapper of
+ * an [VideoFrameTextureBuffer] interface which will call [releaseCallback]
+ * when nothing is holding the buffer any longer
+ */
 class DefaultVideoFrameTextureBuffer(
     override val width: Int,
     override val height: Int,

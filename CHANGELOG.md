@@ -11,8 +11,12 @@
 
 ## [0.7.4] - 2020-10-08
 
+### Added
+* TODO
+
 ### Changed
 * Changed `MAX_TILE_COUNT` in the demo app from 4 to 16. Now the demo app can support at most 16 remote video tiles.
+* TODO
 
 ## [0.7.3] - 2020-09-10
 
