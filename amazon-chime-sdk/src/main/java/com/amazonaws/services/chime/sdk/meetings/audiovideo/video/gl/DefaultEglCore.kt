@@ -8,7 +8,6 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
 import android.opengl.EGL14
 import android.opengl.EGLConfig
 import android.opengl.EGLContext
-import android.opengl.EGLExt
 
 class DefaultEglCore(
     private val releaseCallback: Runnable? = null,
@@ -32,7 +31,7 @@ class DefaultEglCore(
 
         getConfig()?.also {
             val attributeList = intArrayOf(
-                EGL14.EGL_CONTEXT_CLIENT_VERSION, 3,
+                EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
                 EGL14.EGL_NONE
             )
             val context = EGL14.eglCreateContext(
@@ -73,15 +72,12 @@ class DefaultEglCore(
     }
 
     private fun getConfig(): EGLConfig? {
-        var renderableType = EGL14.EGL_OPENGL_ES2_BIT
-        renderableType = renderableType or EGLExt.EGL_OPENGL_ES3_BIT_KHR
-
         val attributeList = intArrayOf(
             EGL14.EGL_RED_SIZE, 8,
             EGL14.EGL_GREEN_SIZE, 8,
             EGL14.EGL_BLUE_SIZE, 8,
             EGL14.EGL_ALPHA_SIZE, 8,
-            EGL14.EGL_RENDERABLE_TYPE, renderableType,
+            EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
             EGL14.EGL_SURFACE_TYPE, EGL14.EGL_PBUFFER_BIT,
             EGL14.EGL_NONE, 0,
             EGL14.EGL_NONE
