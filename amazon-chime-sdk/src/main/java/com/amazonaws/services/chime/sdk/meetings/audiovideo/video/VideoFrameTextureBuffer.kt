@@ -4,6 +4,7 @@ import android.graphics.Matrix
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 
+// TODO: Should these buffers need interfaces?
 /**
  * [VideoFrameTextureBuffer] is a buffer which maintains a OpenGLES texture
  */

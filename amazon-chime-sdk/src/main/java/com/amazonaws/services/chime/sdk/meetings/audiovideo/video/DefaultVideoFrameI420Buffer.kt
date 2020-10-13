@@ -3,6 +3,14 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
 import com.amazonaws.services.chime.sdk.meetings.utils.RefCountDelegate
 import java.nio.ByteBuffer
 
+// TODO: Should these buffers be in their own directory?
+// TODO: Should these buffers need interfaces?
+// TODO: Should these buffers use a base class for ref counting?
+/**
+ * [DefaultVideoFrameI420Buffer] provides an reference counted wrapper of
+ * an [VideoFrameI420Buffer] interface which will call [releaseCallback]
+ * when nothing is holding the buffer any longer
+ */
 class DefaultVideoFrameI420Buffer(
     override val width: Int,
     override val height: Int,

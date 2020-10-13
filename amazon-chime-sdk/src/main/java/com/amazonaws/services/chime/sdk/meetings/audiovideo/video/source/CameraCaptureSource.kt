@@ -1,5 +1,7 @@
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source
 
+// TODO: Should we create subdirectories for each source?
+
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 
 /**
