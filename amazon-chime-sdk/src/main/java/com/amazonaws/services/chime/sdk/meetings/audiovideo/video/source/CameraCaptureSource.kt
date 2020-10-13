@@ -9,18 +9,21 @@ import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 interface CameraCaptureSource : VideoCaptureSource {
     /**
      * Current camera device.  This is only null if the phone/device doesn't have any cameras
-     * Capture does not need to be started to set.
+     * May be called regardless of whether [start] or [stop] has been called.
      */
     var device: MediaDevice?
 
     /**
-     * Toggle for flashlight on the current device.  Capture does not need to be started to set.
+     * Toggle for flashlight on the current device.  Will succeed if current device has access to
+     * flashlight, otherwise will stay [false].  May be called regardless of whether [start] or [stop]
+     * has been called.
      */
     var flashlightEnabled: Boolean
 
     /**
-     * Toggle for flashlight on the current device.  Capture does not need to be started to set.
-     */
+     * Current camera capture format.
+     * May be called regardless of whether [start] or [stop] has been called.
+     * */
     var format: VideoCaptureFormat
 
     /**
