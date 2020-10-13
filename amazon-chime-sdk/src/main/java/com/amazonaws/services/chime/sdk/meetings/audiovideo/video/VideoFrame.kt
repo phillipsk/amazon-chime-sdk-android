@@ -5,7 +5,11 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
  */
 class VideoFrame(
     /**
-     * Timestamp in nanoseconds at which the video frame was captured
+     * Timestamp in nanoseconds at which the video frame was captured from some system monotonic clock.
+     * Will be alligned and converted to NTP within MediaSDk, which will then be converted to a system monotonic clock on
+     * remote end.  May be different on frames emanated from MediaSDK.
+     *
+     * See [DefaultSurfaceTextureCaptureSource] for usage of a MediaSDK class which can convert to the timespace used by MediaSDK
      */
     val timestampNs: Long,
 
@@ -16,6 +20,7 @@ class VideoFrame(
 
     /**
      * Rotation of the video frame buffer in degrees clockwise
+     * from intended viewing horizon
      */
     val rotation: VideoRotation = VideoRotation.Rotation0
 ) {
@@ -36,7 +41,9 @@ class VideoFrame(
         get() = buffer.height
 
     /**
-     * Width of frame when rotation is removed
+     * Width of frame when the reverse of [rotation] is applied to the buffer
+     * e.g. a frame with width = 1 and height = 2 with 90 degrees
+     * rotation will have rotated width = 2 and height = 1
      *
      * @return [Int] - Frame width when rotation is removed
      */
@@ -49,7 +56,9 @@ class VideoFrame(
     }
 
     /**
-     * Height of frame when rotation is removed
+     * Height of frame when the reverse of [rotation] is applied to the buffer
+     * e.g. a frame with width = 1 and height = 2 with 90 degrees
+     * rotation will have rotated width = 2 and height = 1
      *
      * @return [Int] - Frame height when rotation is removed
      */

@@ -15,14 +15,16 @@ interface VideoFrameBuffer {
     val height: Int
 
     /**
-     * Retain the video frame buffer.  retain/release may not always be necessary unless the buffer
-     * is holding onto resources that need manual disposal
+     * Retain the video frame buffer.  Use when shared ownership of the buffer
+     * is desired (e.g. when passing to separate thread), otherwise the frame
+     * may be spuriously released
      */
     fun retain()
 
     /**
-     * Retain the video frame buffer.  retain/release may be no-ops unless the buffer
-     * is holding onto resources that it needs to dispose or release itself
+     * Release the video frame buffer. Use after frame construction or [release]
+     * after the frame is no longer needed.  Will trigger appropriate release of
+     * any internally allocated resources.  Not using may result in leaks.
      */
     fun release()
 }

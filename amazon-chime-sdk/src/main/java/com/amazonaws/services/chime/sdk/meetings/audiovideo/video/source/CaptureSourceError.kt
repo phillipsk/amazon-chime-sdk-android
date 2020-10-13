@@ -11,6 +11,7 @@ enum class CaptureSourceError(val value: Int) {
 
     /**
      * A failure observed from a system API used for capturing
+     * e.g. In response to a `CameraDevice.StateCallback().onError` call
      */
     SystemFailure(1),
 
