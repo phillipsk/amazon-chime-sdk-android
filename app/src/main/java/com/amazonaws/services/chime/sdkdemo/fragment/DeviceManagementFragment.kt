@@ -62,6 +62,13 @@ class DeviceManagementFragment : Fragment(),
 
     private val VIDEO_ASPECT_RATIO_16_9 = 0.5625
 
+    private val AUDIO_DEVICE_SPINNER_INDEX_KEY = "audioDeviceSpinnerIndex"
+    private val VIDEO_DEVICE_SPINNER_INDEX_KEY = "videoDeviceSpinnerIndex"
+    private val VIDEO_FORMAT_SPINNER_INDEX_KEY = "videoFormatSpinnerIndex"
+
+    private val MAX_VIDEO_FORMAT_HEIGHT = 800
+    private val MAX_VIDEO_FORMAT_FPS = 15
+
     companion object {
         fun newInstance(meetingId: String, name: String): DeviceManagementFragment {
             val fragment = DeviceManagementFragment()
@@ -89,10 +96,6 @@ class DeviceManagementFragment : Fragment(),
             throw ClassCastException("$context must implement DeviceManagementEventListener.")
         }
     }
-
-    private val AUDIO_DEVICE_SPINNER_INDEX_KEY = "audioDeviceSpinnerIndex"
-    private val VIDEO_DEVICE_SPINNER_INDEX_KEY = "videoDeviceSpinnerIndex"
-    private val VIDEO_FORMAT_SPINNER_INDEX_KEY = "videoFormatSpinnerIndex"
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -253,11 +256,11 @@ class DeviceManagementFragment : Fragment(),
     private fun populateVideoFormatList(freshVideoCaptureFormatList: List<VideoCaptureFormat>) {
         videoFormats.clear()
 
-        val filteredFormats = freshVideoCaptureFormatList.filter { it.height <= 800 }
+        val filteredFormats = freshVideoCaptureFormatList.filter { it.height <= MAX_VIDEO_FORMAT_HEIGHT }
 
         for (format in filteredFormats) {
             // MediaSDK doesn't yet support 30FPS so anything above will lead to frame drops
-            videoFormats.add(VideoCaptureFormat(format.width, format.height, 15))
+            videoFormats.add(VideoCaptureFormat(format.width, format.height, MAX_VIDEO_FORMAT_FPS))
         }
         videoFormatArrayAdapter.notifyDataSetChanged()
     }

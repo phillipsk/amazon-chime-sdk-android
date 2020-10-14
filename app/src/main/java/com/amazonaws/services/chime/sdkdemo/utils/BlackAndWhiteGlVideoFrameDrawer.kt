@@ -12,7 +12,8 @@ import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 /**
- * [BlackAndWhiteGlVideoFrameDrawer] simply draws the frames as opaque quads onto the current surface
+ * [BlackAndWhiteGlVideoFrameDrawer] simply draws the frames as opaque quads onto the current surface with a black and white filter.
+ * It only supports OES texture frames.
  */
 class BlackAndWhiteGlVideoFrameDrawer : GlVideoFrameDrawer {
     private var program: Int = -1
