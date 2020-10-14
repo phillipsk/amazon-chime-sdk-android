@@ -6,8 +6,6 @@
 package com.amazonaws.services.chime.sdk.meetings.session
 
 import android.content.Context
-import android.opengl.EGL14
-import android.opengl.EGLContext
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.DefaultAudioVideoController
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.DefaultAudioVideoFacade
@@ -16,8 +14,6 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoTi
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoTileFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultEglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultCameraCaptureSource
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultSurfaceTextureCaptureSourceFactory
 import com.amazonaws.services.chime.sdk.meetings.device.DefaultDeviceController
 import com.amazonaws.services.chime.sdk.meetings.internal.audio.AudioClientFactory
 import com.amazonaws.services.chime.sdk.meetings.internal.audio.DefaultAudioClientController
@@ -36,7 +32,7 @@ class DefaultMeetingSession(
     override val logger: Logger,
     context: Context,
     eglCoreFactory: EglCoreFactory = DefaultEglCoreFactory()
-    ) : MeetingSession {
+) : MeetingSession {
 
     override val audioVideo: AudioVideoFacade
 
@@ -84,14 +80,6 @@ class DefaultMeetingSession(
                 configuration.urls.urlRewriter
             )
 
-        val surfaceTextureCaptureSourceFactory = DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory)
-        val cameraCaptureSource =
-            DefaultCameraCaptureSource(
-                context,
-                logger,
-                surfaceTextureCaptureSourceFactory
-            )
-
         val videoClientController =
             DefaultVideoClientController(
                 context,
@@ -100,7 +88,6 @@ class DefaultMeetingSession(
                 videoClientObserver,
                 configuration,
                 DefaultVideoClientFactory(),
-                cameraCaptureSource,
                 eglCoreFactory
             )
 

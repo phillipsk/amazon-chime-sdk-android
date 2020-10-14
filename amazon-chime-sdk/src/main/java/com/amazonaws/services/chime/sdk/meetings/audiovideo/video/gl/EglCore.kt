@@ -1,8 +1,8 @@
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
 
+import android.opengl.EGLConfig
 import android.opengl.EGLContext
 import android.opengl.EGLDisplay
-import android.opengl.EGLConfig
 import android.opengl.EGLSurface
 
 /**
