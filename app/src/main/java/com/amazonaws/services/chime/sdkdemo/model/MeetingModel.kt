@@ -14,6 +14,8 @@ import com.amazonaws.services.chime.sdkdemo.data.Message
 import com.amazonaws.services.chime.sdkdemo.data.MetricData
 import com.amazonaws.services.chime.sdkdemo.data.RosterAttendee
 import com.amazonaws.services.chime.sdkdemo.data.VideoCollectionTile
+import com.amazonaws.services.chime.sdkdemo.utils.CpuVideoProcessor
+import com.amazonaws.services.chime.sdkdemo.utils.GpuVideoProcessor
 
 // This will be used for keeping state after rotation
 class MeetingModel : ViewModel() {
@@ -34,4 +36,6 @@ class MeetingModel : ViewModel() {
 
     var eglCoreFactory: EglCoreFactory = DefaultEglCoreFactory()
     var cameraCaptureSource: CameraCaptureSource? = null
+    var gpuVideoProcessor: GpuVideoProcessor? = null
+    var cpuVideoProcessor: CpuVideoProcessor? = null
 }

@@ -27,6 +27,8 @@ import com.amazonaws.services.chime.sdkdemo.fragment.DeviceManagementFragment
 import com.amazonaws.services.chime.sdkdemo.fragment.MeetingFragment
 import com.amazonaws.services.chime.sdkdemo.model.MeetingModel
 import com.amazonaws.services.chime.sdkdemo.model.MeetingSessionModel
+import com.amazonaws.services.chime.sdkdemo.utils.CpuVideoProcessor
+import com.amazonaws.services.chime.sdkdemo.utils.GpuVideoProcessor
 import com.google.gson.Gson
 
 class MeetingActivity : AppCompatActivity(),
@@ -99,9 +101,10 @@ class MeetingActivity : AppCompatActivity(),
     }
 
     override fun onBackPressed() {
-        logger.info(TAG, "STOPPING")
         meetingSessionModel.audioVideo.stop()
         meetingModel.cameraCaptureSource?.stop()
+        meetingModel.gpuVideoProcessor?.release()
+        meetingModel.cpuVideoProcessor?.release()
         super.onBackPressed()
     }
 
@@ -111,12 +114,28 @@ class MeetingActivity : AppCompatActivity(),
 
     fun getEglCoreFactory(): EglCoreFactory = meetingModel.eglCoreFactory
 
+    // Create the following lazily so that we can inject application context and logger in where needed
+
     fun getCameraCaptureSource(): CameraCaptureSource {
         if (meetingModel.cameraCaptureSource == null) {
             val surfaceTextureCaptureSourceFactory = DefaultSurfaceTextureCaptureSourceFactory(logger, meetingModel.eglCoreFactory)
             meetingModel.cameraCaptureSource = DefaultCameraCaptureSource(applicationContext, logger, surfaceTextureCaptureSourceFactory)
         }
         return meetingModel.cameraCaptureSource!!
+    }
+
+    fun getGpuVideoProcessor(): GpuVideoProcessor {
+        if (meetingModel.gpuVideoProcessor == null) {
+            meetingModel.gpuVideoProcessor = GpuVideoProcessor(logger, meetingModel.eglCoreFactory)
+        }
+        return meetingModel.gpuVideoProcessor!!
+    }
+
+    fun getCpuVideoProcessor(): CpuVideoProcessor {
+        if (meetingModel.cpuVideoProcessor == null) {
+            meetingModel.cpuVideoProcessor = CpuVideoProcessor(logger, meetingModel.eglCoreFactory)
+        }
+        return meetingModel.cpuVideoProcessor!!
     }
 
     private fun urlRewriter(url: String): String {

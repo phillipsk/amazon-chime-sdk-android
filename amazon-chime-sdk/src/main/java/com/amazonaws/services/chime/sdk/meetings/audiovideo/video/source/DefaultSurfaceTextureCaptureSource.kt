@@ -97,6 +97,8 @@ class DefaultSurfaceTextureCaptureSource(
     override fun start() {
         handler.post {
             surfaceTexture.setOnFrameAvailableListener({
+                logger.info(TAG, "frame available")
+
                 pendingTexture = true
                 tryCapturingFrame()
             }, handler)
@@ -160,7 +162,6 @@ class DefaultSurfaceTextureCaptureSource(
             Runnable { frameReleased() })
         val timestamp = timestampAligner.translateTimestamp(surfaceTexture.timestamp)
 
-        logger.info(TAG, "timestamp before ${surfaceTexture.timestamp} after $timestamp")
         val frame = VideoFrame(timestamp, buffer)
 
         sinks.forEach { it.onVideoFrameReceived(frame) }
@@ -169,6 +170,7 @@ class DefaultSurfaceTextureCaptureSource(
 
     private fun frameReleased() {
         // Cannot assume this occurs on correct thread
+        logger.info(TAG, "frame released")
         handler.post {
             textureInUse = false
             if (released) {
