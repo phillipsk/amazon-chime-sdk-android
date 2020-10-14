@@ -117,7 +117,7 @@ class MeetingFragment : Fragment(),
     private lateinit var buttonMute: ImageButton
     private lateinit var buttonCamera: ImageButton
     private lateinit var deviceAlertDialogBuilder: AlertDialog.Builder
-    private lateinit var moreMenuAlertDialogBuilder: AlertDialog.Builder
+    private lateinit var additionalOptionsAlertDialogBuilder: AlertDialog.Builder
     private lateinit var viewChat: LinearLayout
     private lateinit var recyclerViewMetrics: RecyclerView
     private lateinit var recyclerViewRoster: RecyclerView
@@ -178,7 +178,7 @@ class MeetingFragment : Fragment(),
         setupSubViews(view)
         setupTab(view)
         setupAudioDeviceSelectionDialog()
-        setupMoreMenuDialog()
+        setupAdditionalOptionsDialog()
 
         noVideoOrScreenShareAvailable = view.findViewById(R.id.noVideoOrScreenShareAvailable)
         refreshNoVideosOrScreenShareAvailableText()
@@ -200,7 +200,7 @@ class MeetingFragment : Fragment(),
         buttonCamera.setOnClickListener { toggleVideo() }
 
         view.findViewById<ImageButton>(R.id.buttonMore)
-            ?.setOnClickListener { toggleMore() }
+            ?.setOnClickListener { toggleAdditionalOptionsMenu() }
 
         view.findViewById<ImageButton>(R.id.buttonSpeaker)
             ?.setOnClickListener { toggleSpeaker() }
@@ -367,12 +367,12 @@ class MeetingFragment : Fragment(),
         }
     }
 
-    private fun setupMoreMenuDialog() {
-        moreMenuAlertDialogBuilder = AlertDialog.Builder(activity)
-        moreMenuAlertDialogBuilder.setTitle(R.string.alert_title_additional_options)
-        moreMenuAlertDialogBuilder.setNegativeButton(R.string.cancel) { dialog, _ ->
+    private fun setupAdditionalOptionsDialog() {
+        additionalOptionsAlertDialogBuilder = AlertDialog.Builder(activity)
+        additionalOptionsAlertDialogBuilder.setTitle(R.string.alert_title_additional_options)
+        additionalOptionsAlertDialogBuilder.setNegativeButton(R.string.cancel) { dialog, _ ->
             dialog.dismiss()
-            meetingModel.isMoreMenuDialogOn = false
+            meetingModel.isAdditionalOptionsDialogOn = false
         }
         val additionalToggles = arrayOf(
             context?.getString(R.string.toggle_flashlight),
@@ -380,7 +380,7 @@ class MeetingFragment : Fragment(),
             context?.getString(R.string.toggle_gpu_filter),
             context?.getString(R.string.toggle_custom_capture_source)
         )
-        moreMenuAlertDialogBuilder.setItems(additionalToggles) { _, which ->
+        additionalOptionsAlertDialogBuilder.setItems(additionalToggles) { _, which ->
             when (which) {
                 0 -> toggleFlashlight()
                 1 -> toggleCpuDemoFilter()
@@ -388,12 +388,12 @@ class MeetingFragment : Fragment(),
                 3 -> toggleCustomCaptureSource()
             }
         }
-        moreMenuAlertDialogBuilder.setOnDismissListener {
-            meetingModel.isMoreMenuDialogOn = false
+        additionalOptionsAlertDialogBuilder.setOnDismissListener {
+            meetingModel.isAdditionalOptionsDialogOn = false
         }
 
-        if (meetingModel.isMoreMenuDialogOn) {
-            moreMenuAlertDialogBuilder.create().show()
+        if (meetingModel.isAdditionalOptionsDialogOn) {
+            additionalOptionsAlertDialogBuilder.create().show()
         }
     }
 
@@ -598,10 +598,10 @@ class MeetingFragment : Fragment(),
         refreshNoVideosOrScreenShareAvailableText()
     }
 
-    private fun toggleMore() {
-        moreMenuAlertDialogBuilder.create()
-        moreMenuAlertDialogBuilder.show()
-        meetingModel.isMoreMenuDialogOn = true
+    private fun toggleAdditionalOptionsMenu() {
+        additionalOptionsAlertDialogBuilder.create()
+        additionalOptionsAlertDialogBuilder.show()
+        meetingModel.isAdditionalOptionsDialogOn = true
     }
 
     private fun toggleFlashlight() {

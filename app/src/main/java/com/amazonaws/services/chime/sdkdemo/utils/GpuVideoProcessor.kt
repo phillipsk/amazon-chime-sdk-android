@@ -16,25 +16,37 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.ContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
+import kotlinx.coroutines.android.asCoroutineDispatcher
+import kotlinx.coroutines.runBlocking
 
+/**
+ * [GpuVideoProcessor] is a simple demo processor which draws incoming frames onto a new surface with
+ * a black and white filter.  It also draws the original image into a corner of the screen.
+ *
+ * To pass along the image, it maintains its own internal OpenGLES texture (the texture which is drawn to)
+ * which it will package as a [VideoFrame] and forward downstream, only updating the texture
+ * (and creating the next [VideoFrame] to pass downstream) when the previous has been released.
+ */
 class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFactory) : VideoSource,
     VideoSink {
     override val contentHint: ContentHint = ContentHint.Motion
 
-    // Pending frame to render. Serves as a queue with size 1. Synchronized on |frameLock|.
+    // Pending frame to render. Serves as a queue with size 1. Synchronized on `pendingFrameLock`.
+    // pendingFrameLock also protects the handler (which may be null in `onVideoFrameReceived`
     private var pendingFrame: VideoFrame? = null
     private val pendingFrameLock = Any()
 
+    // Drawers used by this processor
     private val bwDrawer = BlackAndWhiteGlVideoFrameDrawer()
     private val rectDrawer = DefaultGlVideoFrameDrawer()
 
+    // Helper which wraps an OpenGLES texture frame buffer with resize capabilities
     private lateinit var textureFrameBuffer: GlTextureFrameBufferHelper
 
+    // State necessary for EGL operations
     private lateinit var eglCore: EglCore
     private val thread: HandlerThread = HandlerThread("DemoGpuVideoProcessor")
     private var handler: Handler? = null
-
-    private val TAG = "DemoGpuVideoProcessor"
 
     // Texture is in use, possibly in another thread
     private var textureInUse = false
@@ -42,7 +54,10 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
     // Dispose has been called and we are waiting on texture to be released
     private var released = false
 
+    // Downstream video sinks
     private val sinks = mutableSetOf<VideoSink>()
+
+    private val TAG = "DemoGpuVideoProcessor"
 
     init {
         thread.start()
@@ -85,16 +100,22 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
     }
 
     override fun addVideoSink(sink: VideoSink) {
-        sinks.add(sink)
+        handler?.post {
+            sinks.add(sink)
+        }
     }
 
     override fun removeVideoSink(sink: VideoSink) {
-        sinks.remove(sink)
+        val validHandler = handler ?: return // Already released
+        runBlocking(validHandler.asCoroutineDispatcher().immediate) {
+            sinks.remove(sink)
+        }
     }
 
     override fun onVideoFrameReceived(frame: VideoFrame) {
         synchronized(pendingFrameLock) {
             if (pendingFrame != null) {
+                // Release pending frame so we don't block any capture source upstream
                 pendingFrame?.release()
             }
 
@@ -118,6 +139,7 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
             pendingFrame = null
         }
 
+        // Update state
         if (released || textureInUse) {
             frame.release()
             return

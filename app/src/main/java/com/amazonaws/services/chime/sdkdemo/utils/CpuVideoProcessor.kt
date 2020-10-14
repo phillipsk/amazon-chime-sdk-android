@@ -22,20 +22,23 @@ import kotlinx.coroutines.runBlocking
 
 class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFactory) : VideoSource,
     VideoSink {
-    private val sinks = mutableSetOf<VideoSink>()
-
-    private lateinit var eglCore: EglCore
-    private val thread: HandlerThread = HandlerThread("DemoGpuVideoProcessor")
-    private val handler: Handler
-
     // The camera capture source currently output OES texture frames, so we draw them to a frame buffer that
     // we can read to host memory from
     private val rectDrawer = DefaultGlVideoFrameDrawer()
+    // Helper which wraps an OpenGLES texture frame buffer with resize capabilities
     private val textureFrameBuffer = GlTextureFrameBufferHelper(GLES20.GL_RGBA)
 
     override val contentHint: ContentHint = ContentHint.Motion
 
-    private val TAG = "DemoCPUVideoProcessor"
+    // State necessary for EGL operations
+    private lateinit var eglCore: EglCore
+    private val thread: HandlerThread = HandlerThread("DemoCpuVideoProcessor")
+    private val handler: Handler
+
+    // Downstream video sinks
+    private val sinks = mutableSetOf<VideoSink>()
+
+    private val TAG = "DemoCpuVideoProcessor"
 
     init {
         thread.start()
@@ -44,7 +47,7 @@ class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
         runBlocking(handler.asCoroutineDispatcher().immediate) {
             eglCore = eglCoreFactory.createEglCore()
 
-            // We need to create a dummy surface before we can set the cotext as current
+            // We need to create a dummy surface before we can set the context as current
             val surfaceAttribs = intArrayOf(EGL14.EGL_WIDTH, 1, EGL14.EGL_HEIGHT, 1, EGL14.EGL_NONE)
             eglCore.eglSurface = EGL14.eglCreatePbufferSurface(
                 eglCore.eglDisplay,
@@ -60,7 +63,7 @@ class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
             )
             GlUtil.checkGlError("Failed to set dummy surface to initialize surface texture video source")
 
-            logger.info(TAG, "Created demo GPU video processor")
+            logger.info(TAG, "Created demo CPU video processor")
         }
     }
 
