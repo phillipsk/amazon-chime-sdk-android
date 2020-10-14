@@ -6,7 +6,7 @@
 package com.amazonaws.services.chime.sdk.meetings.audiovideo
 
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.metric.MetricsObserver
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSource
 
 /**
  * [AudioVideoControllerFacade] manages the signaling and peer connections.

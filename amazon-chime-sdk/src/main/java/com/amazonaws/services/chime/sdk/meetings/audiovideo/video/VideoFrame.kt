@@ -1,5 +1,7 @@
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
 
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameBuffer
+
 /**
  * [VideoFrame] is a class which contains a [VideoFrameBuffer] and metadata necessary for transmission
  */

@@ -1,4 +1,4 @@
-package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source
+package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
 
 /**
  * [VideoCaptureFormat] describes a given capture format that may be possible to apply to a [VideoCaptureSource]

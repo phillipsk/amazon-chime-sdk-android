@@ -7,14 +7,14 @@ package com.amazonaws.services.chime.sdk.meetings.internal.video
 
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoObserver
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoPauseState
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRotation
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileController
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameI420Buffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.internal.metric.ClientMetricsCollector
 import com.amazonaws.services.chime.sdk.meetings.internal.utils.ObserverUtils
-import com.amazonaws.services.chime.sdk.meetings.internal.video.adapters.VideoFrameI420BufferAdapter
-import com.amazonaws.services.chime.sdk.meetings.internal.video.adapters.VideoFrameTextureBufferAdapter
 import com.amazonaws.services.chime.sdk.meetings.realtime.datamessage.DataMessage
 import com.amazonaws.services.chime.sdk.meetings.realtime.datamessage.DataMessageObserver
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionStatus
@@ -144,12 +144,23 @@ class DefaultVideoClientObserver(
 
         val sdkFrame = (frame as? com.xodee.client.video.VideoFrame)?.let {
             val bufferAdapter: VideoFrameBuffer = when (frame.buffer) {
-                is com.xodee.client.video.VideoFrameTextureBuffer -> VideoFrameTextureBufferAdapter.MediaToSDK(
-                    frame.buffer as com.xodee.client.video.VideoFrameTextureBuffer
-                )
-                is com.xodee.client.video.VideoFrameI420Buffer -> VideoFrameI420BufferAdapter.MediaToSDK(
-                    frame.buffer as com.xodee.client.video.VideoFrameI420Buffer
-                )
+                is com.xodee.client.video.VideoFrameTextureBuffer -> {
+                    val buffer = frame.buffer as com.xodee.client.video.VideoFrameTextureBuffer
+                    val type = when (buffer.type) {
+                        com.xodee.client.video.VideoFrameTextureBuffer.Type.OES -> VideoFrameTextureBuffer.Type.TEXTURE_OES
+                        com.xodee.client.video.VideoFrameTextureBuffer.Type.RGB -> VideoFrameTextureBuffer.Type.TEXTURE_2D
+                        else -> throw InvalidParameterException("Cannot have null type")
+                    }
+                    // Retain this buffer and create a new buffer with same internals that releases the original buffer when released itself
+                    buffer.retain()
+                    VideoFrameTextureBuffer(buffer.width, buffer.height, buffer.textureId, buffer.transformMatrix, type, Runnable { buffer.release() })
+                }
+                is com.xodee.client.video.VideoFrameI420Buffer -> {
+                    val buffer = frame.buffer as com.xodee.client.video.VideoFrameI420Buffer
+                    // Retain this buffer and create a new buffer with same internals that releases the original buffer when released itself
+                    buffer.retain()
+                    VideoFrameI420Buffer(buffer.width, buffer.height, buffer.dataY, buffer.dataU, buffer.dataV, buffer.strideY, buffer.strideU, buffer.strideV, Runnable { buffer.release() })
+                }
                 else -> throw InvalidParameterException("Video frame must have non null I420 or texture buffer")
             }
             VideoFrame(frame.timestampNs, bufferAdapter, VideoRotation.from(frame.rotation) ?: VideoRotation.Rotation0)

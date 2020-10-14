@@ -4,7 +4,7 @@ import android.graphics.Matrix
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameTextureBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlVideoFrameDrawer
 import java.security.InvalidParameterException

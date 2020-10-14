@@ -1,18 +1,19 @@
-package com.amazonaws.services.chime.sdk.meetings.internal.video.adapters
+package com.amazonaws.services.chime.sdk.meetings.internal.video
 
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameBuffer
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameI420Buffer
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameRGBABuffer
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRotation
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.ContentHint
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameI420Buffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameRGBABuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.slot
 import io.mockk.verify
+import java.lang.Exception
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -55,16 +56,22 @@ class VideoSourceAdapterTest {
 
     @Test
     fun `Content hint is passed through`() {
-        val adapter = VideoSourceAdapter(mockSdkVideoSource)
+        val adapter =
+            VideoSourceAdapter(
+                mockSdkVideoSource
+            )
         assertEquals(adapter.contentHint, testMediaContentHint)
     }
 
     @Test
     fun `Timestamp and rotation is passed through`() {
-        val adapter = VideoSourceAdapter(mockSdkVideoSource)
+        val adapter =
+            VideoSourceAdapter(
+                mockSdkVideoSource
+            )
         adapter.addSink(mockMediaVideoSink)
 
-        adapter.onVideoFrameReceived(VideoFrame(testTimestamp, mockSdkVideoFrameBuffer, testRotation))
+        adapter.onVideoFrameReceived(VideoFrame(testTimestamp, mockSdkVideoFrameTextureBuffer, testRotation))
 
         val slot = slot<com.xodee.client.video.VideoFrame>()
         verify(exactly = 1) { mockMediaVideoSink.onFrameCaptured(capture(slot)) }
@@ -73,20 +80,28 @@ class VideoSourceAdapterTest {
     }
 
     @Test
-    fun `Passing a generic SDK buffer results in a generic Media buffer`() {
-        val adapter = VideoSourceAdapter(mockSdkVideoSource)
+    fun `Passing a generic SDK buffer results in an exception`() {
+        val adapter =
+            VideoSourceAdapter(
+                mockSdkVideoSource
+            )
         adapter.addSink(mockMediaVideoSink)
 
-        adapter.onVideoFrameReceived(VideoFrame(testTimestamp, mockSdkVideoFrameBuffer, testRotation))
-
-        val slot = slot<com.xodee.client.video.VideoFrame>()
-        verify(exactly = 1) { mockMediaVideoSink.onFrameCaptured(capture(slot)) }
-        assert(slot.captured.buffer is com.xodee.client.video.VideoFrameBuffer)
+        var exceptionThrown = false
+        try {
+            adapter.onVideoFrameReceived(VideoFrame(testTimestamp, mockSdkVideoFrameBuffer, testRotation))
+        } catch (e: Exception) {
+            exceptionThrown = true
+        }
+        assert(exceptionThrown)
     }
 
     @Test
     fun `Passing an I420 SDK buffer results in an I420 Media buffer`() {
-        val adapter = VideoSourceAdapter(mockSdkVideoSource)
+        val adapter =
+            VideoSourceAdapter(
+                mockSdkVideoSource
+            )
         adapter.addSink(mockMediaVideoSink)
 
         adapter.onVideoFrameReceived(VideoFrame(testTimestamp, mockSdkVideoFrameI420Buffer, testRotation))
@@ -98,7 +113,10 @@ class VideoSourceAdapterTest {
 
     @Test
     fun `Passing an RGBA SDK buffer results in an RGBA Media buffer`() {
-        val adapter = VideoSourceAdapter(mockSdkVideoSource)
+        val adapter =
+            VideoSourceAdapter(
+                mockSdkVideoSource
+            )
         adapter.addSink(mockMediaVideoSink)
 
         adapter.onVideoFrameReceived(VideoFrame(testTimestamp, mockSdkVideoFrameRGBABuffer, testRotation))
@@ -110,7 +128,10 @@ class VideoSourceAdapterTest {
 
     @Test
     fun `Passing a texture SDK buffer results in a texture Media buffer`() {
-        val adapter = VideoSourceAdapter(mockSdkVideoSource)
+        val adapter =
+            VideoSourceAdapter(
+                mockSdkVideoSource
+            )
         adapter.addSink(mockMediaVideoSink)
 
         adapter.onVideoFrameReceived(VideoFrame(testTimestamp, mockSdkVideoFrameTextureBuffer, testRotation))

@@ -3,6 +3,7 @@
  */
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
 
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.internal.video.VideoClientController
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionConfiguration

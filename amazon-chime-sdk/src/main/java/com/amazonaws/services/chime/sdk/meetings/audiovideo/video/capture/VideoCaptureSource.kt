@@ -1,9 +1,12 @@
-package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source
+package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
+
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSource
 
 /**
  * [VideoCaptureSource] is an interface for various video capture sources which can emit [VideoFrame] objects
  */
-interface VideoCaptureSource : VideoSource {
+interface VideoCaptureSource :
+    VideoSource {
     /**
      * Start capturing on this source and emitting video frames
      */

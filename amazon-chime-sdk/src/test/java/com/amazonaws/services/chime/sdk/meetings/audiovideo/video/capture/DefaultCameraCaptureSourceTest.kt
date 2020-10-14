@@ -1,4 +1,4 @@
-package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source
+package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
 
 import android.content.Context
 import android.graphics.Matrix
@@ -12,10 +12,10 @@ import android.os.HandlerThread
 import android.os.Looper
 import android.view.WindowManager
 import androidx.core.content.ContextCompat
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoFrameTextureBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
@@ -170,7 +170,14 @@ class DefaultCameraCaptureSourceTest {
         testCameraCaptureSource.addVideoSink(mockVideoSink)
         testCameraCaptureSource.start()
         val testFrame = VideoFrame(0,
-            DefaultVideoFrameTextureBuffer(1280, 720, 1, mockMatrix, VideoFrameTextureBuffer.Type.TEXTURE_2D, Runnable {}))
+            VideoFrameTextureBuffer(
+                1280,
+                720,
+                1,
+                mockMatrix,
+                VideoFrameTextureBuffer.Type.TEXTURE_2D,
+                Runnable {})
+        )
         testCameraCaptureSource.onVideoFrameReceived(testFrame)
 
         verify(exactly = 1) { mockVideoSink.onVideoFrameReceived(any()) }
