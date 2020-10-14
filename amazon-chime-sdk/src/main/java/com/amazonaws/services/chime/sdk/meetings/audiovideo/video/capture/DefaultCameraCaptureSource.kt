@@ -46,16 +46,21 @@ class DefaultCameraCaptureSource(
     private val surfaceTextureCaptureSourceFactory: SurfaceTextureCaptureSourceFactory,
     private val cameraManager: CameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
 ) : CameraCaptureSource, VideoSink {
-
     private val handler: Handler
 
+    // Camera2 related state
     private var cameraCaptureSession: CameraCaptureSession? = null
     private var cameraDevice: CameraDevice? = null
     private var cameraCharacteristics: CameraCharacteristics? = null
-
+    // Stored from cameraCharacteristics for reuse without additional query
     private var cameraOrientation = 0
     private var isCameraFrontFacing = false
 
+    // This source provides a surface we pass into the system APIs
+    // and then starts emitting frames once the system starts drawing to the
+    // surface.  To speed up restart, since theses sources have to wait on
+    // in-flight frames to finish release, we just begin the release and
+    // create a new one
     private var surfaceTextureSource: SurfaceTextureCaptureSource? = null
 
     private val observers = mutableSetOf<CaptureSourceObserver>()
@@ -157,6 +162,7 @@ class DefaultCameraCaptureSource(
         val device = device ?: return
 
         cameraCharacteristics = cameraManager.getCameraCharacteristics(device.id).also {
+            // Store these immediately for convenience
             cameraOrientation = it.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 0
             isCameraFrontFacing =
                 it.get(CameraCharacteristics.LENS_FACING) == CameraMetadata.LENS_FACING_FRONT
@@ -191,7 +197,7 @@ class DefaultCameraCaptureSource(
             cameraDevice?.close()
             cameraDevice = null
 
-            // Stop Surface capture source
+            // Stop surface capture source
             surfaceTextureSource?.removeVideoSink(sink)
             surfaceTextureSource?.stop()
             surfaceTextureSource?.release()
@@ -200,13 +206,13 @@ class DefaultCameraCaptureSource(
     }
 
     override fun onVideoFrameReceived(frame: VideoFrame) {
-        val processedBuffer: VideoFrameBuffer = updateBufferForCameraOrientation(
+        val processedBuffer: VideoFrameBuffer = createBufferWithUpdatedTransformMatrix(
             frame.buffer as VideoFrameTextureBuffer,
             isCameraFrontFacing, -cameraOrientation
         )
 
         val processedFrame =
-            VideoFrame(frame.timestampNs, processedBuffer, getCapturedFrameRotation())
+            VideoFrame(frame.timestampNs, processedBuffer, getCaptureFrameRotation())
         sinks.forEach { it.onVideoFrameReceived(processedFrame) }
         processedBuffer.release()
     }
@@ -241,6 +247,18 @@ class DefaultCameraCaptureSource(
 
     private val cameraCaptureSessionCaptureCallback =
         object : CameraCaptureSession.CaptureCallback() {
+            override fun onCaptureStarted(
+                session: CameraCaptureSession,
+                request: CaptureRequest,
+                timestamp: Long,
+                frameNumber: Long
+            ) {
+                logger.info(TAG, "Camera capture session capture started")
+                ObserverUtils.notifyObserverOnMainThread(observers) {
+                    it.onCaptureStarted()
+                }
+            }
+
             override fun onCaptureFailed(
                 session: CameraCaptureSession,
                 request: CaptureRequest,
@@ -319,16 +337,19 @@ class DefaultCameraCaptureSource(
             val captureRequestBuilder =
                 cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
 
+            // Set target FPS
             captureRequestBuilder.set(
                 CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
                 Range(0, this.format.maxFps)
             )
 
+            // Set target auto exposure mode
             captureRequestBuilder.set(
                 CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON
             )
             captureRequestBuilder.set(CaptureRequest.CONTROL_AE_LOCK, false)
 
+            // Set current torch status
             if (flashlightEnabled) {
                 captureRequestBuilder.set(
                     CaptureRequest.FLASH_MODE,
@@ -338,8 +359,8 @@ class DefaultCameraCaptureSource(
                 captureRequestBuilder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_OFF)
             }
 
-            chooseStabilizationMode(captureRequestBuilder)
-            chooseFocusMode(captureRequestBuilder)
+            setStabilizationMode(captureRequestBuilder)
+            setFocusMode(captureRequestBuilder)
 
             captureRequestBuilder.addTarget(surfaceTextureSource?.surface ?: return)
             cameraCaptureSession?.setRepeatingRequest(
@@ -358,7 +379,7 @@ class DefaultCameraCaptureSource(
         }
     }
 
-    private fun chooseStabilizationMode(captureRequestBuilder: CaptureRequest.Builder) {
+    private fun setStabilizationMode(captureRequestBuilder: CaptureRequest.Builder) {
         if (cameraCharacteristics?.get(
                 CameraCharacteristics.LENS_INFO_AVAILABLE_OPTICAL_STABILIZATION
             )?.any { it == CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON } == true
@@ -387,7 +408,7 @@ class DefaultCameraCaptureSource(
         logger.info(TAG, "Stabilization not available.")
     }
 
-    private fun chooseFocusMode(captureRequestBuilder: CaptureRequest.Builder) {
+    private fun setFocusMode(captureRequestBuilder: CaptureRequest.Builder) {
         if (cameraCharacteristics?.get(
                 CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES
             )?.any { it == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_VIDEO } == true
@@ -402,7 +423,7 @@ class DefaultCameraCaptureSource(
         logger.info(TAG, "Auto-focus is not available.")
     }
 
-    private fun getCapturedFrameRotation(): VideoRotation {
+    private fun getCaptureFrameRotation(): VideoRotation {
         val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         var rotation = when (windowManager.defaultDisplay.rotation) {
             Surface.ROTATION_90 -> 90
@@ -411,14 +432,16 @@ class DefaultCameraCaptureSource(
             Surface.ROTATION_0 -> 0
             else -> 0
         }
+        // Account for front cammera mirror
         if (!isCameraFrontFacing) {
-            // Account for mirror
             rotation = 360 - rotation
         }
-        return VideoRotation.from((cameraOrientation + rotation) % 360) ?: VideoRotation.Rotation0
+        // Account for physical camera orientation
+        rotation = (cameraOrientation + rotation) % 360
+        return VideoRotation.from(rotation) ?: VideoRotation.Rotation0
     }
 
-    private fun updateBufferForCameraOrientation(
+    private fun createBufferWithUpdatedTransformMatrix(
         buffer: VideoFrameTextureBuffer,
         mirror: Boolean,
         rotation: Int
@@ -432,8 +455,7 @@ class DefaultCameraCaptureSource(
         transformMatrix.preRotate(rotation.toFloat())
         transformMatrix.preTranslate(-0.5f, -0.5f)
 
-        // The width and height are not affected by rotation since Camera2Session has set them to the
-        // value they should be after undoing the rotation.
+        // The width and height are not affected by rotation
         val newMatrix = Matrix(buffer.transformMatrix)
         newMatrix.preConcat(transformMatrix)
         buffer.retain()

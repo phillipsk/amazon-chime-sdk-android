@@ -32,11 +32,15 @@ class DefaultSurfaceTextureCaptureSource(
     override val contentHint: ContentHint = ContentHint.None,
     private val eglCoreFactory: EglCoreFactory
 ) : SurfaceTextureCaptureSource {
+    // Publicly accessible
     override lateinit var surface: Surface
 
+    // Additional graphics related state
     private var textureId: Int = 0
     private lateinit var surfaceTexture: SurfaceTexture
     private lateinit var eglCore: EglCore
+
+    // EGLContext should be valid on this thread
     private val thread: HandlerThread = HandlerThread("DefaultSurfaceTextureCaptureSource")
     private val handler: Handler
 
@@ -110,8 +114,8 @@ class DefaultSurfaceTextureCaptureSource(
         }
     }
 
+    // Unused
     override fun addCaptureSourceObserver(observer: CaptureSourceObserver) {}
-
     override fun removeCaptureSourceObserver(observer: CaptureSourceObserver) {}
 
     override fun addVideoSink(sink: VideoSink) {
@@ -130,6 +134,7 @@ class DefaultSurfaceTextureCaptureSource(
         handler.post {
             logger.info(TAG, "Releasing surface texture capture source")
             released = true
+            // If we have a frame in flight we cannot immediately release
             if (!textureInUse) {
                 completeRelease()
             }
@@ -139,6 +144,7 @@ class DefaultSurfaceTextureCaptureSource(
     private fun tryCapturingFrame() {
         check(Looper.myLooper() == handler.looper)
 
+        // Check to see if we are in valid state for capturing a new frame
         if (released || !pendingTexture || textureInUse) {
             return
         }
