@@ -10,10 +10,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.CameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.DefaultCameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.DefaultSurfaceTextureCaptureSourceFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultCameraCaptureSource
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultSurfaceTextureCaptureSourceFactory
 import com.amazonaws.services.chime.sdk.meetings.session.CreateAttendeeResponse
 import com.amazonaws.services.chime.sdk.meetings.session.CreateMeetingResponse
 import com.amazonaws.services.chime.sdk.meetings.session.DefaultMeetingSession

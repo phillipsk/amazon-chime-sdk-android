@@ -11,7 +11,7 @@ import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CameraMetadata
 import android.media.AudioDeviceInfo
 import android.util.Size
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoCaptureFormat
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.VideoCaptureFormat
 import kotlin.math.roundToInt
 
 /**

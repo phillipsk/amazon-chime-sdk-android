@@ -1,4 +1,4 @@
-package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source
+package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
 
 import android.annotation.SuppressLint
 import android.graphics.SurfaceTexture
@@ -9,10 +9,10 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.view.Surface
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoFrameTextureBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCore
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
@@ -97,8 +97,6 @@ class DefaultSurfaceTextureCaptureSource(
     override fun start() {
         handler.post {
             surfaceTexture.setOnFrameAvailableListener({
-                logger.info(TAG, "frame available")
-
                 pendingTexture = true
                 tryCapturingFrame()
             }, handler)
@@ -153,13 +151,14 @@ class DefaultSurfaceTextureCaptureSource(
         val transformMatrix = FloatArray(16)
         surfaceTexture.getTransformMatrix(transformMatrix)
 
-        val buffer = DefaultVideoFrameTextureBuffer(
-            width,
-            height,
-            textureId,
-            GlUtil.convertToMatrix(transformMatrix),
-            VideoFrameTextureBuffer.Type.TEXTURE_OES,
-            Runnable { frameReleased() })
+        val buffer =
+            VideoFrameTextureBuffer(
+                width,
+                height,
+                textureId,
+                GlUtil.convertToMatrix(transformMatrix),
+                VideoFrameTextureBuffer.Type.TEXTURE_OES,
+                Runnable { frameReleased() })
         val timestamp = timestampAligner.translateTimestamp(surfaceTexture.timestamp)
 
         val frame = VideoFrame(timestamp, buffer)
@@ -170,7 +169,6 @@ class DefaultSurfaceTextureCaptureSource(
 
     private fun frameReleased() {
         // Cannot assume this occurs on correct thread
-        logger.info(TAG, "frame released")
         handler.post {
             textureInUse = false
             if (released) {

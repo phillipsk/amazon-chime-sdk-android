@@ -14,9 +14,9 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.audio.activespeakerd
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.audio.activespeakerpolicy.ActiveSpeakerPolicy
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.metric.MetricsObserver
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRenderView
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSource
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileController
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileObserver
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
 import com.amazonaws.services.chime.sdk.meetings.device.DeviceChangeObserver
 import com.amazonaws.services.chime.sdk.meetings.device.DeviceController
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice

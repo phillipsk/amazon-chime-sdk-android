@@ -7,12 +7,13 @@ package com.amazonaws.services.chime.sdk.meetings.internal.video
 
 import android.content.Context
 import com.amazonaws.services.chime.sdk.BuildConfig
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.CameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.DefaultCameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.DefaultSurfaceTextureCaptureSourceFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCore
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
-import com.amazonaws.services.chime.sdk.meetings.internal.video.adapters.VideoSourceAdapter
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionConfiguration
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 import com.google.gson.Gson
@@ -29,7 +30,6 @@ class DefaultVideoClientController(
     private val videoClientObserver: VideoClientObserver,
     private val configuration: MeetingSessionConfiguration,
     private val videoClientFactory: VideoClientFactory,
-    private val cameraCaptureSource: CameraCaptureSource,
     private val eglCoreFactory: EglCoreFactory
 ) : VideoClientController,
     VideoClientLifecycleHandler {
@@ -44,11 +44,21 @@ class DefaultVideoClientController(
 
     private val gson = Gson()
 
+    private val cameraCaptureSource: CameraCaptureSource
     private var videoSourceAdapter: VideoSourceAdapter? = null
     private var isUsingInternalCaptureSource = false
 
     init {
         videoClientStateController.bindLifecycleHandler(this)
+
+        val surfaceTextureCaptureSourceFactory =
+            DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory)
+        cameraCaptureSource =
+            DefaultCameraCaptureSource(
+                context,
+                logger,
+                surfaceTextureCaptureSourceFactory
+            )
     }
 
     private var videoClient: VideoClient? = null
@@ -75,7 +85,10 @@ class DefaultVideoClientController(
     override fun startLocalVideo() {
         if (!videoClientStateController.canAct(VideoClientState.INITIALIZED)) return
 
-        videoSourceAdapter = VideoSourceAdapter(cameraCaptureSource)
+        videoSourceAdapter =
+            VideoSourceAdapter(
+                cameraCaptureSource
+            )
         logger.info(TAG, "Setting external video source in media client to internal camera source")
         videoClient?.setExternalVideoSource(videoSourceAdapter, eglCore?.eglContext)
         videoClient?.setSending(true)
@@ -87,7 +100,10 @@ class DefaultVideoClientController(
     override fun startLocalVideo(source: VideoSource) {
         if (!videoClientStateController.canAct(VideoClientState.INITIALIZED)) return
 
-        videoSourceAdapter = VideoSourceAdapter(source)
+        videoSourceAdapter =
+            VideoSourceAdapter(
+                source
+            )
         logger.info(TAG, "Setting external video source in media client to custom source")
         videoClient?.setExternalVideoSource(videoSourceAdapter, eglCore?.eglContext)
         videoClient?.setSending(true)

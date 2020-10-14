@@ -14,8 +14,6 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoTi
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoTileFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultEglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultCameraCaptureSource
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.DefaultSurfaceTextureCaptureSourceFactory
 import com.amazonaws.services.chime.sdk.meetings.device.DefaultDeviceController
 import com.amazonaws.services.chime.sdk.meetings.internal.audio.AudioClientFactory
 import com.amazonaws.services.chime.sdk.meetings.internal.audio.DefaultAudioClientController
@@ -82,15 +80,6 @@ class DefaultMeetingSession(
                 configuration.urls.urlRewriter
             )
 
-        val surfaceTextureCaptureSourceFactory =
-            DefaultSurfaceTextureCaptureSourceFactory(logger, eglCoreFactory)
-        val cameraCaptureSource =
-            DefaultCameraCaptureSource(
-                context,
-                logger,
-                surfaceTextureCaptureSourceFactory
-            )
-
         val videoClientController =
             DefaultVideoClientController(
                 context,
@@ -99,7 +88,6 @@ class DefaultMeetingSession(
                 videoClientObserver,
                 configuration,
                 DefaultVideoClientFactory(),
-                cameraCaptureSource,
                 eglCoreFactory
             )
 

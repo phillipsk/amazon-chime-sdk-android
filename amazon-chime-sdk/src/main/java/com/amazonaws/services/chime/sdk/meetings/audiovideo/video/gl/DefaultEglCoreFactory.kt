@@ -29,11 +29,11 @@ class DefaultEglCoreFactory(private var sharedContext: EGLContext = EGL14.EGL_NO
             } else {
                 refCountDelegate?.retain()
             }
-            return DefaultEglCore(Runnable { eglCoreReleased() }, sharedContext)
+            return DefaultEglCore(Runnable { onEglCoreReleased() }, sharedContext)
         }
     }
 
-    private fun eglCoreReleased() {
+    private fun onEglCoreReleased() {
         refCountDelegate?.release()
     }
 

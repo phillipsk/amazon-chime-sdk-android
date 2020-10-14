@@ -1,4 +1,4 @@
-package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
+package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer
 
 /**
  * [VideoFrameBuffer] is a buffer which contains a single video frame

@@ -19,8 +19,8 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoRenderView
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoCaptureFormat
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.CameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.VideoCaptureFormat
 import com.amazonaws.services.chime.sdk.meetings.device.DeviceChangeObserver
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType

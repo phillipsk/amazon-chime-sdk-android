@@ -7,10 +7,10 @@ package com.amazonaws.services.chime.sdk.meetings.internal.video
 
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoObserver
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameI420Buffer
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRotation
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileController
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameI420Buffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.internal.metric.ClientMetricsCollector
 import com.amazonaws.services.chime.sdk.meetings.realtime.datamessage.DataMessageObserver
 import com.amazonaws.services.chime.sdk.meetings.session.MeetingSessionStatus
@@ -73,9 +73,9 @@ class DefaultVideoClientObserverTest {
     private lateinit var mockMediaVideoFrameTextureBuffer: com.xodee.client.video.VideoFrameTextureBuffer
 
     // Required even if not queried
-    private val testDataY = ByteBuffer.allocate(0)
-    private val testDataU = ByteBuffer.allocate(0)
-    private val testDataV = ByteBuffer.allocate(0)
+    private val testDataY = ByteBuffer.allocateDirect(0)
+    private val testDataU = ByteBuffer.allocateDirect(0)
+    private val testDataV = ByteBuffer.allocateDirect(0)
 
     private val testTimestamp: Long = 1
     private val testRotation = VideoRotation.Rotation90

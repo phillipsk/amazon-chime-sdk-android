@@ -1,5 +1,6 @@
-package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source
+package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
 
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 

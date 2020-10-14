@@ -1,4 +1,4 @@
-package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source
+package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
 
 /**
  * [ContentHint] describes the content type of a video source so that downstream encoders, etc. can properly

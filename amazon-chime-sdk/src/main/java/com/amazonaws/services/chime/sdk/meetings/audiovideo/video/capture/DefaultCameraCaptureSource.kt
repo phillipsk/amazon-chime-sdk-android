@@ -1,4 +1,4 @@
-package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source
+package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
 
 import android.Manifest
 import android.content.Context
@@ -20,12 +20,12 @@ import android.view.Surface
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoFrameTextureBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameBuffer
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRotation
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
 import com.amazonaws.services.chime.sdk.meetings.internal.utils.ObserverUtils
@@ -63,7 +63,8 @@ class DefaultCameraCaptureSource(
 
     override val contentHint = ContentHint.Motion
 
-    private val DESIRED_CAPTURE_FORMAT = VideoCaptureFormat(960, 720, 15)
+    private val MAX_INTERNAL_SUPPORTED_FPS = 15
+    private val DESIRED_CAPTURE_FORMAT = VideoCaptureFormat(960, 720, MAX_INTERNAL_SUPPORTED_FPS)
 
     private val TAG = "DefaultCameraCaptureSource"
 
@@ -129,10 +130,12 @@ class DefaultCameraCaptureSource(
                 return
             }
 
-            if (value.maxFps > 15) {
+            if (value.maxFps > MAX_INTERNAL_SUPPORTED_FPS) {
                 logger.info(TAG, "Limiting capture to 15 FPS to avoid frame drops")
             }
-            field = VideoCaptureFormat(value.width, value.height, min(value.maxFps, 15))
+            field = VideoCaptureFormat(value.width, value.height, min(value.maxFps,
+                MAX_INTERNAL_SUPPORTED_FPS
+            ))
 
             // Restart capture if already running (i.e. we have a valid surface texture source)
             surfaceTextureSource?.let {
@@ -434,7 +437,7 @@ class DefaultCameraCaptureSource(
         val newMatrix = Matrix(buffer.transformMatrix)
         newMatrix.preConcat(transformMatrix)
         buffer.retain()
-        return DefaultVideoFrameTextureBuffer(
+        return VideoFrameTextureBuffer(
             buffer.width,
             buffer.height,
             buffer.textureId,

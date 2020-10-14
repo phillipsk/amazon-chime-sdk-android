@@ -5,16 +5,15 @@ import android.opengl.EGL14
 import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoFrameRGBABuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameRGBABuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameRGBABuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultGlVideoFrameDrawer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCore
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.ContentHint
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 import com.xodee.client.video.JniUtil
 import kotlinx.coroutines.android.asCoroutineDispatcher
@@ -113,7 +112,7 @@ class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
             GlUtil.checkGlError("glReadPixels")
 
             val rgbaBuffer =
-                DefaultVideoFrameRGBABuffer(
+                VideoFrameRGBABuffer(
                     frame.getRotatedWidth(),
                     frame.getRotatedHeight(),
                     rgbaData, frame.getRotatedWidth() * 4,
