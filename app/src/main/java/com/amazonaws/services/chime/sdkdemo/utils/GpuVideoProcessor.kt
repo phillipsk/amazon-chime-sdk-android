@@ -16,8 +16,6 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.ContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
-import kotlinx.coroutines.android.asCoroutineDispatcher
-import kotlinx.coroutines.runBlocking
 
 class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFactory) : VideoSource,
     VideoSink {
@@ -34,7 +32,7 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
 
     private lateinit var eglCore: EglCore
     private val thread: HandlerThread = HandlerThread("DemoGpuVideoProcessor")
-    private val handler: Handler
+    private var handler: Handler? = null
 
     private val TAG = "DemoGpuVideoProcessor"
 
@@ -50,7 +48,7 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
         thread.start()
         handler = Handler(thread.looper)
 
-        runBlocking(handler.asCoroutineDispatcher().immediate) {
+        handler?.post {
             eglCore = eglCoreFactory.createEglCore()
 
             // We need to create a dummy surface before we can set the cotext as current
@@ -76,8 +74,8 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
     }
 
     fun release() {
-        handler.post {
-            logger.info(TAG, "Releasing surface texture capture source")
+        handler?.post {
+            logger.info(TAG, "Releasing GPU video processor source")
             released = true
             // We cannot release until no downstream users have access to texture buffer
             if (!textureInUse) {
@@ -99,15 +97,17 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
             if (pendingFrame != null) {
                 pendingFrame?.release()
             }
-            pendingFrame = frame
-            pendingFrame?.retain()
-        }
 
-        handler.post(::tryCapturingFrame)
+            if (handler != null) {
+                pendingFrame = frame
+                pendingFrame?.retain()
+                handler?.post(::tryCapturingFrame)
+            }
+        }
     }
 
     private fun tryCapturingFrame() {
-        check(Looper.myLooper() == handler.looper)
+        check(Looper.myLooper() == handler?.looper)
         // Fetch and render |pendingFrame|.
         var frame: VideoFrame
         synchronized(pendingFrameLock) {
@@ -163,7 +163,7 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
     // Called once texture buffer ref count reaches 0
     private fun frameReleased() {
         // Cannot assume this occurs on correct thread
-        handler.post {
+        handler?.post {
             textureInUse = false
             if (released) {
                 this.completeRelease()
@@ -175,20 +175,21 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
     }
 
     private fun completeRelease() {
-        check(Looper.myLooper() == handler.looper)
-
-        synchronized(pendingFrameLock) {
-            if (pendingFrame != null) {
-                pendingFrame?.release()
-                pendingFrame = null
-            }
-        }
+        check(Looper.myLooper() == handler?.looper)
 
         rectDrawer.release()
         bwDrawer.release()
         textureFrameBuffer.release()
         eglCore.release()
 
-        handler.looper.quit()
+        synchronized(pendingFrameLock) {
+            if (pendingFrame != null) {
+                pendingFrame?.release()
+                pendingFrame = null
+            }
+
+            handler?.looper?.quit()
+            handler = null
+        }
     }
 }

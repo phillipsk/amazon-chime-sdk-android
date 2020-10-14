@@ -168,8 +168,8 @@ class MeetingFragment : Fragment(),
         credentials = (activity as MeetingActivity).getMeetingSessionCredentials()
         audioVideo = activity.getAudioVideo()
         cameraCaptureSource = activity.getCameraCaptureSource()
-        gpuVideoProcessor = GpuVideoProcessor(logger, activity.getEglCoreFactory())
-        cpuVideoProcessor = CpuVideoProcessor(logger, activity.getEglCoreFactory())
+        gpuVideoProcessor = activity.getGpuVideoProcessor()
+        cpuVideoProcessor = activity.getCpuVideoProcessor()
 
         view.findViewById<TextView>(R.id.textViewMeetingId)?.text = arguments?.getString(
             HomeActivity.MEETING_ID_KEY
@@ -188,13 +188,6 @@ class MeetingFragment : Fragment(),
         audioVideo.start()
         audioVideo.startRemoteVideo()
         return view
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-
-        gpuVideoProcessor.release()
-        cpuVideoProcessor.release()
     }
 
     private fun setupButtonsBar(view: View) {

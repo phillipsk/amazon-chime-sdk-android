@@ -13,7 +13,6 @@ import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.AttributeSet
-import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
@@ -118,7 +117,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     private var surfaceHeight = 0
 
     // EGL and GL resources for drawing YUV/OES textures. After initialization, these are only
-    // accessed from the render thread.
+    // accessed from the render thread.  These are reused within init/release cycles.
     private var eglCore: EglCore? = null
     private val surface: Any? = null
     private var renderHandler: Handler? = null
@@ -132,6 +131,9 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
 
     // If true, mirrors the video stream horizontally.  Publicly accessible
     var mirror = false
+
+    // Synchronized on itself, as it may be modified when there renderHandler
+    // is or is not running
     private var layoutAspectRatio = 0f
 
     private var frameDrawer = DefaultGlVideoFrameDrawer()
@@ -150,7 +152,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
         thread.start()
         this.renderHandler = Handler(thread.looper)
 
-        val validRenderHandler = renderHandler ?: throw UnknownError("No handler in release")
+        val validRenderHandler = renderHandler ?: throw UnknownError("No handler in init")
         runBlocking(validRenderHandler.asCoroutineDispatcher().immediate) {
             eglCore = eglCoreFactory.createEglCore()
             surface?.let { createEglSurface(it) }
@@ -158,17 +160,18 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     }
 
     override fun release() {
-        val validRenderHandler = renderHandler ?: throw UnknownError("No handler in release")
+        val validRenderHandler = renderHandler ?: return // Already released
         runBlocking(validRenderHandler.asCoroutineDispatcher().immediate) {
             eglCore?.release()
             eglCore = null
         }
-        this.renderHandler?.looper?.quitSafely()
-        this.renderHandler = null
 
         synchronized(pendingFrameLock) {
             pendingFrame?.release()
             pendingFrame = null
+
+            this.renderHandler?.looper?.quitSafely()
+            this.renderHandler = null
         }
     }
 
@@ -201,8 +204,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
         right: Int,
         bottom: Int
     ) {
-        val validRenderHandler = renderHandler ?: throw UnknownError("No handler in release")
-        runBlocking(validRenderHandler.asCoroutineDispatcher().immediate) {
+        synchronized(layoutAspectRatio) {
             layoutAspectRatio = ((right - left) / (bottom - top).toFloat())
         }
         updateSurfaceSize()
@@ -225,11 +227,15 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
 
         synchronized(pendingFrameLock) {
             // Release any current frame before setting to the latest
-            pendingFrame?.release()
-            pendingFrame = frame
+            if (pendingFrame != null) {
+                pendingFrame?.release()
+            }
 
-            pendingFrame?.retain()
-            renderHandler?.post(::renderPendingFrame)
+            if (handler != null) {
+                pendingFrame = frame
+                pendingFrame?.retain()
+                renderHandler?.post(::renderPendingFrame)
+            }
         }
     }
 
@@ -320,11 +326,15 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             frame = pendingFrame as VideoFrame
             pendingFrame = null
         }
-        Log.e("timestamp", "${frame.timestampNs}")
 
         // Setup draw matrix
         val frameAspectRatio = frame.getRotatedWidth().toFloat() / frame.getRotatedHeight()
-        val drawnAspectRatio = if (layoutAspectRatio != 0f) layoutAspectRatio else frameAspectRatio
+        var drawnAspectRatio = frameAspectRatio
+        synchronized(layoutAspectRatio) {
+            if (layoutAspectRatio != 0f) {
+                drawnAspectRatio = layoutAspectRatio
+            }
+        }
         val scaleX: Float
         val scaleY: Float
         if (frameAspectRatio > drawnAspectRatio) {

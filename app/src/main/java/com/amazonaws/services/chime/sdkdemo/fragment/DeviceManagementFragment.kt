@@ -53,9 +53,12 @@ class DeviceManagementFragment : Fragment(),
 
     private val TAG = "DeviceManagementFragment"
 
+    private lateinit var audioDeviceSpinner: Spinner
     private lateinit var audioDeviceArrayAdapter: ArrayAdapter<MediaDevice>
+    private lateinit var videoDeviceSpinner: Spinner
     private lateinit var videoDeviceArrayAdapter: ArrayAdapter<MediaDevice>
-    private lateinit var videoCaptureFormatArrayAdapter: ArrayAdapter<VideoCaptureFormat>
+    private lateinit var videoFormatSpinner: Spinner
+    private lateinit var videoFormatArrayAdapter: ArrayAdapter<VideoCaptureFormat>
 
     private val VIDEO_ASPECT_RATIO_16_9 = 0.5625
 
@@ -87,6 +90,10 @@ class DeviceManagementFragment : Fragment(),
         }
     }
 
+    private val AUDIO_DEVICE_SPINNER_INDEX_KEY = "audioDeviceSpinnerIndex"
+    private val VIDEO_DEVICE_SPINNER_INDEX_KEY = "videoDeviceSpinnerIndex"
+    private val VIDEO_FORMAT_SPINNER_INDEX_KEY = "videoFormatSpinnerIndex"
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -106,27 +113,38 @@ class DeviceManagementFragment : Fragment(),
             listener.onJoinMeetingClicked()
         }
 
-        val spinnerAudioDevice = view.findViewById<Spinner>(R.id.spinnerAudioDevice)
+        // Note we call isSelected and setSelection before setting onItemSelectedListener
+        // so that we can control the first time the spinner is set and use previous values
+        // if they exist (i.e. before rotation).  We will set them after lists are populated.
+
+        audioDeviceSpinner = view.findViewById(R.id.spinnerAudioDevice)
         audioDeviceArrayAdapter = createMediaDeviceSpinnerAdapter(context, audioDevices)
-        spinnerAudioDevice.adapter = audioDeviceArrayAdapter
-        spinnerAudioDevice.onItemSelectedListener = onAudioDeviceSelected
+        audioDeviceSpinner.adapter = audioDeviceArrayAdapter
+        audioDeviceSpinner.isSelected = false
+        audioDeviceSpinner.setSelection(0, true)
+        audioDeviceSpinner.onItemSelectedListener = onAudioDeviceSelected
 
-        val spinnerVideoDevice = view.findViewById<Spinner>(R.id.spinnerVideoDevice)
+        videoDeviceSpinner = view.findViewById(R.id.spinnerVideoDevice)
         videoDeviceArrayAdapter = createMediaDeviceSpinnerAdapter(context, videoDevices)
-        spinnerVideoDevice.adapter = videoDeviceArrayAdapter
-        spinnerVideoDevice.onItemSelectedListener = onVideoDeviceSelected
+        videoDeviceSpinner.adapter = videoDeviceArrayAdapter
+        videoDeviceSpinner.isSelected = false
+        videoDeviceSpinner.setSelection(0, true)
+        videoDeviceSpinner.onItemSelectedListener = onVideoDeviceSelected
 
-        val spinnerVideoFormat = view.findViewById<Spinner>(R.id.spinnerVideoFormat)
-        videoCaptureFormatArrayAdapter =
+        videoFormatSpinner = view.findViewById(R.id.spinnerVideoFormat)
+        videoFormatArrayAdapter =
             createVideoCaptureFormatSpinnerAdapter(context, videoFormats)
-        spinnerVideoFormat.adapter = videoCaptureFormatArrayAdapter
-        spinnerVideoFormat.onItemSelectedListener = onVideoFormatSelected
+        videoFormatSpinner.adapter = videoFormatArrayAdapter
+        videoFormatSpinner.isSelected = false
+        videoFormatSpinner.setSelection(0, true)
+        videoFormatSpinner.onItemSelectedListener = onVideoFormatSelected
 
         audioVideo.addDeviceChangeObserver(this)
 
         cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
         cameraCaptureSource = (activity as MeetingActivity).getCameraCaptureSource()
+
         view.findViewById<DefaultVideoRenderView>(R.id.videoPreview)?.let {
             val displayMetrics = context.resources.displayMetrics
             val width =
@@ -147,10 +165,31 @@ class DeviceManagementFragment : Fragment(),
 
             videoPreview.mirror =
                 cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
+
+            var audioDeviceSpinnerIndex = 0
+            var videoDeviceSpinnerIndex = 0
+            var videoFormatSpinnerIndex = 0
+            if (savedInstanceState != null) {
+                audioDeviceSpinnerIndex = savedInstanceState.getInt(AUDIO_DEVICE_SPINNER_INDEX_KEY, 0)
+                videoDeviceSpinnerIndex = savedInstanceState.getInt(VIDEO_DEVICE_SPINNER_INDEX_KEY, 0)
+                videoFormatSpinnerIndex = savedInstanceState.getInt(VIDEO_FORMAT_SPINNER_INDEX_KEY, 0)
+            }
+
+            audioDeviceSpinner.setSelection(audioDeviceSpinnerIndex)
+            videoDeviceSpinner.setSelection(videoDeviceSpinnerIndex)
+            videoFormatSpinner.setSelection(videoFormatSpinnerIndex)
+
             cameraCaptureSource.start()
         }
 
         return view
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(AUDIO_DEVICE_SPINNER_INDEX_KEY, audioDeviceSpinner.selectedItemPosition)
+        outState.putInt(VIDEO_DEVICE_SPINNER_INDEX_KEY, videoDeviceSpinner.selectedItemPosition)
+        outState.putInt(VIDEO_FORMAT_SPINNER_INDEX_KEY, videoFormatSpinner.selectedItemPosition)
     }
 
     override fun onDestroy() {
@@ -199,9 +238,6 @@ class DeviceManagementFragment : Fragment(),
             }.sortedBy { it.order }
         )
         audioDeviceArrayAdapter.notifyDataSetChanged()
-        if (audioDevices.isNotEmpty()) {
-            audioVideo.chooseAudioDevice(audioDevices[0])
-        }
     }
 
     private fun populateVideoDeviceList(freshVideoDeviceList: List<MediaDevice>) {
@@ -212,9 +248,6 @@ class DeviceManagementFragment : Fragment(),
             }.sortedBy { it.order }
         )
         videoDeviceArrayAdapter.notifyDataSetChanged()
-        if (videoDevices.isNotEmpty()) {
-            cameraCaptureSource.device = videoDevices[0]
-        }
     }
 
     private fun populateVideoFormatList(freshVideoCaptureFormatList: List<VideoCaptureFormat>) {
@@ -226,10 +259,7 @@ class DeviceManagementFragment : Fragment(),
             // MediaSDK doesn't yet support 30FPS so anything above will lead to frame drops
             videoFormats.add(VideoCaptureFormat(format.width, format.height, 15))
         }
-        videoCaptureFormatArrayAdapter.notifyDataSetChanged()
-        if (videoFormats.isNotEmpty()) {
-            cameraCaptureSource.format = videoFormats[0]
-        }
+        videoFormatArrayAdapter.notifyDataSetChanged()
     }
 
     private suspend fun listAudioDevices(): List<MediaDevice> {
