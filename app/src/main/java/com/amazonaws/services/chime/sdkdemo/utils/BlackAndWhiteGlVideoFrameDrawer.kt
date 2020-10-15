@@ -139,14 +139,14 @@ class BlackAndWhiteGlVideoFrameDrawer : GlVideoFrameDrawer {
         GLES20.glEnableVertexAttribArray(vertexPositionLocation)
         GLES20.glVertexAttribPointer(
             vertexPositionLocation, 2, GLES20.GL_FLOAT,
-            false, 0, GlUtil.FULL_RECTANGLE_BUFFER
+            false, 0, GlUtil.FULL_RECTANGLE_VERTEX_COORDINATES
         )
 
         // Upload the texture coordinates.
         GLES20.glEnableVertexAttribArray(textureCoordinateLocation)
         GLES20.glVertexAttribPointer(
             textureCoordinateLocation, 2, GLES20.GL_FLOAT,
-            false, 0, GlUtil.FULL_RECTANGLE_TEXTURE_BUFFER
+            false, 0, GlUtil.FULL_RECTANGLE_TEXTURE_COORDINATES
         )
 
         // Upload the texture transformation matrix.
