@@ -408,7 +408,7 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
         // Upload the vertex coordinates.
         GLES20.glEnableVertexAttribArray(vertexPositionLocation)
         GLES20.glVertexAttribPointer(
-            vertexPositionLocation, 2, GLES20.GL_FLOAT, false, 0, GlUtil.FULL_RECTANGLE_BUFFER
+            vertexPositionLocation, 2, GLES20.GL_FLOAT, false, 0, GlUtil.FULL_RECTANGLE_VERTEX_COORDINATES
         )
 
         // Upload the texture coordinates.
@@ -419,7 +419,7 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
             GLES20.GL_FLOAT,
             false,
             0,
-            GlUtil.FULL_RECTANGLE_TEXTURE_BUFFER
+            GlUtil.FULL_RECTANGLE_TEXTURE_COORDINATES
         )
 
         // Upload the texture transformation matrix.
