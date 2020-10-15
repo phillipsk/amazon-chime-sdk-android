@@ -18,7 +18,7 @@ interface CameraCaptureSource : VideoCaptureSource {
      * flashlight, otherwise will stay [false].  May be called regardless of whether [start] or [stop]
      * has been called.
      */
-    var flashlightEnabled: Boolean
+    var torchEnabled: Boolean
 
     /**
      * Current camera capture format.

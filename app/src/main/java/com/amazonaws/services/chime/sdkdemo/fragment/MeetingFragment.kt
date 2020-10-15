@@ -607,7 +607,7 @@ class MeetingFragment : Fragment(),
     private fun toggleFlashlight() {
         logger.info(
             TAG,
-            "Toggling flashlight from ${cameraCaptureSource.flashlightEnabled} to ${!cameraCaptureSource.flashlightEnabled}"
+            "Toggling flashlight from ${cameraCaptureSource.torchEnabled} to ${!cameraCaptureSource.torchEnabled}"
         )
         if (!isUsingCameraCaptureSource) {
             logger.warn(TAG, "Cannot toggle flashlight without using custom camera capture source")
@@ -618,9 +618,9 @@ class MeetingFragment : Fragment(),
             ).show()
             return
         }
-        val desiredFlashlightEnabled = !cameraCaptureSource.flashlightEnabled
-        cameraCaptureSource.flashlightEnabled = desiredFlashlightEnabled
-        if (cameraCaptureSource.flashlightEnabled != desiredFlashlightEnabled) {
+        val desiredFlashlightEnabled = !cameraCaptureSource.torchEnabled
+        cameraCaptureSource.torchEnabled = desiredFlashlightEnabled
+        if (cameraCaptureSource.torchEnabled != desiredFlashlightEnabled) {
             logger.warn(TAG, "Flashlight failed to toggle")
             Toast.makeText(
                 context!!,
