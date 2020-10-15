@@ -7,7 +7,6 @@ import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
-import android.os.Looper
 import android.view.Surface
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
@@ -49,13 +48,21 @@ class DefaultSurfaceTextureCaptureSource(
     private val timestampAligner = TimestampAligner()
 
     // Frame available listener was called when a texture was already in use
-    private var pendingTexture = false
+    // SurfaceTextures must be updated by calling `updateTexImage` (usually in
+    // OnFrameAvailableListener) however if something downstream is holding onto
+    // a reference, then calling `updateTexImage` would invalidate their texture.
+    // We use the release callback to trigger `updateTexImage` and the capture of
+    // a new frame if that is the case.
+    private var pendingAvailableFrame = false
 
-    // Texture is in use, possibly in another thread
-    private var textureInUse = false
+    // Texture is in use, possibly in another thread.  See comment above for why
+    // we only allow one texture in flight at a time (i.e. because the SurfaceTexture owns
+    // it, and can only own one texture at a time.
+    private var textureBufferInFlight = false
 
-    // Dispose has been called and we are waiting on texture to be released
-    private var released = false
+    // Dispose has been called and we are waiting on texture to be released before we deallocate
+    // non-GC-able resources
+    private var releasePending = false
 
     private var sinks = mutableSetOf<VideoSink>()
 
@@ -101,7 +108,7 @@ class DefaultSurfaceTextureCaptureSource(
     override fun start() {
         handler.post {
             surfaceTexture.setOnFrameAvailableListener({
-                pendingTexture = true
+                pendingAvailableFrame = true
                 tryCapturingFrame()
             }, handler)
         }
@@ -124,32 +131,33 @@ class DefaultSurfaceTextureCaptureSource(
 
     override fun removeVideoSink(sink: VideoSink) {
         runBlocking(handler.asCoroutineDispatcher().immediate) {
-            sinks.remove(
-                sink
-            )
+            sinks.remove(sink)
         }
     }
 
     override fun release() {
         handler.post {
             logger.info(TAG, "Releasing surface texture capture source")
-            released = true
-            // If we have a frame in flight we cannot immediately release
-            if (!textureInUse) {
+            if (!textureBufferInFlight) {
                 completeRelease()
+            } else {
+                // If we have a frame in flight we cannot immediately release
+                // This will cause onFrameRelease to trigger completeRelease
+                releasePending = true
             }
         }
     }
 
     private fun tryCapturingFrame() {
-        check(Looper.myLooper() == handler.looper)
-
         // Check to see if we are in valid state for capturing a new frame
-        if (released || !pendingTexture || textureInUse) {
+        //  * Don't capture a new frame if we are in the process of releasing
+        //  * Don't capture a new frame if it will be the same as previous
+        //  * Don't capture a new frame if there is a buffer in flight as to not invalidate it
+        if (releasePending || !pendingAvailableFrame || textureBufferInFlight) {
             return
         }
-        textureInUse = true
-        pendingTexture = false
+        textureBufferInFlight = true
+        pendingAvailableFrame = false
 
         // This call is what actually updates the texture
         surfaceTexture.updateTexImage()
@@ -164,7 +172,7 @@ class DefaultSurfaceTextureCaptureSource(
                 textureId,
                 GlUtil.convertToMatrix(transformMatrix),
                 VideoFrameTextureBuffer.Type.TEXTURE_OES,
-                Runnable { frameReleased() })
+                Runnable { onFrameReleased() })
         val timestamp = timestampAligner.translateTimestamp(surfaceTexture.timestamp)
 
         val frame = VideoFrame(timestamp, buffer)
@@ -173,22 +181,22 @@ class DefaultSurfaceTextureCaptureSource(
         frame.release()
     }
 
-    private fun frameReleased() {
+    private fun onFrameReleased() {
         // Cannot assume this occurs on correct thread
         handler.post {
-            textureInUse = false
-            if (released) {
-                this.completeRelease()
+            textureBufferInFlight = false
+            if (releasePending) {
+                completeRelease()
             } else {
-                // May have pending frame
+                // May have pending frame which was waiting on the previous
+                // frame to no longer have users so that that texture can be
+                // reused
                 tryCapturingFrame()
             }
         }
     }
 
     private fun completeRelease() {
-        check(Looper.myLooper() == handler.looper)
-
         GLES20.glDeleteTextures(1, intArrayOf(textureId), 0)
         surfaceTexture.release()
         surface.release()
