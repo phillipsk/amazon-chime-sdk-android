@@ -15,12 +15,14 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 /**
- * [DefaultGlVideoFrameDrawer] simply draws the frames as opaque quads onto the current surface
+ * [DefaultGlVideoFrameDrawer] simply draws the frames as opaque quads onto the current surface.
+ * This drawer supports all buffer types in the SDK.
  */
 class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
     /**
      * Helper class for uploading YUV bytebuffer frames to textures that handles stride > width. This
      * class keeps an internal ByteBuffer to avoid unnecessary allocations for intermediate copies.
+     * Lazily initialized and can be reused after release
      */
     private class I420BufferTextureUploader {
         // Intermediate copy buffer for uploading yuv frames that are not packed, i.e. stride > width.
@@ -98,8 +100,9 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
     }
 
     /**
-     * Helper class for uploading YUV bytebuffer frames to textures that handles stride > width. This
+     * Helper class for uploading RGBA bytebuffer frames to textures that handles stride > width. This
      * class keeps an internal ByteBuffer to avoid unnecessary allocations for intermediate copies.
+     * Lazily initialized and can be reused after release
      */
     private class RGBABufferTextureUploader {
         // Intermediate copy buffer for uploading yuv frames that are not packed, i.e. stride > width.
@@ -163,8 +166,10 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
         }
     }
 
+    // We will switch shaders on the fly to support all buffer types
     private var currentShaderType: ShaderType? = null
 
+    // Shader metadata
     private var program: Int = -1
     private var vertexPositionLocation = 0
     private var textureCoordinateLocation = 0
@@ -197,6 +202,7 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
             return
         }
         renderMatrix.reset()
+        // Perform mirror and rotation around (0.5, 0.5) since that is the center of the texture.
         renderMatrix.preTranslate(0.5f, 0.5f)
         if (frame.buffer is VideoFrameI420Buffer) {
             renderMatrix.preScale(1f, -1f) // I420-frames are upside down

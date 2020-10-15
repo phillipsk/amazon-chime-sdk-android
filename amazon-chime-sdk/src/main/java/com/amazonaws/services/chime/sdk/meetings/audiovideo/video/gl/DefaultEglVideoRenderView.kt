@@ -18,6 +18,7 @@ import android.view.SurfaceView
 import android.view.View
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRotation
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,15 +31,16 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyle: Int = 0
 ) : SurfaceView(context, attrs, defStyle), SurfaceHolder.Callback,
-    EglVideoRenderView {
+        EglVideoRenderView {
     /**
      * Helper class for determining layout size based on layout requirements, scaling type, and video
      * aspect ratio.
      */
-    class VideoLayoutMeasure {
+    private class VideoLayoutMeasure {
         enum class ScalingType { SCALE_ASPECT_FIT, SCALE_ASPECT_FILL }
 
-        var scalingType = ScalingType.SCALE_ASPECT_FILL
+        // Default value, currently not exposed to DefaultEglVideoRenderView API
+        val scalingType = ScalingType.SCALE_ASPECT_FILL
 
         fun measure(
             widthSpec: Int,
@@ -49,7 +51,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             // Calculate max allowed layout size.
             val maxWidth = View.getDefaultSize(Int.MAX_VALUE, widthSpec)
             val maxHeight =
-                View.getDefaultSize(Int.MAX_VALUE, heightSpec)
+                    View.getDefaultSize(Int.MAX_VALUE, heightSpec)
             if (frameWidth == 0 || frameHeight == 0 || maxWidth == 0 || maxHeight == 0) {
                 return Point(maxWidth, maxHeight)
             }
@@ -57,14 +59,15 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             // and maximum layout size.
             val frameAspect = frameWidth / frameHeight.toFloat()
             val layoutSize: Point =
-                getDisplaySize(
-                    convertScalingTypeToVisibleFraction(scalingType),
-                    frameAspect,
-                    maxWidth,
-                    maxHeight
-                )
+                    getDisplaySize(
+                            convertScalingTypeToVisibleFraction(scalingType),
+                            frameAspect,
+                            maxWidth,
+                            maxHeight
+                    )
 
-            // If the measure specification is forcing a specific size - yield.
+            // If the measure specification is forcing a specific size, yield.
+            // MeasureSpec.EXACTLY implies that parent view should control child size
             if (MeasureSpec.getMode(widthSpec) == MeasureSpec.EXACTLY) {
                 layoutSize.x = maxWidth
             }
@@ -101,9 +104,9 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             }
             // Each dimension is constrained on max display size and how much we are allowed to crop.
             val width =
-                maxDisplayWidth.coerceAtMost((maxDisplayHeight / minVisibleFraction * videoAspectRatio).roundToInt())
+                    maxDisplayWidth.coerceAtMost(((maxDisplayHeight / minVisibleFraction) * videoAspectRatio).roundToInt())
             val height =
-                maxDisplayHeight.coerceAtMost((maxDisplayWidth / minVisibleFraction / videoAspectRatio).roundToInt())
+                    maxDisplayHeight.coerceAtMost(((maxDisplayWidth / minVisibleFraction) / videoAspectRatio).roundToInt())
             return Point(width, height)
         }
     }
@@ -120,12 +123,15 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     // accessed from the render thread.  These are reused within init/release cycles.
     private var eglCore: EglCore? = null
     private val surface: Any? = null
+
+    // This handler is protected from onVideoFrameReceived calls during init and release cycles
+    // by being synchronized on pendingFrameLock
     private var renderHandler: Handler? = null
 
     // Cached matrix for draw command
     private val drawMatrix: Matrix = Matrix()
 
-    // Pending frame to render. Serves as a queue with size 1. Synchronized on |pendingFrameLock|.
+    // Pending frame to render. Serves as a queue with size 1. Synchronized on pendingFrameLock.
     private var pendingFrame: VideoFrame? = null
     private val pendingFrameLock = Any()
 
@@ -137,11 +143,13 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     private var layoutAspectRatio = 0f
 
     private var frameDrawer = DefaultGlVideoFrameDrawer()
+
+    // This helper class is used to determine the value to set by setMeasuredDimension in onMeasure
+    // (Required for View implementations) which determines the actual size of the view
     private val videoLayoutMeasure: VideoLayoutMeasure = VideoLayoutMeasure()
 
     init {
         holder.addCallback(this)
-        videoLayoutMeasure.scalingType = VideoLayoutMeasure.ScalingType.SCALE_ASPECT_FIT
     }
 
     override fun init(eglCoreFactory: EglCoreFactory) {
@@ -170,6 +178,8 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             pendingFrame?.release()
             pendingFrame = null
 
+            // Protect this within lock since onVideoFrameReceived can
+            // occur from any frame
             this.renderHandler?.looper?.quitSafely()
             this.renderHandler = null
         }
@@ -186,6 +196,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
         surfaceHeight = 0
         updateSurfaceSize()
 
+        // Create the EGL surface and set it as current
         holder?.let {
             createEglSurface(it.surface)
         }
@@ -193,7 +204,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
 
     override fun onMeasure(widthSpec: Int, heightSpec: Int) {
         val size: Point =
-            videoLayoutMeasure.measure(widthSpec, heightSpec, rotatedFrameWidth, rotatedFrameHeight)
+                videoLayoutMeasure.measure(widthSpec, heightSpec, rotatedFrameWidth, rotatedFrameHeight)
         setMeasuredDimension(size.x, size.y)
     }
 
@@ -211,9 +222,10 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     }
 
     override fun onVideoFrameReceived(frame: VideoFrame) {
+        // Update internal sizing and layout if frame size changes
         if (rotatedFrameWidth != frame.getRotatedWidth() ||
-            rotatedFrameHeight != frame.getRotatedHeight() ||
-            frameRotation != frame.rotation
+                rotatedFrameHeight != frame.getRotatedHeight() ||
+                frameRotation != frame.rotation
         ) {
             rotatedFrameWidth = frame.getRotatedWidth()
             rotatedFrameHeight = frame.getRotatedHeight()
@@ -225,6 +237,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             }
         }
 
+        // Set pending frame from this thread and trigger a request to render
         synchronized(pendingFrameLock) {
             // Release any current frame before setting to the latest
             if (pendingFrame != null) {
@@ -243,7 +256,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
         if (rotatedFrameWidth != 0 && rotatedFrameHeight != 0 && width != 0 && height != 0) {
             val layoutAspectRatio = width / height.toFloat()
             val frameAspectRatio: Float =
-                rotatedFrameWidth.toFloat() / rotatedFrameHeight
+                    rotatedFrameWidth.toFloat() / rotatedFrameHeight
             val drawnFrameWidth: Int
             val drawnFrameHeight: Int
             if (frameAspectRatio > layoutAspectRatio) {
@@ -254,8 +267,8 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
                 drawnFrameHeight = ((rotatedFrameWidth / layoutAspectRatio).toInt())
             }
             // Aspect ratio of the drawn frame and the view is the same.
-            val width = Math.min(width, drawnFrameWidth)
-            val height = Math.min(height, drawnFrameHeight)
+            val width = min(width, drawnFrameWidth)
+            val height = min(height, drawnFrameHeight)
 
             if (width != surfaceWidth || height != surfaceHeight) {
                 surfaceWidth = width
@@ -274,14 +287,14 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             if (eglCore != null && eglCore?.eglSurface == EGL14.EGL_NO_SURFACE) {
                 val surfaceAttributess = intArrayOf(EGL14.EGL_NONE)
                 eglCore?.eglSurface = EGL14.eglCreateWindowSurface(
-                    eglCore?.eglDisplay, eglCore?.eglConfig, surface,
-                    surfaceAttributess, 0
+                        eglCore?.eglDisplay, eglCore?.eglConfig, surface,
+                        surfaceAttributess, 0
                 )
                 EGL14.eglMakeCurrent(
-                    eglCore?.eglDisplay,
-                    eglCore?.eglSurface,
-                    eglCore?.eglSurface,
-                    eglCore?.eglContext
+                        eglCore?.eglDisplay,
+                        eglCore?.eglSurface,
+                        eglCore?.eglSurface,
+                        eglCore?.eglContext
                 )
 
                 // Necessary for YUV frames with odd width.
@@ -303,8 +316,8 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             frameDrawer.release()
 
             EGL14.eglMakeCurrent(
-                eglCore?.eglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE,
-                EGL14.EGL_NO_CONTEXT
+                    eglCore?.eglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE,
+                    EGL14.EGL_NO_CONTEXT
             )
             EGL14.eglDestroySurface(eglCore?.eglDisplay, eglCore?.eglSurface)
             eglCore?.eglSurface = EGL14.EGL_NO_SURFACE
@@ -327,7 +340,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
             pendingFrame = null
         }
 
-        // Setup draw matrix
+        // Setup draw matrix transformations
         val frameAspectRatio = frame.getRotatedWidth().toFloat() / frame.getRotatedHeight()
         var drawnAspectRatio = frameAspectRatio
         synchronized(layoutAspectRatio) {
@@ -353,16 +366,16 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
         // Get current surface size so we can set viewport correctly
         val widthArray = IntArray(1)
         EGL14.eglQuerySurface(
-            eglCore?.eglDisplay, eglCore?.eglSurface,
-            EGL14.EGL_WIDTH, widthArray, 0
+                eglCore?.eglDisplay, eglCore?.eglSurface,
+                EGL14.EGL_WIDTH, widthArray, 0
         )
         val heightArray = IntArray(1)
         EGL14.eglQuerySurface(
-            eglCore?.eglDisplay, eglCore?.eglSurface,
-            EGL14.EGL_HEIGHT, heightArray, 0
+                eglCore?.eglDisplay, eglCore?.eglSurface,
+                EGL14.EGL_HEIGHT, heightArray, 0
         )
 
-        // Draw frame
+        // Draw frame and swap buffers, which will make it visible
         frameDrawer.drawFrame(frame, 0, 0, widthArray[0], heightArray[0], drawMatrix)
         EGL14.eglSwapBuffers(eglCore?.eglDisplay, eglCore?.eglSurface)
 
