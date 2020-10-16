@@ -19,6 +19,7 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -125,6 +126,7 @@ class MeetingFragment : Fragment(),
     private lateinit var screenTileAdapter: VideoAdapter
     private lateinit var messageAdapter: MessageAdapter
     private lateinit var tabLayout: TabLayout
+    private lateinit var tabContentLayout: ConstraintLayout
 
     companion object {
         fun newInstance(meetingId: String): MeetingFragment {
@@ -205,11 +207,13 @@ class MeetingFragment : Fragment(),
         recyclerViewRoster.visibility = View.VISIBLE
 
         // Video (camera & content)
+        tabContentLayout = view.findViewById(R.id.constraintLayout)
         recyclerViewVideoCollection =
             view.findViewById(R.id.recyclerViewVideoCollection)
         recyclerViewVideoCollection.layoutManager = createLinearLayoutManagerForOrientation()
         videoTileAdapter = VideoAdapter(
             meetingModel.currentVideoTiles.values,
+            tabContentLayout,
             audioVideo,
             context
         )
@@ -222,6 +226,7 @@ class MeetingFragment : Fragment(),
         screenTileAdapter =
             VideoAdapter(
                 meetingModel.currentScreenTiles.values,
+                tabContentLayout,
                 audioVideo,
                 context
             )
@@ -811,6 +816,7 @@ class MeetingFragment : Fragment(),
             TAG,
             "Video stream content size changed to ${tileState.videoStreamContentWidth}*${tileState.videoStreamContentHeight} for tileId: ${tileState.tileId}"
         )
+        videoTileAdapter.notifyDataSetChanged()
     }
 
     override fun onMetricsReceived(metrics: Map<ObservableMetric, Any>) {
