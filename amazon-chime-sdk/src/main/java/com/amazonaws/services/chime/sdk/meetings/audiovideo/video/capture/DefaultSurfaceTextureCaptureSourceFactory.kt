@@ -1,6 +1,6 @@
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
 
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 
@@ -14,7 +14,7 @@ class DefaultSurfaceTextureCaptureSourceFactory(
     override fun createSurfaceTextureCaptureSource(
         width: Int,
         height: Int,
-        contentHint: ContentHint
+        contentHint: VideoContentHint
     ): SurfaceTextureCaptureSource {
         return DefaultSurfaceTextureCaptureSource(
             logger,

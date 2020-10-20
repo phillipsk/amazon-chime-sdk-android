@@ -1,7 +1,7 @@
 package com.amazonaws.services.chime.sdk.meetings.internal.video
 
 import android.graphics.Matrix
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSource
@@ -76,10 +76,10 @@ class VideoSourceAdapter(private val source: VideoSource) : VideoSink,
 
     override fun getContentHint(): com.xodee.client.video.ContentHint {
         return when (source.contentHint) {
-            ContentHint.None -> com.xodee.client.video.ContentHint.NONE
-            ContentHint.Motion -> com.xodee.client.video.ContentHint.MOTION
-            ContentHint.Detail -> com.xodee.client.video.ContentHint.DETAIL
-            ContentHint.Text -> com.xodee.client.video.ContentHint.TEXT
+            VideoContentHint.None -> com.xodee.client.video.ContentHint.NONE
+            VideoContentHint.Motion -> com.xodee.client.video.ContentHint.MOTION
+            VideoContentHint.Detail -> com.xodee.client.video.ContentHint.DETAIL
+            VideoContentHint.Text -> com.xodee.client.video.ContentHint.TEXT
         }
     }
 

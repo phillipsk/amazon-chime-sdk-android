@@ -1,6 +1,6 @@
 package com.amazonaws.services.chime.sdk.meetings.internal.video
 
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRotation
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSource
@@ -40,7 +40,7 @@ class VideoSourceAdapterTest {
     @MockK
     private lateinit var mockMediaVideoSink: com.xodee.client.video.VideoSink
 
-    private val testSDKContentHint = ContentHint.Motion
+    private val testSDKContentHint = VideoContentHint.Motion
     private val testMediaContentHint = com.xodee.client.video.ContentHint.MOTION
 
     private val testTimestamp: Long = 1

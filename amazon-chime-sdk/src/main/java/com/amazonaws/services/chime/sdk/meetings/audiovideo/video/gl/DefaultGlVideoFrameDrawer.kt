@@ -220,12 +220,12 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
             finalMatrix.preConcat(renderMatrix)
             val finalGlMatrix = GlUtil.convertToGlTransformMatrix(finalMatrix)
             when (textureBuffer.type) {
-                VideoFrameTextureBuffer.Type.TEXTURE_OES -> drawOes(
+                VideoFrameTextureBuffer.Type.TEXTURE_OES -> drawTextureOes(
                     textureBuffer.textureId, finalGlMatrix,
                     viewportX, viewportY,
                     viewportWidth, viewportHeight
                 )
-                VideoFrameTextureBuffer.Type.TEXTURE_2D -> drawRgb(
+                VideoFrameTextureBuffer.Type.TEXTURE_2D -> drawTexture2d(
                     textureBuffer.textureId, finalGlMatrix,
                     viewportX, viewportY,
                     viewportWidth, viewportHeight
@@ -247,7 +247,7 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
         } else if (frame.buffer is VideoFrameRGBABuffer) {
             val textureId = rgbaUploader?.uploadFromBuffer(frame.buffer)
             if (textureId != null) {
-                drawRgb(
+                drawTexture2d(
                     textureId,
                     GlUtil.convertToGlTransformMatrix(renderMatrix),
                     viewportX,
@@ -298,7 +298,7 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
         )
     }
 
-    private fun drawOes(
+    private fun drawTextureOes(
         oesTextureId: Int,
         texMatrix: FloatArray?,
         viewportX: Int,
@@ -306,7 +306,7 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
         viewportWidth: Int,
         viewportHeight: Int
     ) {
-        prepareShader(ShaderType.OES, texMatrix)
+        prepareShader(ShaderType.TEXTURE_OES, texMatrix)
 
         // Bind the texture.
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
@@ -315,13 +315,13 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
         // Draw the texture.
         GLES20.glViewport(viewportX, viewportY, viewportWidth, viewportHeight)
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
-        GlUtil.checkGlError("Failed to draw OES texture")
+        GlUtil.checkGlError("Failed to draw GL_TEXTURE_EXTERNAL_OES texture")
 
         // Reset texture back to default texture
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
     }
 
-    private fun drawRgb(
+    private fun drawTexture2d(
         textureId: Int,
         texMatrix: FloatArray?,
         viewportX: Int,
@@ -329,7 +329,7 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
         viewportWidth: Int,
         viewportHeight: Int
     ) {
-        prepareShader(ShaderType.RGB, texMatrix)
+        prepareShader(ShaderType.TEXTURE_2D, texMatrix)
 
         // Bind the texture.
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
@@ -338,7 +338,7 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
         // Draw the texture.
         GLES20.glViewport(viewportX, viewportY, viewportWidth, viewportHeight)
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
-        GlUtil.checkGlError("Failed to draw OES texture")
+        GlUtil.checkGlError("Failed to draw GL_TEXTURE_2D texture")
 
         // Unbind the texture
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
@@ -362,6 +362,7 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
         // Draw the textures.
         GLES20.glViewport(viewportX, viewportY, viewportWidth, viewportHeight)
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+        GlUtil.checkGlError("Failed to draw YUV textures")
 
         // Unbind the textures
         for (i in 0..2) {
@@ -376,8 +377,8 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
             var fragmentShader: String
             currentShaderType = shaderType.also {
                 fragmentShader = when (shaderType) {
-                    ShaderType.OES -> FRAGMENT_SHADER_OES
-                    ShaderType.RGB -> FRAGMENT_SHADER_RGB
+                    ShaderType.TEXTURE_OES -> FRAGMENT_SHADER_OES
+                    ShaderType.TEXTURE_2D -> FRAGMENT_SHADER_RGB
                     ShaderType.YUV -> FRAGMENT_SHADER_YUV
                 }
             }
@@ -452,7 +453,7 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
         // These points are used to calculate the size of the part of the frame we are rendering.
         private val srcPoints = floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f)
 
-        private enum class ShaderType { OES, RGB, YUV }
+        private enum class ShaderType { TEXTURE_OES, TEXTURE_2D, YUV }
 
         private val INPUT_VERTEX_COORDINATE_NAME = "aPosition"
         private val INPUT_TEXTURE_COORDINATE_NAME = "aTextureCoordinate"

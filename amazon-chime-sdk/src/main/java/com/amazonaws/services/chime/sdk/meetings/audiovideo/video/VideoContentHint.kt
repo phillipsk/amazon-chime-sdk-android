@@ -1,10 +1,10 @@
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
 
 /**
- * [ContentHint] describes the content type of a video source so that downstream encoders, etc. can properly
+ * [VideoContentHint] describes the content type of a video source so that downstream encoders, etc. can properly
  * decide on what parameters will work best.
  */
-enum class ContentHint(val value: Int) {
+enum class VideoContentHint(val value: Int) {
     /**
      * No hint has been provided.
      */
@@ -27,6 +27,6 @@ enum class ContentHint(val value: Int) {
     Text(3);
 
     companion object {
-        fun from(intValue: Int): ContentHint? = values().find { it.value == intValue }
+        fun from(intValue: Int): VideoContentHint? = values().find { it.value == intValue }
     }
 }

@@ -8,7 +8,7 @@ import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
@@ -25,11 +25,11 @@ import kotlinx.coroutines.runBlocking
  * and convert to [VideoFrameTextureBuffer] objects
  */
 class DefaultSurfaceTextureCaptureSource(
-    private val logger: Logger,
-    private val width: Int,
-    private val height: Int,
-    override val contentHint: ContentHint = ContentHint.None,
-    private val eglCoreFactory: EglCoreFactory
+        private val logger: Logger,
+        private val width: Int,
+        private val height: Int,
+        override val contentHint: VideoContentHint = VideoContentHint.None,
+        private val eglCoreFactory: EglCoreFactory
 ) : SurfaceTextureCaptureSource {
     // Publicly accessible
     override lateinit var surface: Surface

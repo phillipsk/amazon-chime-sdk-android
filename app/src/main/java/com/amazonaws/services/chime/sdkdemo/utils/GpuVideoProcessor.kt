@@ -5,7 +5,7 @@ import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSource
@@ -28,7 +28,7 @@ import kotlinx.coroutines.runBlocking
  */
 class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFactory) : VideoSource,
     VideoSink {
-    override val contentHint: ContentHint = ContentHint.Motion
+    override val contentHint: VideoContentHint = VideoContentHint.Motion
 
     // Pending frame to render. Serves as a queue with size 1. Synchronized on `pendingFrameLock`.
     // pendingFrameLock also protects the handler (which may be null in `onVideoFrameReceived`

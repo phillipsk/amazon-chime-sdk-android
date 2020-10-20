@@ -56,7 +56,7 @@ data class MediaDevice(
                     val type = MediaDeviceType.fromCameraMetadata(it)
                     return@map MediaDevice("$id ($type)", type, id)
                 }
-                return@map MediaDevice("$id ($MediaDeviceType.OTHER)", MediaDeviceType.OTHER)
+                return@map MediaDevice("$id ($MediaDeviceType.OTHER)", MediaDeviceType.OTHER, id)
             }
         }
 
@@ -68,19 +68,19 @@ data class MediaDevice(
          *
          * @return [List<VideoCaptureFormat>] - A list of supported formats for the given device
          */
-        fun getSupportedVideoCaptureFormats(
+        fun listSupportedVideoCaptureFormats(
             cameraManager: CameraManager,
             mediaDevice: MediaDevice
         ): List<VideoCaptureFormat> {
             val characteristics = cameraManager.getCameraCharacteristics(mediaDevice.id)
 
-            val sizes = getSupportedSizes(characteristics)
-
             val streamMap =
-                characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                    characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                            ?: return emptyList()
+            val nativeSizes = streamMap.getOutputSizes(SurfaceTexture::class.java)
                     ?: return emptyList()
 
-            return sizes.map { size ->
+            return nativeSizes.map { size ->
                 val minFrameDurationNs = streamMap.getOutputMinFrameDuration(
                     SurfaceTexture::class.java, Size(size.width, size.height)
                 )
@@ -91,16 +91,6 @@ data class MediaDevice(
                     maxFps
                 )
             }
-        }
-
-        private fun getSupportedSizes(cameraCharacteristics: CameraCharacteristics): List<Size> {
-            val streamMap =
-                cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-                    ?: return emptyList()
-            val nativeSizes = streamMap.getOutputSizes(SurfaceTexture::class.java)
-                ?: return emptyList()
-
-            return nativeSizes.toList()
         }
     }
 }

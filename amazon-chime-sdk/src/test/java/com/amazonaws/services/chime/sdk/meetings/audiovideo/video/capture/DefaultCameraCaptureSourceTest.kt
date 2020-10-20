@@ -12,7 +12,7 @@ import android.os.HandlerThread
 import android.os.Looper
 import android.view.WindowManager
 import androidx.core.content.ContextCompat
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
@@ -79,11 +79,10 @@ class DefaultCameraCaptureSourceTest {
 
     @Before
     fun setUp() {
+        // Setup handler/thread/looper mocking
         mockLooper = mockk()
         mockkConstructor(HandlerThread::class)
         every { anyConstructed<HandlerThread>().looper } returns mockLooper
-        every { anyConstructed<HandlerThread>().run() } just runs
-
         mockkConstructor(Handler::class)
         every { anyConstructed<Handler>().looper } returns mockLooper
         val slot = slot<Runnable>()
@@ -91,21 +90,20 @@ class DefaultCameraCaptureSourceTest {
             slot.captured.run()
             true
         }
+        mockkStatic(Looper::class)
+        every { Looper.myLooper() } returns mockLooper
 
         mockkObject(MediaDevice.Companion)
         every { MediaDevice.listVideoDevices(any()) } returns listOf(
             MediaDevice("front", MediaDeviceType.VIDEO_FRONT_CAMERA, "0"),
             MediaDevice("back", MediaDeviceType.VIDEO_BACK_CAMERA, "1")
         )
-        every { MediaDevice.getSupportedVideoCaptureFormats(any(), any()) } returns listOf(
+        every { MediaDevice.listSupportedVideoCaptureFormats(any(), any()) } returns listOf(
             VideoCaptureFormat(1280, 720, 15)
         )
 
         mockkStatic(ContextCompat::class)
         every { ContextCompat.checkSelfPermission(any(), any()) } returns 0
-
-        mockkStatic(Looper::class)
-        every { Looper.myLooper() } returns mockLooper
 
         mockkConstructor(Matrix::class)
         every { anyConstructed<Matrix>().preTranslate(any(), any()) } returns true
@@ -113,6 +111,8 @@ class DefaultCameraCaptureSourceTest {
         every { anyConstructed<Matrix>().preRotate(any()) } returns true
         every { anyConstructed<Matrix>().preConcat(any()) } returns true
 
+
+        // Most of the previous mocks need to be done before constructor call
         MockKAnnotations.init(this, relaxUnitFun = true)
 
         every { mockCameraManager.getCameraCharacteristics("0") } returns mockFrontCameraCharacteristics
@@ -131,7 +131,7 @@ class DefaultCameraCaptureSourceTest {
     fun `start creates and starts surface source, and calls CameraManager openCamera`() {
         testCameraCaptureSource.start()
 
-        verify { mockSurfaceTextureCaptureSourceFactory.createSurfaceTextureCaptureSource(1280, 720, ContentHint.Motion) }
+        verify { mockSurfaceTextureCaptureSourceFactory.createSurfaceTextureCaptureSource(1280, 720, VideoContentHint.Motion) }
         verify { mockSurfaceTextureCaptureSource.start() }
         verify { mockSurfaceTextureCaptureSource.addVideoSink(any()) }
         verify { mockCameraManager.openCamera("0", any<CameraDevice.StateCallback>(), any()) }

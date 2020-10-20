@@ -5,7 +5,7 @@ import android.opengl.EGL14
 import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSource
@@ -27,7 +27,7 @@ class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
     // Helper which wraps an OpenGLES texture frame buffer with resize capabilities
     private val textureFrameBuffer = GlTextureFrameBufferHelper(GLES20.GL_RGBA)
 
-    override val contentHint: ContentHint = ContentHint.Motion
+    override val contentHint: VideoContentHint = VideoContentHint.Motion
 
     // State necessary for EGL operations
     private lateinit var eglCore: EglCore

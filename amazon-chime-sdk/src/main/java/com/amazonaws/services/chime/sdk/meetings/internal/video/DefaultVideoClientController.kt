@@ -117,6 +117,7 @@ class DefaultVideoClientController(
         videoClient?.setSending(false)
         if (isUsingInternalCaptureSource) {
             cameraCaptureSource.stop()
+            isUsingInternalCaptureSource = false
         }
     }
 
