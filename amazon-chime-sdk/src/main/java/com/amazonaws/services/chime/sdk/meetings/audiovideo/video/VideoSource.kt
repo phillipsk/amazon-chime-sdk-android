@@ -23,5 +23,5 @@ interface VideoSource {
     /**
      * Content hint for downstream processing
      */
-    val contentHint: ContentHint
+    val contentHint: VideoContentHint
 }

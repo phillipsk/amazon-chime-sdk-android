@@ -159,7 +159,7 @@ class DefaultVideoTileControllerTest {
             )
         }
 
-        verify { mockVideoTile.renderFrame(any()) }
+        verify { mockVideoTile.onVideoFrameReceived(any()) }
     }
 
     @Test

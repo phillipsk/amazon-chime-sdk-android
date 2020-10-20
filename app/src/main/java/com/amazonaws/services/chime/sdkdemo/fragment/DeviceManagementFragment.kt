@@ -281,7 +281,7 @@ class DeviceManagementFragment : Fragment(),
         return withContext(Dispatchers.Default) {
             val device =
                 cameraCaptureSource.device ?: return@withContext emptyList<VideoCaptureFormat>()
-            MediaDevice.getSupportedVideoCaptureFormats(cameraManager, device)
+            MediaDevice.listSupportedVideoCaptureFormats(cameraManager, device)
         }
     }
 

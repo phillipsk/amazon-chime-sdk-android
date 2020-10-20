@@ -78,7 +78,7 @@ class DefaultVideoTileController(
 
             // Ignore any frames which come to an already paused tile
             if (tile.state.pauseState == VideoPauseState.Unpaused) {
-                frame?.run { tile.renderFrame(frame) }
+                frame?.run { tile.onVideoFrameReceived(frame) }
             }
         } else {
             frame?.run {

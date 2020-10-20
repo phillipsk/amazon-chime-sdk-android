@@ -30,7 +30,7 @@ class DefaultVideoTile(
         this.videoRenderView = videoRenderView
     }
 
-    override fun renderFrame(frame: VideoFrame) {
+    override fun onVideoFrameReceived(frame: VideoFrame) {
         videoRenderView?.onVideoFrameReceived(frame)
     }
 

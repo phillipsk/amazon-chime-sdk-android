@@ -20,7 +20,7 @@ import android.view.Surface
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRotation
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
@@ -68,7 +68,7 @@ class DefaultCameraCaptureSource(
     private val observers = mutableSetOf<CaptureSourceObserver>()
     private val sinks = mutableSetOf<VideoSink>()
 
-    override val contentHint = ContentHint.Motion
+    override val contentHint = VideoContentHint.Motion
 
     private val MAX_INTERNAL_SUPPORTED_FPS = 15
     private val DESIRED_CAPTURE_FORMAT = VideoCaptureFormat(960, 720, MAX_INTERNAL_SUPPORTED_FPS)
@@ -171,7 +171,7 @@ class DefaultCameraCaptureSource(
         }
 
         val chosenCaptureFormat: VideoCaptureFormat? =
-            MediaDevice.getSupportedVideoCaptureFormats(cameraManager, device).minBy { format ->
+            MediaDevice.listSupportedVideoCaptureFormats(cameraManager, device).minBy { format ->
                 abs(format.width - this.format.width) + abs(format.height - this.format.height)
             }
         val surfaceTextureFormat: VideoCaptureFormat = chosenCaptureFormat ?: run {
