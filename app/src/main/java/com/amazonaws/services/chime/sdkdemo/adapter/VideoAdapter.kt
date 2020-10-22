@@ -10,12 +10,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
+import com.amazon.chime.webrtc.RendererCommon
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoRenderView
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoPauseState
 import com.amazonaws.services.chime.sdkdemo.R
 import com.amazonaws.services.chime.sdkdemo.data.VideoCollectionTile
 import com.amazonaws.services.chime.sdkdemo.utils.inflate
-import kotlin.math.min
 import kotlinx.android.synthetic.main.item_video.view.attendee_name
 import kotlinx.android.synthetic.main.item_video.view.on_tile_button
 import kotlinx.android.synthetic.main.item_video.view.video_surface
@@ -40,18 +41,19 @@ class VideoAdapter(
         val videoCollectionTile = videoCollectionTiles.elementAt(position)
         holder.bindVideoTile(videoCollectionTile)
         context?.let {
-            val videoStreamHeight = videoCollectionTile.videoTileState.videoStreamContentHeight
-            val videoStreamWidth = videoCollectionTile.videoTileState.videoStreamContentWidth
-            val aspectRatio = videoStreamHeight.toDouble() / videoStreamWidth
+//            val videoStreamHeight = videoCollectionTile.videoTileState.videoStreamContentHeight
+//            val videoStreamWidth = videoCollectionTile.videoTileState.videoStreamContentWidth
+//            val aspectRatio = videoStreamHeight.toDouble() / videoStreamWidth
+//
+//            val viewportWidth = tabContentLayout.width
+//            val viewportHeight = tabContentLayout.height
+//            val calculatedHeight = min((viewportWidth * aspectRatio).toInt(), viewportHeight)
+//            val calculatedWidth = min((viewportHeight / aspectRatio).toInt(), viewportWidth)
 
-            val viewportWidth = tabContentLayout.width
-            val viewportHeight = tabContentLayout.height
-            val calculatedHeight = min((viewportWidth * aspectRatio).toInt(), viewportHeight)
-            val calculatedWidth = min((viewportHeight / aspectRatio).toInt(), viewportWidth)
-
-            val videoRenderView = holder.tileContainer.getViewById(R.id.video_surface)
-            videoRenderView.layoutParams.height = calculatedHeight
-            videoRenderView.layoutParams.width = calculatedWidth
+            val videoRenderView = holder.tileContainer.getViewById(R.id.video_surface) as DefaultVideoRenderView
+            videoRenderView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
+//            videoRenderView.layoutParams.height = calculatedHeight
+//            videoRenderView.layoutParams.width = calculatedWidth
         }
     }
 }
