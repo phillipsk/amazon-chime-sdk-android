@@ -26,6 +26,10 @@ import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+/**
+ * [DefaultEglVideoRenderView] is an implementation of [EglVideoRenderView] which uses EGL14 and OpenGLES2
+ * to draw any incoming video buffer types to the surface provided by the inherited [SurfaceView]
+ */
 open class DefaultEglVideoRenderView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -149,7 +153,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
     private val videoLayoutMeasure: VideoLayoutMeasure = VideoLayoutMeasure()
 
     init {
-        holder.addCallback(this)
+        holder?.addCallback(this)
     }
 
     override fun init(eglCoreFactory: EglCoreFactory) {
@@ -244,7 +248,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
                 pendingFrame?.release()
             }
 
-            if (handler != null) {
+            if (renderHandler != null) {
                 pendingFrame = frame
                 pendingFrame?.retain()
                 renderHandler?.post(::renderPendingFrame)
@@ -278,7 +282,7 @@ open class DefaultEglVideoRenderView @JvmOverloads constructor(
         } else {
             surfaceHeight = 0
             surfaceWidth = surfaceHeight
-            holder.setSizeFromLayout()
+            holder?.setSizeFromLayout()
         }
     }
 
