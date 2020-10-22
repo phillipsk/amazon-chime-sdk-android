@@ -26,6 +26,10 @@ import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+/**
+ * [DefaultEglVideoRenderView] is an implementation of [EglVideoRenderView] which uses EGL14 and OpenGLES2
+ * to draw any incoming video buffer types to the surface provided by the inherited [SurfaceView]
+ */
 open class DefaultEglVideoRenderView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,

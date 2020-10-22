@@ -8,7 +8,12 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
 import android.opengl.EGL14
 import android.opengl.EGLConfig
 import android.opengl.EGLContext
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTile
 
+/**
+ * [DefaultEglCore] is an implementation of [EglCore] which uses EGL14 and OpenGLES2.
+ * OpenGLES3 has a few incompatibilities with MediaSDK which need to be fixed before use
+ */
 class DefaultEglCore(
     private val releaseCallback: Runnable? = null,
     sharedContext: EGLContext = EGL14.EGL_NO_CONTEXT
@@ -29,18 +34,17 @@ class DefaultEglCore(
             throw RuntimeException("Unable to initialize EGL14")
         }
 
-        getConfig()?.also {
-            val attributeList = intArrayOf(
-                EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
-                EGL14.EGL_NONE
-            )
-            val context = EGL14.eglCreateContext(
-                eglDisplay, it, sharedContext,
-                attributeList, 0
-            )
-            eglConfig = it
-            eglContext = context
-        }
+        eglConfig = getConfig()
+
+        // Use version 2 for compatibility with MediaSDK
+        val attributeList = intArrayOf(
+            EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
+            EGL14.EGL_NONE
+        )
+        eglContext = EGL14.eglCreateContext(
+            eglDisplay, eglConfig, sharedContext,
+            attributeList, 0
+        )
 
         // Confirm with query.
         val values = IntArray(1)
@@ -71,14 +75,14 @@ class DefaultEglCore(
         releaseCallback?.run()
     }
 
-    private fun getConfig(): EGLConfig? {
+    private fun getConfig(): EGLConfig {
         val attributeList = intArrayOf(
             EGL14.EGL_RED_SIZE, 8,
             EGL14.EGL_GREEN_SIZE, 8,
             EGL14.EGL_BLUE_SIZE, 8,
             EGL14.EGL_ALPHA_SIZE, 8,
-            EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
-            EGL14.EGL_SURFACE_TYPE, EGL14.EGL_PBUFFER_BIT,
+            EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT, // ES2 for compatability with MediaSDK
+            EGL14.EGL_SURFACE_TYPE, EGL14.EGL_PBUFFER_BIT, // On by default
             EGL14.EGL_NONE, 0,
             EGL14.EGL_NONE
         )
@@ -90,8 +94,8 @@ class DefaultEglCore(
                 numConfigs, 0
             )
         ) {
-            return null
+            throw RuntimeException("Failed to choose config")
         }
-        return configs[0]
+        return configs[0] ?: throw RuntimeException("Config was null")
     }
 }
