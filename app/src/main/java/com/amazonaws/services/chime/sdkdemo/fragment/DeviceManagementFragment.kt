@@ -121,14 +121,14 @@ class DeviceManagementFragment : Fragment(),
         // if they exist (i.e. before rotation).  We will set them after lists are populated.
 
         audioDeviceSpinner = view.findViewById(R.id.spinnerAudioDevice)
-        audioDeviceArrayAdapter = createMediaDeviceSpinnerAdapter(context, audioDevices)
+        audioDeviceArrayAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, audioDevices)
         audioDeviceSpinner.adapter = audioDeviceArrayAdapter
         audioDeviceSpinner.isSelected = false
         audioDeviceSpinner.setSelection(0, true)
         audioDeviceSpinner.onItemSelectedListener = onAudioDeviceSelected
 
         videoDeviceSpinner = view.findViewById(R.id.spinnerVideoDevice)
-        videoDeviceArrayAdapter = createMediaDeviceSpinnerAdapter(context, videoDevices)
+        videoDeviceArrayAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, videoDevices)
         videoDeviceSpinner.adapter = videoDeviceArrayAdapter
         videoDeviceSpinner.isSelected = false
         videoDeviceSpinner.setSelection(0, true)
@@ -136,7 +136,7 @@ class DeviceManagementFragment : Fragment(),
 
         videoFormatSpinner = view.findViewById(R.id.spinnerVideoFormat)
         videoFormatArrayAdapter =
-                createVideoCaptureFormatSpinnerAdapter(context, videoFormats)
+                ArrayAdapter(context, android.R.layout.simple_spinner_item, videoFormats)
         videoFormatSpinner.adapter = videoFormatArrayAdapter
         videoFormatSpinner.isSelected = false
         videoFormatSpinner.setSelection(0, true)
@@ -162,8 +162,8 @@ class DeviceManagementFragment : Fragment(),
         }
 
         uiScope.launch {
-            populateAudioDeviceList(listAudioDevices())
-            populateVideoDeviceList(listVideoDevices())
+            populateDeviceList(listAudioDevices(), audioDevices, audioDeviceArrayAdapter)
+            populateDeviceList(listVideoDevices(), videoDevices, videoDeviceArrayAdapter)
             populateVideoFormatList(listVideoFormats())
 
             videoPreview.mirror =
@@ -239,24 +239,14 @@ class DeviceManagementFragment : Fragment(),
         }
     }
 
-    private fun populateAudioDeviceList(freshAudioDeviceList: List<MediaDevice>) {
-        audioDevices.clear()
-        audioDevices.addAll(
-                freshAudioDeviceList.filter {
+    private fun populateDeviceList(newDeviceList: List<MediaDevice>, currentDeviceList: MutableList<MediaDevice>, adapter: ArrayAdapter<MediaDevice>) {
+        currentDeviceList.clear()
+        currentDeviceList.addAll(
+                newDeviceList.filter {
                     it.type != MediaDeviceType.OTHER
                 }.sortedBy { it.order }
         )
-        audioDeviceArrayAdapter.notifyDataSetChanged()
-    }
-
-    private fun populateVideoDeviceList(freshVideoDeviceList: List<MediaDevice>) {
-        videoDevices.clear()
-        videoDevices.addAll(
-                freshVideoDeviceList.filter {
-                    it.type != MediaDeviceType.OTHER
-                }.sortedBy { it.order }
-        )
-        videoDeviceArrayAdapter.notifyDataSetChanged()
+        adapter.notifyDataSetChanged()
     }
 
     private fun populateVideoFormatList(freshVideoCaptureFormatList: List<VideoCaptureFormat>) {
@@ -291,21 +281,7 @@ class DeviceManagementFragment : Fragment(),
         }
     }
 
-    private fun createMediaDeviceSpinnerAdapter(
-        context: Context,
-        list: List<MediaDevice>
-    ): ArrayAdapter<MediaDevice> {
-        return ArrayAdapter(context, android.R.layout.simple_spinner_item, list)
-    }
-
-    private fun createVideoCaptureFormatSpinnerAdapter(
-        context: Context,
-        list: List<VideoCaptureFormat>
-    ): ArrayAdapter<VideoCaptureFormat> {
-        return ArrayAdapter(context, android.R.layout.simple_spinner_item, list)
-    }
-
     override fun onAudioDeviceChanged(freshAudioDeviceList: List<MediaDevice>) {
-        populateAudioDeviceList(freshAudioDeviceList)
+        populateDeviceList(freshAudioDeviceList, audioDevices, audioDeviceArrayAdapter)
     }
 }

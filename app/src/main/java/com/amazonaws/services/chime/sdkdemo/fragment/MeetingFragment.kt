@@ -612,7 +612,7 @@ class MeetingFragment : Fragment(),
         if (!isUsingCameraCaptureSource) {
             logger.warn(TAG, "Cannot toggle flashlight without using custom camera capture source")
             Toast.makeText(
-                context!!,
+                context,
                 getString(R.string.user_notification_flashlight_custom_source_error),
                 Toast.LENGTH_SHORT
             ).show()
@@ -623,7 +623,7 @@ class MeetingFragment : Fragment(),
         if (cameraCaptureSource.torchEnabled != desiredFlashlightEnabled) {
             logger.warn(TAG, "Flashlight failed to toggle")
             Toast.makeText(
-                context!!,
+                context,
                 getString(R.string.user_notification_flashlight_unavailable_error),
                 Toast.LENGTH_SHORT
             ).show()
@@ -635,7 +635,7 @@ class MeetingFragment : Fragment(),
         if (!isUsingCameraCaptureSource) {
             logger.warn(TAG, "Cannot toggle filter without using custom camera capture source")
             Toast.makeText(
-                context!!,
+                context,
                 getString(R.string.user_notification_filter_custom_source_error),
                 Toast.LENGTH_SHORT
             ).show()
@@ -644,7 +644,7 @@ class MeetingFragment : Fragment(),
         if (isUsingGpuVideoProcessor) {
             logger.warn(TAG, "Cannot toggle filter when other filter is enabled")
             Toast.makeText(
-                context!!,
+                context,
                 getString(R.string.user_notification_filter_both_enabled_error),
                 Toast.LENGTH_SHORT
             ).show()
@@ -665,7 +665,7 @@ class MeetingFragment : Fragment(),
         if (!isUsingCameraCaptureSource) {
             logger.warn(TAG, "Cannot toggle filter without using custom camera capture source")
             Toast.makeText(
-                context!!,
+                context,
                 getString(R.string.user_notification_filter_custom_source_error),
                 Toast.LENGTH_SHORT
             ).show()
@@ -674,7 +674,7 @@ class MeetingFragment : Fragment(),
         if (isUsingCpuVideoProcessor) {
             logger.warn(TAG, "Cannot toggle filter when other filter is enabled")
             Toast.makeText(
-                context!!,
+                context,
                 getString(R.string.user_notification_filter_both_enabled_error),
                 Toast.LENGTH_SHORT
             ).show()
