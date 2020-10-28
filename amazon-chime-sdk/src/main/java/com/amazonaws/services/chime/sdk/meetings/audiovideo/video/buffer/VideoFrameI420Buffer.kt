@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer
 
 import com.amazonaws.services.chime.sdk.meetings.utils.RefCountDelegate
@@ -5,7 +10,10 @@ import java.nio.ByteBuffer
 
 /**
  * [VideoFrameI420Buffer] provides an reference counted wrapper of
- * a YUV where planes are direct byte buffers.
+ * a YUV where planes are natively allocated direct byte buffers.
+ *
+ * Builders can use [com.xodee.client.video.JniUtil.nativeAllocateByteBuffer]
+ * and [com.xodee.client.video.JniUtil.nativeFreeByteBuffer] if desired.
  */
 class VideoFrameI420Buffer(
     override val width: Int,
@@ -13,7 +21,7 @@ class VideoFrameI420Buffer(
 
     /**
      * Y plane data of video frame in memory.  This must be a natively allocated direct byte
-     * buffer so that it can be passed to native code
+     * buffer that it can be passed to native code
      */
     val dataY: ByteBuffer,
 
@@ -53,9 +61,7 @@ class VideoFrameI420Buffer(
     private val refCountDelegate = RefCountDelegate(releaseCallback)
 
     init {
-        check(dataY.isDirect) { "Only direct byte buffers are supported" }
-        check(dataU.isDirect) { "Only direct byte buffers are supported" }
-        check(dataV.isDirect) { "Only direct byte buffers are supported" }
+        check(dataY.isDirect && dataU.isDirect && dataV.isDirect) { "Only direct byte buffers are supported" }
     }
 
     override fun retain() = refCountDelegate.retain()

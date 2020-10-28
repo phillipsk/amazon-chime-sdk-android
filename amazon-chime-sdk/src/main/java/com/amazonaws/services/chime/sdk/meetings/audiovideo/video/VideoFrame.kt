@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
 
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameBuffer
@@ -8,10 +13,10 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFr
 class VideoFrame(
     /**
      * Timestamp in nanoseconds at which the video frame was captured from some system monotonic clock.
-     * Will be alligned and converted to NTP within MediaSDk, which will then be converted to a system monotonic clock on
+     * Will be aligned and converted to NTP within MediaSDK, which will then be converted to a system monotonic clock on
      * remote end.  May be different on frames emanated from MediaSDK.
      *
-     * See [DefaultSurfaceTextureCaptureSource] for usage of a MediaSDK class which can convert to the timespace used by MediaSDK
+     * See [DefaultSurfaceTextureCaptureSource] for usage of a MediaSDK class which can convert to the clock used by MediaSDK
      */
     val timestampNs: Long,
 
@@ -22,7 +27,10 @@ class VideoFrame(
 
     /**
      * Rotation of the video frame buffer in degrees clockwise
-     * from intended viewing horizon
+     * from intended viewing horizon.
+     *
+     * e.g. If you were recording camera capture upside down relative to
+     * the orientation of the sensor, this value would be [VideoRotation.Rotation180].
      */
     val rotation: VideoRotation = VideoRotation.Rotation0
 ) {

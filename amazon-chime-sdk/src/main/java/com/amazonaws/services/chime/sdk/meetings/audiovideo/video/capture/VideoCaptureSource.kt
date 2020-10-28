@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
 
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSource
@@ -18,7 +23,8 @@ interface VideoCaptureSource :
     fun stop()
 
     /**
-     * Add a capture source observer to receive callbacks from the source
+     * Add a capture source observer to receive callbacks from the source on lifecycle events
+     * which can be used to trigger UI.  This observer is entirely optional.
      *
      * @param observer: [CaptureSourceObserver] - New observer
      */
