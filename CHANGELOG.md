@@ -1,5 +1,8 @@
 ### Unreleased
 
+### Added
+* Added `TYPE_USB_HEADSET` to `DefaultDeviceController` for cases like headphone jack wired with USB.
+
 ### Fixed
 * **Breaking** Changed behavior to no longer call `onVideoTileSizeChanged` when a video is paused to fix a bug where pausing triggered this callback with width=0 and height=0
 * Fix audio issue when using Bluetooth device by changing the sample rate to 16kHz
