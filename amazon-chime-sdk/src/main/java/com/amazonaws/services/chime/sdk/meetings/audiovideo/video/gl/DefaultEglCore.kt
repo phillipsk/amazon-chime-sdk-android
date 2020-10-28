@@ -11,7 +11,7 @@ import android.opengl.EGLContext
 
 /**
  * [DefaultEglCore] is an implementation of [EglCore] which uses EGL14 and OpenGLES2.
- * OpenGLES3 has a few incompatibilities with MediaSDK which need to be fixed before use
+ * OpenGLES3 has incompatibilities with MediaSDK.
  */
 class DefaultEglCore(
     private val releaseCallback: Runnable? = null,
