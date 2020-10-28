@@ -73,6 +73,8 @@ class DefaultSurfaceTextureCaptureSource(
 
     private val TAG = "SurfaceTextureCaptureSource"
 
+    private val DUMMY_PBUFFER_OFFSET = 0
+
     init {
         thread.start()
         handler = Handler(thread.looper)
@@ -86,7 +88,7 @@ class DefaultSurfaceTextureCaptureSource(
                 eglCore.eglDisplay,
                 eglCore.eglConfig,
                 surfaceAttributes,
-                0
+                DUMMY_PBUFFER_OFFSET
             )
             EGL14.eglMakeCurrent(
                 eglCore.eglDisplay,
