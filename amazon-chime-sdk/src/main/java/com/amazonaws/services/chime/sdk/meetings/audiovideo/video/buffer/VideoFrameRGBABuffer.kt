@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer
 
 import com.amazonaws.services.chime.sdk.meetings.utils.RefCountDelegate
@@ -5,7 +10,10 @@ import java.nio.ByteBuffer
 
 /**
  * [VideoFrameRGBABuffer] provides an reference counted wrapper of
- * an RGBA byte buffer.
+ * an RGBAnatively allocated direct byte buffer.
+ *
+ * Builders can use [com.xodee.client.video.JniUtil.nativeAllocateByteBuffer]
+ * and [com.xodee.client.video.JniUtil.nativeFreeByteBuffer] if desired.
  */
 class VideoFrameRGBABuffer(
     override val width: Int,

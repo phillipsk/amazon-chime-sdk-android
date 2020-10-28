@@ -8,7 +8,7 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
 /**
  * [VideoTile] is a tile that binds video render view to display the frame into the view.
  */
-interface VideoTile: VideoSink {
+interface VideoTile : VideoSink {
     /**
      * State of video tile
      */

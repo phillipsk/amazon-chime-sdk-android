@@ -115,14 +115,9 @@ class DefaultVideoClientControllerTest {
     }
 
     @Test
-    fun `start should call VideoClientStateController start and create EglCore`() {
-        // Run this first
-        runBlockingTest {
-            testVideoClientController.stopAndDestroy()
-        }
+    fun `start should call VideoClientStateController start`() {
         testVideoClientController.start()
 
-        verify { mockEglCoreFactory.createEglCore() }
         verify { mockVideoClientStateController.start() }
     }
 

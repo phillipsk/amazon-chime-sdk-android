@@ -8,7 +8,6 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
 import android.opengl.EGL14
 import android.opengl.EGLConfig
 import android.opengl.EGLContext
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTile
 
 /**
  * [DefaultEglCore] is an implementation of [EglCore] which uses EGL14 and OpenGLES2.

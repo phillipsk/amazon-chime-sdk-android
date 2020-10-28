@@ -1,17 +1,16 @@
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
 
-import android.graphics.SurfaceTexture
 import android.opengl.EGL14
 import android.opengl.EGLConfig
 import android.opengl.EGLContext
 import android.opengl.EGLDisplay
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.mockkStatic
+import io.mockk.slot
+import io.mockk.verify
 import org.junit.Before
-
-import org.junit.Assert.*
 import org.junit.Test
 
 class DefaultEglCoreTest {

@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
 
 import android.annotation.SuppressLint
@@ -25,11 +30,11 @@ import kotlinx.coroutines.runBlocking
  * and convert to [VideoFrameTextureBuffer] objects
  */
 class DefaultSurfaceTextureCaptureSource(
-        private val logger: Logger,
-        private val width: Int,
-        private val height: Int,
-        override val contentHint: VideoContentHint = VideoContentHint.None,
-        private val eglCoreFactory: EglCoreFactory
+    private val logger: Logger,
+    private val width: Int,
+    private val height: Int,
+    override val contentHint: VideoContentHint = VideoContentHint.None,
+    private val eglCoreFactory: EglCoreFactory
 ) : SurfaceTextureCaptureSource {
     // Publicly accessible
     override lateinit var surface: Surface

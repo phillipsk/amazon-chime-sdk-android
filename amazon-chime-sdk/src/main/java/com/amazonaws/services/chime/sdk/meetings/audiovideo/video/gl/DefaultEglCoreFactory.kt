@@ -11,7 +11,7 @@ import com.amazonaws.services.chime.sdk.meetings.utils.RefCountDelegate
 
 /**
  * [DefaultEglCoreFactory] will create a root [EglCore] lazily if no shared context is provided.
- * It will track all child [EglCore] objects, and if they are all release, will release the root core
+ * It will track all child [EglCore] objects and release the root core if all child cores are released.
  */
 class DefaultEglCoreFactory(private var sharedContext: EGLContext = EGL14.EGL_NO_CONTEXT) :
     EglCoreFactory {
