@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
 
 import android.Manifest
@@ -20,7 +25,7 @@ import android.view.Surface
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRotation
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
@@ -35,6 +40,7 @@ import kotlin.math.min
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
+import java.lang.IllegalStateException
 
 /**
  * [DefaultCameraCaptureSource] will configure a reasonably standard capture stream which will
@@ -68,10 +74,11 @@ class DefaultCameraCaptureSource(
     private val observers = mutableSetOf<CaptureSourceObserver>()
     private val sinks = mutableSetOf<VideoSink>()
 
-    override val contentHint = ContentHint.Motion
+    override val contentHint = VideoContentHint.Motion
 
     private val MAX_INTERNAL_SUPPORTED_FPS = 15
     private val DESIRED_CAPTURE_FORMAT = VideoCaptureFormat(960, 720, MAX_INTERNAL_SUPPORTED_FPS)
+    private val ROTATION_360_DEGREES = 360
 
     private val TAG = "DefaultCameraCaptureSource"
 
@@ -129,6 +136,7 @@ class DefaultCameraCaptureSource(
                 createCaptureRequest()
             }
         }
+
     override var format: VideoCaptureFormat = DESIRED_CAPTURE_FORMAT
         set(value) {
             logger.info(TAG, "Setting capture format: $value")
@@ -160,20 +168,23 @@ class DefaultCameraCaptureSource(
             throw SecurityException("Missing necessary camera permissions")
         }
 
-        logger.info(TAG, "Starting camera capture with device: $device")
-        val device = device ?: return
+        logger.info(TAG, "Camera capture start requested with device: $device")
+        val device = device ?: run {
+            logger.info(TAG, "Cannot start camera capture with null device")
+            return
+        }
 
         cameraCharacteristics = cameraManager.getCameraCharacteristics(device.id).also {
             // Store these immediately for convenience
             sensorOrientation = it.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 0
             isCameraFrontFacing =
-                it.get(CameraCharacteristics.LENS_FACING) == CameraMetadata.LENS_FACING_FRONT
+                    it.get(CameraCharacteristics.LENS_FACING) == CameraMetadata.LENS_FACING_FRONT
         }
 
         val chosenCaptureFormat: VideoCaptureFormat? =
-            MediaDevice.getSupportedVideoCaptureFormats(cameraManager, device).minBy { format ->
-                abs(format.width - this.format.width) + abs(format.height - this.format.height)
-            }
+                MediaDevice.listSupportedVideoCaptureFormats(cameraManager, device).minBy { format ->
+                    abs(format.width - this.format.width) + abs(format.height - this.format.height)
+                }
         val surfaceTextureFormat: VideoCaptureFormat = chosenCaptureFormat ?: run {
             ObserverUtils.notifyObserverOnMainThread(observers) {
                 it.onCaptureFailed(CaptureSourceError.ConfigurationFailure)
@@ -186,8 +197,8 @@ class DefaultCameraCaptureSource(
                         surfaceTextureFormat.height,
                         contentHint
                 )
-        surfaceTextureSource?.start()
         surfaceTextureSource?.addVideoSink(this)
+        surfaceTextureSource?.start()
 
         cameraManager.openCamera(device.id, cameraDeviceStateCallback, handler)
     }
@@ -200,7 +211,7 @@ class DefaultCameraCaptureSource(
             cameraCaptureSession?.close()
             cameraCaptureSession = null
 
-            // Close camera device
+            // Close camera device, this will eventually trigger the stop callback
             cameraDevice?.close()
             cameraDevice = null
 
@@ -251,6 +262,7 @@ class DefaultCameraCaptureSource(
     }
 
     // Implement and store callbacks as private constants since we can't inherit from all of them
+    // due to Kotlin not allowing multiple class inheritance
 
     private val cameraDeviceStateCallback = object : CameraDevice.StateCallback() {
         override fun onOpened(device: CameraDevice) {
@@ -262,8 +274,8 @@ class DefaultCameraCaptureSource(
                         cameraCaptureSessionStateCallback,
                         handler
                 )
-            } catch (e: CameraAccessException) {
-                logger.info(TAG, "Exception encountered creating capture session: ${e.reason}")
+            } catch (exception: CameraAccessException) {
+                logger.info(TAG, "Exception encountered creating capture session: ${exception.reason}")
                 ObserverUtils.notifyObserverOnMainThread(observers) {
                     it.onCaptureFailed(
                             CaptureSourceError.SystemFailure
@@ -314,22 +326,10 @@ class DefaultCameraCaptureSource(
 
     private val cameraCaptureSessionCaptureCallback =
             object : CameraCaptureSession.CaptureCallback() {
-                override fun onCaptureStarted(
-                        session: CameraCaptureSession,
-                        request: CaptureRequest,
-                        timestamp: Long,
-                        frameNumber: Long
-                ) {
-                    logger.info(TAG, "Camera capture session capture started")
-                    ObserverUtils.notifyObserverOnMainThread(observers) {
-                        it.onCaptureStarted()
-                    }
-                }
-
                 override fun onCaptureFailed(
-                        session: CameraCaptureSession,
-                        request: CaptureRequest,
-                        failure: CaptureFailure
+                    session: CameraCaptureSession,
+                    request: CaptureRequest,
+                    failure: CaptureFailure
                 ) {
                     logger.error(TAG, "Camera capture session failed: $failure")
                     ObserverUtils.notifyObserverOnMainThread(observers) {
@@ -339,7 +339,12 @@ class DefaultCameraCaptureSource(
             }
 
     private fun createCaptureRequest() {
-        val cameraDevice = cameraDevice ?: throw UnknownError("createCaptureRequest called without device set")
+        val cameraDevice = cameraDevice ?: run {
+            // This can occur occasionally if capture is restarted before the previous
+            // completes.  The next request will complete normally.
+            logger.warn(TAG, "createCaptureRequest called without device set, may be mid restart")
+            return
+        }
         try {
             val captureRequestBuilder =
                 cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
@@ -377,10 +382,13 @@ class DefaultCameraCaptureSource(
                 TAG,
                 "Capture request completed with device ID: ${cameraCaptureSession?.device?.id}"
             )
-        } catch (e: CameraAccessException) {
+            ObserverUtils.notifyObserverOnMainThread(observers) {
+                it.onCaptureStarted()
+            }
+        } catch (exception: CameraAccessException) {
             logger.error(
                 TAG,
-                "Failed to start capture request with device ID: ${cameraCaptureSession?.device?.id}"
+                "Failed to start capture request with device ID: ${cameraCaptureSession?.device?.id}, exception:$exception"
             )
             ObserverUtils.notifyObserverOnMainThread(observers) {
                 it.onCaptureFailed(CaptureSourceError.SystemFailure)
@@ -444,10 +452,10 @@ class DefaultCameraCaptureSource(
         }
         // Account for front cammera mirror
         if (!isCameraFrontFacing) {
-            rotation = 360 - rotation
+            rotation = ROTATION_360_DEGREES - rotation
         }
         // Account for physical camera orientation
-        rotation = (sensorOrientation + rotation) % 360
+        rotation = (sensorOrientation + rotation) % ROTATION_360_DEGREES
         return VideoRotation.from(rotation) ?: VideoRotation.Rotation0
     }
 
@@ -460,6 +468,7 @@ class DefaultCameraCaptureSource(
         // Perform mirror and rotation around (0.5, 0.5) since that is the center of the texture.
         transformMatrix.preTranslate(0.5f, 0.5f)
         if (mirror) {
+            // This negative scale mirrors across the vertical axis
             transformMatrix.preScale(-1f, 1f)
         }
         transformMatrix.preRotate(rotation.toFloat())

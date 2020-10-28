@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
 
 import android.annotation.SuppressLint
@@ -8,7 +13,7 @@ import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.ContentHint
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
@@ -28,7 +33,7 @@ class DefaultSurfaceTextureCaptureSource(
     private val logger: Logger,
     private val width: Int,
     private val height: Int,
-    override val contentHint: ContentHint = ContentHint.None,
+    override val contentHint: VideoContentHint = VideoContentHint.None,
     private val eglCoreFactory: EglCoreFactory
 ) : SurfaceTextureCaptureSource {
     // Publicly accessible
@@ -68,6 +73,8 @@ class DefaultSurfaceTextureCaptureSource(
 
     private val TAG = "SurfaceTextureCaptureSource"
 
+    private val DUMMY_PBUFFER_OFFSET = 0
+
     init {
         thread.start()
         handler = Handler(thread.looper)
@@ -81,7 +88,7 @@ class DefaultSurfaceTextureCaptureSource(
                 eglCore.eglDisplay,
                 eglCore.eglConfig,
                 surfaceAttributes,
-                0
+                DUMMY_PBUFFER_OFFSET
             )
             EGL14.eglMakeCurrent(
                 eglCore.eglDisplay,
