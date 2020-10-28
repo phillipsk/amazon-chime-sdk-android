@@ -21,8 +21,6 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFact
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 import com.xodee.client.video.JniUtil
-import kotlinx.coroutines.android.asCoroutineDispatcher
-import kotlinx.coroutines.runBlocking
 
 class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFactory) : VideoSource,
     VideoSink {
@@ -42,13 +40,15 @@ class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
     // Downstream video sinks
     private val sinks = mutableSetOf<VideoSink>()
 
+    private val DUMMY_PBUFFER_OFFSET = 0
+
     private val TAG = "DemoCpuVideoProcessor"
 
     init {
         thread.start()
         handler = Handler(thread.looper)
 
-        runBlocking(handler.asCoroutineDispatcher().immediate) {
+        handler.post {
             eglCore = eglCoreFactory.createEglCore()
 
             // We need to create a dummy surface before we can set the context as current
@@ -57,7 +57,7 @@ class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
                 eglCore.eglDisplay,
                 eglCore.eglConfig,
                 surfaceAttribs,
-                0
+                DUMMY_PBUFFER_OFFSET
             )
             EGL14.eglMakeCurrent(
                 eglCore.eglDisplay,
