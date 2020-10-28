@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
 
 import android.graphics.Matrix
@@ -378,7 +383,7 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
             currentShaderType = shaderType.also {
                 fragmentShader = when (shaderType) {
                     ShaderType.TEXTURE_OES -> FRAGMENT_SHADER_OES
-                    ShaderType.TEXTURE_2D -> FRAGMENT_SHADER_2D
+                    ShaderType.TEXTURE_2D -> FRAGMENT_SHADER_RGB
                     ShaderType.YUV -> FRAGMENT_SHADER_YUV
                 }
             }
@@ -482,7 +487,7 @@ class DefaultGlVideoFrameDrawer() : GlVideoFrameDrawer {
         }
         """
 
-        private val FRAGMENT_SHADER_2D =
+        private val FRAGMENT_SHADER_RGB =
             """
         precision mediump float;
         varying vec2 vTextureCoordinate;
