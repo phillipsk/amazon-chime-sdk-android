@@ -34,7 +34,6 @@ import java.lang.ClassCastException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class DeviceManagementFragment : Fragment(),
         DeviceChangeObserver {
@@ -162,9 +161,11 @@ class DeviceManagementFragment : Fragment(),
         }
 
         uiScope.launch {
-            populateDeviceList(listAudioDevices(), audioDevices, audioDeviceArrayAdapter)
-            populateDeviceList(listVideoDevices(), videoDevices, videoDeviceArrayAdapter)
-            populateVideoFormatList(listVideoFormats())
+            populateDeviceList(audioVideo.listAudioDevices(), audioDevices, audioDeviceArrayAdapter)
+            populateDeviceList(MediaDevice.listVideoDevices(cameraManager), videoDevices, videoDeviceArrayAdapter)
+            cameraCaptureSource.device ?.let {
+                populateVideoFormatList(MediaDevice.listSupportedVideoCaptureFormats(cameraManager, it))
+            }
 
             videoPreview.mirror =
                     cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
@@ -262,26 +263,6 @@ class DeviceManagementFragment : Fragment(),
             videoFormats.add(VideoCaptureFormat(format.width, format.height, MAX_VIDEO_FORMAT_FPS))
         }
         videoFormatArrayAdapter.notifyDataSetChanged()
-    }
-
-    private suspend fun listAudioDevices(): List<MediaDevice> {
-        return withContext(Dispatchers.Default) {
-            audioVideo.listAudioDevices()
-        }
-    }
-
-    private suspend fun listVideoDevices(): List<MediaDevice> {
-        return withContext(Dispatchers.Default) {
-            MediaDevice.listVideoDevices(cameraManager)
-        }
-    }
-
-    private suspend fun listVideoFormats(): List<VideoCaptureFormat> {
-        return withContext(Dispatchers.Default) {
-            val device =
-                    cameraCaptureSource.device ?: return@withContext emptyList<VideoCaptureFormat>()
-            MediaDevice.listSupportedVideoCaptureFormats(cameraManager, device)
-        }
     }
 
     override fun onAudioDeviceChanged(freshAudioDeviceList: List<MediaDevice>) {
