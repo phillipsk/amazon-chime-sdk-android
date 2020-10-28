@@ -61,6 +61,8 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
     // Downstream video sinks
     private val sinks = mutableSetOf<VideoSink>()
 
+    private val DUMMY_PBUFFER_OFFSET = 0
+
     private val TAG = "DemoGpuVideoProcessor"
 
     init {
@@ -76,7 +78,7 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
                 eglCore.eglDisplay,
                 eglCore.eglConfig,
                 surfaceAttribs,
-                0
+                DUMMY_PBUFFER_OFFSET
             )
             EGL14.eglMakeCurrent(
                 eglCore.eglDisplay,

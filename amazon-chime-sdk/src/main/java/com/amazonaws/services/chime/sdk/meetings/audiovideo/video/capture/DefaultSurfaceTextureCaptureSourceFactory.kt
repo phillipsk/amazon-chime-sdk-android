@@ -21,6 +21,7 @@ class DefaultSurfaceTextureCaptureSourceFactory(
         height: Int,
         contentHint: VideoContentHint
     ): SurfaceTextureCaptureSource {
+        check(width >= 0 && height >= 0) { "Width and height must be positive" }
         return DefaultSurfaceTextureCaptureSource(
             logger,
             width,
