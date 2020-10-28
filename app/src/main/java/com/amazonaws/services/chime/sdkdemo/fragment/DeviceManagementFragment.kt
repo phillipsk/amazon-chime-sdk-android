@@ -214,6 +214,7 @@ class DeviceManagementFragment : Fragment(),
             audioVideo.chooseAudioDevice(parent?.getItemAtPosition(position) as MediaDevice)
         }
 
+        // Abstract, requires implementation
         override fun onNothingSelected(parent: AdapterView<*>?) {
         }
     }
@@ -226,6 +227,7 @@ class DeviceManagementFragment : Fragment(),
                     cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
         }
 
+        // Abstract, requires implementation
         override fun onNothingSelected(parent: AdapterView<*>?) {
         }
     }
@@ -235,6 +237,7 @@ class DeviceManagementFragment : Fragment(),
             cameraCaptureSource.format = parent?.getItemAtPosition(position) as VideoCaptureFormat
         }
 
+        // Abstract, requires implementation
         override fun onNothingSelected(parent: AdapterView<*>?) {
         }
     }
