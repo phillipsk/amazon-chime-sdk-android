@@ -1,10 +1,15 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdkdemo.utils
 
 import android.graphics.Matrix
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameTextureBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlVideoFrameDrawer
 import java.security.InvalidParameterException
@@ -139,14 +144,14 @@ class BlackAndWhiteGlVideoFrameDrawer : GlVideoFrameDrawer {
         GLES20.glEnableVertexAttribArray(vertexPositionLocation)
         GLES20.glVertexAttribPointer(
             vertexPositionLocation, 2, GLES20.GL_FLOAT,
-            false, 0, GlUtil.FULL_RECTANGLE_BUFFER
+            false, 0, GlUtil.FULL_RECTANGLE_VERTEX_COORDINATES
         )
 
         // Upload the texture coordinates.
         GLES20.glEnableVertexAttribArray(textureCoordinateLocation)
         GLES20.glVertexAttribPointer(
             textureCoordinateLocation, 2, GLES20.GL_FLOAT,
-            false, 0, GlUtil.FULL_RECTANGLE_TEXTURE_BUFFER
+            false, 0, GlUtil.FULL_RECTANGLE_TEXTURE_COORDINATES
         )
 
         // Upload the texture transformation matrix.

@@ -19,8 +19,8 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoRenderView
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoCaptureFormat
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.CameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.VideoCaptureFormat
 import com.amazonaws.services.chime.sdk.meetings.device.DeviceChangeObserver
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class DeviceManagementFragment : Fragment(),
-    DeviceChangeObserver {
+        DeviceChangeObserver {
     private val logger = ConsoleLogger(LogLevel.INFO)
     private val uiScope = CoroutineScope(Dispatchers.Main)
     private val audioDevices = mutableListOf<MediaDevice>()
@@ -74,10 +74,10 @@ class DeviceManagementFragment : Fragment(),
             val fragment = DeviceManagementFragment()
 
             fragment.arguments =
-                Bundle().apply {
-                    putString(HomeActivity.MEETING_ID_KEY, meetingId)
-                    putString(HomeActivity.NAME_KEY, name)
-                }
+                    Bundle().apply {
+                        putString(HomeActivity.MEETING_ID_KEY, meetingId)
+                        putString(HomeActivity.NAME_KEY, name)
+                    }
             return fragment
         }
     }
@@ -121,14 +121,14 @@ class DeviceManagementFragment : Fragment(),
         // if they exist (i.e. before rotation).  We will set them after lists are populated.
 
         audioDeviceSpinner = view.findViewById(R.id.spinnerAudioDevice)
-        audioDeviceArrayAdapter = createMediaDeviceSpinnerAdapter(context, audioDevices)
+        audioDeviceArrayAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, audioDevices)
         audioDeviceSpinner.adapter = audioDeviceArrayAdapter
         audioDeviceSpinner.isSelected = false
         audioDeviceSpinner.setSelection(0, true)
         audioDeviceSpinner.onItemSelectedListener = onAudioDeviceSelected
 
         videoDeviceSpinner = view.findViewById(R.id.spinnerVideoDevice)
-        videoDeviceArrayAdapter = createMediaDeviceSpinnerAdapter(context, videoDevices)
+        videoDeviceArrayAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, videoDevices)
         videoDeviceSpinner.adapter = videoDeviceArrayAdapter
         videoDeviceSpinner.isSelected = false
         videoDeviceSpinner.setSelection(0, true)
@@ -136,7 +136,7 @@ class DeviceManagementFragment : Fragment(),
 
         videoFormatSpinner = view.findViewById(R.id.spinnerVideoFormat)
         videoFormatArrayAdapter =
-            createVideoCaptureFormatSpinnerAdapter(context, videoFormats)
+                ArrayAdapter(context, android.R.layout.simple_spinner_item, videoFormats)
         videoFormatSpinner.adapter = videoFormatArrayAdapter
         videoFormatSpinner.isSelected = false
         videoFormatSpinner.setSelection(0, true)
@@ -151,7 +151,7 @@ class DeviceManagementFragment : Fragment(),
         view.findViewById<DefaultVideoRenderView>(R.id.videoPreview)?.let {
             val displayMetrics = context.resources.displayMetrics
             val width =
-                if (isLandscapeMode(context) == true) displayMetrics.widthPixels / 2 else displayMetrics.widthPixels
+                    if (isLandscapeMode(context) == true) displayMetrics.widthPixels / 2 else displayMetrics.widthPixels
             val height = (width * VIDEO_ASPECT_RATIO_16_9).toInt()
             it.layoutParams.width = width
             it.layoutParams.height = height
@@ -162,12 +162,12 @@ class DeviceManagementFragment : Fragment(),
         }
 
         uiScope.launch {
-            populateAudioDeviceList(listAudioDevices())
-            populateVideoDeviceList(listVideoDevices())
+            populateDeviceList(listAudioDevices(), audioDevices, audioDeviceArrayAdapter)
+            populateDeviceList(listVideoDevices(), videoDevices, videoDeviceArrayAdapter)
             populateVideoFormatList(listVideoFormats())
 
             videoPreview.mirror =
-                cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
+                    cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
 
             var audioDeviceSpinnerIndex = 0
             var videoDeviceSpinnerIndex = 0
@@ -181,6 +181,12 @@ class DeviceManagementFragment : Fragment(),
             audioDeviceSpinner.setSelection(audioDeviceSpinnerIndex)
             videoDeviceSpinner.setSelection(videoDeviceSpinnerIndex)
             videoFormatSpinner.setSelection(videoFormatSpinnerIndex)
+
+            // Setting the selection won't immediately callback, so we need to explicitly set the values
+            // of the camera capturer before starting it
+            cameraCaptureSource.device = videoDeviceSpinner.getItemAtPosition(videoDeviceSpinnerIndex) as MediaDevice
+            videoPreview.mirror = cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
+            cameraCaptureSource.format = videoFormatSpinner.getItemAtPosition(videoFormatSpinnerIndex) as VideoCaptureFormat
 
             cameraCaptureSource.start()
         }
@@ -217,7 +223,7 @@ class DeviceManagementFragment : Fragment(),
             cameraCaptureSource.device = parent?.getItemAtPosition(position) as MediaDevice
 
             videoPreview.mirror =
-                cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
+                    cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
         }
 
         override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -233,24 +239,14 @@ class DeviceManagementFragment : Fragment(),
         }
     }
 
-    private fun populateAudioDeviceList(freshAudioDeviceList: List<MediaDevice>) {
-        audioDevices.clear()
-        audioDevices.addAll(
-            freshAudioDeviceList.filter {
-                it.type != MediaDeviceType.OTHER
-            }.sortedBy { it.order }
+    private fun populateDeviceList(newDeviceList: List<MediaDevice>, currentDeviceList: MutableList<MediaDevice>, adapter: ArrayAdapter<MediaDevice>) {
+        currentDeviceList.clear()
+        currentDeviceList.addAll(
+                newDeviceList.filter {
+                    it.type != MediaDeviceType.OTHER
+                }.sortedBy { it.order }
         )
-        audioDeviceArrayAdapter.notifyDataSetChanged()
-    }
-
-    private fun populateVideoDeviceList(freshVideoDeviceList: List<MediaDevice>) {
-        videoDevices.clear()
-        videoDevices.addAll(
-            freshVideoDeviceList.filter {
-                it.type != MediaDeviceType.OTHER
-            }.sortedBy { it.order }
-        )
-        videoDeviceArrayAdapter.notifyDataSetChanged()
+        adapter.notifyDataSetChanged()
     }
 
     private fun populateVideoFormatList(freshVideoCaptureFormatList: List<VideoCaptureFormat>) {
@@ -280,26 +276,12 @@ class DeviceManagementFragment : Fragment(),
     private suspend fun listVideoFormats(): List<VideoCaptureFormat> {
         return withContext(Dispatchers.Default) {
             val device =
-                cameraCaptureSource.device ?: return@withContext emptyList<VideoCaptureFormat>()
-            MediaDevice.getSupportedVideoCaptureFormats(cameraManager, device)
+                    cameraCaptureSource.device ?: return@withContext emptyList<VideoCaptureFormat>()
+            MediaDevice.listSupportedVideoCaptureFormats(cameraManager, device)
         }
     }
 
-    private fun createMediaDeviceSpinnerAdapter(
-        context: Context,
-        list: List<MediaDevice>
-    ): ArrayAdapter<MediaDevice> {
-        return ArrayAdapter(context, android.R.layout.simple_spinner_item, list)
-    }
-
-    private fun createVideoCaptureFormatSpinnerAdapter(
-        context: Context,
-        list: List<VideoCaptureFormat>
-    ): ArrayAdapter<VideoCaptureFormat> {
-        return ArrayAdapter(context, android.R.layout.simple_spinner_item, list)
-    }
-
     override fun onAudioDeviceChanged(freshAudioDeviceList: List<MediaDevice>) {
-        populateAudioDeviceList(freshAudioDeviceList)
+        populateDeviceList(freshAudioDeviceList, audioDevices, audioDeviceArrayAdapter)
     }
 }

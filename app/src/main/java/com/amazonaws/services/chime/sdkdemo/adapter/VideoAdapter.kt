@@ -12,7 +12,7 @@ import android.widget.RelativeLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.AudioVideoFacade
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoPauseState
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.CameraCaptureSource
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
 import com.amazonaws.services.chime.sdkdemo.R
 import com.amazonaws.services.chime.sdkdemo.data.VideoCollectionTile
@@ -109,7 +109,9 @@ class VideoHolder(
 
     private fun updateLocalVideoMirror() {
         view.video_surface.mirror =
+            // If we are using internal source, base mirror state off that device type
             (audioVideo.getActiveCamera()?.type == MediaDeviceType.VIDEO_FRONT_CAMERA ||
+            // Otherwise use the device type of our external/custom camera capture source
             (audioVideo.getActiveCamera() == null && cameraCaptureSource?.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA))
     }
 }

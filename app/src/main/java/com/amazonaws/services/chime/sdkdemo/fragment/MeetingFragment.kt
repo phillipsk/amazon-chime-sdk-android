@@ -34,7 +34,7 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.metric.ObservableMet
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoPauseState
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileObserver
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoTileState
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.CameraCaptureSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.CameraCaptureSource
 import com.amazonaws.services.chime.sdk.meetings.device.DeviceChangeObserver
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDeviceType
@@ -607,23 +607,23 @@ class MeetingFragment : Fragment(),
     private fun toggleFlashlight() {
         logger.info(
             TAG,
-            "Toggling flashlight from ${cameraCaptureSource.flashlightEnabled} to ${!cameraCaptureSource.flashlightEnabled}"
+            "Toggling flashlight from ${cameraCaptureSource.torchEnabled} to ${!cameraCaptureSource.torchEnabled}"
         )
         if (!isUsingCameraCaptureSource) {
             logger.warn(TAG, "Cannot toggle flashlight without using custom camera capture source")
             Toast.makeText(
-                context!!,
+                context,
                 getString(R.string.user_notification_flashlight_custom_source_error),
                 Toast.LENGTH_SHORT
             ).show()
             return
         }
-        val desiredFlashlightEnabled = !cameraCaptureSource.flashlightEnabled
-        cameraCaptureSource.flashlightEnabled = desiredFlashlightEnabled
-        if (cameraCaptureSource.flashlightEnabled != desiredFlashlightEnabled) {
+        val desiredFlashlightEnabled = !cameraCaptureSource.torchEnabled
+        cameraCaptureSource.torchEnabled = desiredFlashlightEnabled
+        if (cameraCaptureSource.torchEnabled != desiredFlashlightEnabled) {
             logger.warn(TAG, "Flashlight failed to toggle")
             Toast.makeText(
-                context!!,
+                context,
                 getString(R.string.user_notification_flashlight_unavailable_error),
                 Toast.LENGTH_SHORT
             ).show()
@@ -635,7 +635,7 @@ class MeetingFragment : Fragment(),
         if (!isUsingCameraCaptureSource) {
             logger.warn(TAG, "Cannot toggle filter without using custom camera capture source")
             Toast.makeText(
-                context!!,
+                context,
                 getString(R.string.user_notification_filter_custom_source_error),
                 Toast.LENGTH_SHORT
             ).show()
@@ -644,7 +644,7 @@ class MeetingFragment : Fragment(),
         if (isUsingGpuVideoProcessor) {
             logger.warn(TAG, "Cannot toggle filter when other filter is enabled")
             Toast.makeText(
-                context!!,
+                context,
                 getString(R.string.user_notification_filter_both_enabled_error),
                 Toast.LENGTH_SHORT
             ).show()
@@ -665,7 +665,7 @@ class MeetingFragment : Fragment(),
         if (!isUsingCameraCaptureSource) {
             logger.warn(TAG, "Cannot toggle filter without using custom camera capture source")
             Toast.makeText(
-                context!!,
+                context,
                 getString(R.string.user_notification_filter_custom_source_error),
                 Toast.LENGTH_SHORT
             ).show()
@@ -674,7 +674,7 @@ class MeetingFragment : Fragment(),
         if (isUsingCpuVideoProcessor) {
             logger.warn(TAG, "Cannot toggle filter when other filter is enabled")
             Toast.makeText(
-                context!!,
+                context,
                 getString(R.string.user_notification_filter_both_enabled_error),
                 Toast.LENGTH_SHORT
             ).show()

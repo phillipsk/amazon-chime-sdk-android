@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdkdemo.utils
 
 import android.graphics.Matrix
@@ -5,16 +10,15 @@ import android.opengl.EGL14
 import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoFrameRGBABuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameRGBABuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameRGBABuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultGlVideoFrameDrawer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCore
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.ContentHint
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 import com.xodee.client.video.JniUtil
 import kotlinx.coroutines.android.asCoroutineDispatcher
@@ -28,7 +32,7 @@ class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
     // Helper which wraps an OpenGLES texture frame buffer with resize capabilities
     private val textureFrameBuffer = GlTextureFrameBufferHelper(GLES20.GL_RGBA)
 
-    override val contentHint: ContentHint = ContentHint.Motion
+    override val contentHint: VideoContentHint = VideoContentHint.Motion
 
     // State necessary for EGL operations
     private lateinit var eglCore: EglCore
@@ -113,7 +117,7 @@ class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
             GlUtil.checkGlError("glReadPixels")
 
             val rgbaBuffer =
-                DefaultVideoFrameRGBABuffer(
+                VideoFrameRGBABuffer(
                     frame.getRotatedWidth(),
                     frame.getRotatedHeight(),
                     rgbaData, frame.getRotatedWidth() * 4,

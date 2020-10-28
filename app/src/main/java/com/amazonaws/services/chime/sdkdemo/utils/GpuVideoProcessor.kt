@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdkdemo.utils
 
 import android.opengl.EGL14
@@ -5,16 +10,15 @@ import android.opengl.GLES20
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.DefaultVideoFrameTextureBuffer
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSource
+import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultGlVideoFrameDrawer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCore
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.ContentHint
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.source.VideoSource
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
@@ -29,7 +33,7 @@ import kotlinx.coroutines.runBlocking
  */
 class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFactory) : VideoSource,
     VideoSink {
-    override val contentHint: ContentHint = ContentHint.Motion
+    override val contentHint: VideoContentHint = VideoContentHint.Motion
 
     // Pending frame to render. Serves as a queue with size 1. Synchronized on `pendingFrameLock`.
     // pendingFrameLock also protects the handler (which may be null in `onVideoFrameReceived`
@@ -167,7 +171,7 @@ class GpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
 
         val processedBuffer =
-            DefaultVideoFrameTextureBuffer(
+            VideoFrameTextureBuffer(
                 frame.getRotatedWidth(),
                 frame.getRotatedHeight(),
                 textureFrameBuffer.textureId,
