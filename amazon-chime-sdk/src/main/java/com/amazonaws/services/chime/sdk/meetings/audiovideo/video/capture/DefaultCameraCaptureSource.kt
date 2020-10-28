@@ -40,7 +40,6 @@ import kotlin.math.min
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
-import java.lang.IllegalStateException
 
 /**
  * [DefaultCameraCaptureSource] will configure a reasonably standard capture stream which will
