@@ -117,25 +117,28 @@ class MeetingActivity : AppCompatActivity(),
     // Create the following lazily so that we can inject application context and logger in where needed
 
     fun getCameraCaptureSource(): CameraCaptureSource {
-        if (meetingModel.cameraCaptureSource == null) {
+        return meetingModel.cameraCaptureSource ?: run {
             val surfaceTextureCaptureSourceFactory = DefaultSurfaceTextureCaptureSourceFactory(logger, meetingModel.eglCoreFactory)
-            meetingModel.cameraCaptureSource = DefaultCameraCaptureSource(applicationContext, logger, surfaceTextureCaptureSourceFactory)
+            val cameraCaptureSource = DefaultCameraCaptureSource(applicationContext, logger, surfaceTextureCaptureSourceFactory)
+            meetingModel.cameraCaptureSource = cameraCaptureSource
+            cameraCaptureSource
         }
-        return meetingModel.cameraCaptureSource!!
     }
 
     fun getGpuVideoProcessor(): GpuVideoProcessor {
-        if (meetingModel.gpuVideoProcessor == null) {
-            meetingModel.gpuVideoProcessor = GpuVideoProcessor(logger, meetingModel.eglCoreFactory)
+        return meetingModel.gpuVideoProcessor ?: run {
+            val gpuVideoProcessor = GpuVideoProcessor(logger, meetingModel.eglCoreFactory)
+            meetingModel.gpuVideoProcessor = gpuVideoProcessor
+            gpuVideoProcessor
         }
-        return meetingModel.gpuVideoProcessor!!
     }
 
     fun getCpuVideoProcessor(): CpuVideoProcessor {
-        if (meetingModel.cpuVideoProcessor == null) {
-            meetingModel.cpuVideoProcessor = CpuVideoProcessor(logger, meetingModel.eglCoreFactory)
+        return meetingModel.cpuVideoProcessor ?: run {
+            val cpuVideoProcessor = CpuVideoProcessor(logger, meetingModel.eglCoreFactory)
+            meetingModel.cpuVideoProcessor = cpuVideoProcessor
+            cpuVideoProcessor
         }
-        return meetingModel.cpuVideoProcessor!!
     }
 
     private fun urlRewriter(url: String): String {

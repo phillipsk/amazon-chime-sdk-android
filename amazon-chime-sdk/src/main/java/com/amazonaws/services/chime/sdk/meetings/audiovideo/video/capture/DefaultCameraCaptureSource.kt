@@ -319,18 +319,6 @@ class DefaultCameraCaptureSource(
 
     private val cameraCaptureSessionCaptureCallback =
             object : CameraCaptureSession.CaptureCallback() {
-                override fun onCaptureStarted(
-                    session: CameraCaptureSession,
-                    request: CaptureRequest,
-                    timestamp: Long,
-                    frameNumber: Long
-                ) {
-                    logger.info(TAG, "Camera capture session capture started")
-                    ObserverUtils.notifyObserverOnMainThread(observers) {
-                        it.onCaptureStarted()
-                    }
-                }
-
                 override fun onCaptureFailed(
                     session: CameraCaptureSession,
                     request: CaptureRequest,
@@ -382,6 +370,9 @@ class DefaultCameraCaptureSource(
                 TAG,
                 "Capture request completed with device ID: ${cameraCaptureSession?.device?.id}"
             )
+            ObserverUtils.notifyObserverOnMainThread(observers) {
+                it.onCaptureStarted()
+            }
         } catch (e: CameraAccessException) {
             logger.error(
                 TAG,
