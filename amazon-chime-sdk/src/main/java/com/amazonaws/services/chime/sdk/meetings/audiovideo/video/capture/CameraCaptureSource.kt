@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
 
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
@@ -14,16 +19,16 @@ interface CameraCaptureSource : VideoCaptureSource {
     var device: MediaDevice?
 
     /**
-     * Toggle for flashlight on the current device.  Will succeed if current device has access to
-     * flashlight, otherwise will stay [false].  May be called regardless of whether [start] or [stop]
+     * Toggle for torch on the current device.  Will succeed if current device has access to
+     * flashlight, otherwise will stay false.  May be called regardless of whether [start] or [stop]
      * has been called.
      */
     var torchEnabled: Boolean
 
     /**
-     * Current camera capture format.
+     * Current camera capture format.  Actual format may be adjusted to use supported camera formats.
      * May be called regardless of whether [start] or [stop] has been called.
-     * */
+     */
     var format: VideoCaptureFormat
 
     /**

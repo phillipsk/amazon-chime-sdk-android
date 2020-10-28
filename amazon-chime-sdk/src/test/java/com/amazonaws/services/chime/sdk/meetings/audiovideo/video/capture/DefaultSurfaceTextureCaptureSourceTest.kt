@@ -1,7 +1,5 @@
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
 
-import android.content.Context
-import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.opengl.EGL14
 import android.opengl.EGLSurface
@@ -14,20 +12,21 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCore
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 import com.xodee.client.video.TimestampAligner
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import kotlinx.coroutines.*
-import kotlinx.coroutines.android.HandlerDispatcher
-import org.junit.Before
-
-import org.junit.Assert.*
-import org.junit.Test
+import io.mockk.just
+import io.mockk.mockkConstructor
+import io.mockk.mockkStatic
+import io.mockk.runs
+import io.mockk.slot
+import io.mockk.verify
 import java.lang.Runnable
+import org.junit.Assert.assertNotEquals
+import org.junit.Before
+import org.junit.Test
 
 class DefaultSurfaceTextureCaptureSourceTest {
-    @MockK
-    private lateinit var mockContext: Context
-
     @MockK
     private lateinit var mockLogger: Logger
 
@@ -41,9 +40,6 @@ class DefaultSurfaceTextureCaptureSourceTest {
 
     @MockK
     private lateinit var mockLooper: Looper
-
-    @MockK(relaxed = true)
-    private lateinit var mockMatrix: Matrix
 
     @MockK(relaxed = true)
     private lateinit var mockEglSurface: EGLSurface
@@ -105,7 +101,6 @@ class DefaultSurfaceTextureCaptureSourceTest {
 
         verify { anyConstructed<SurfaceTexture>().setDefaultBufferSize(testWidth, testHeight) }
     }
-
 
     @Test
     fun `start calls setOnFrameAvailableListener with non-null listener`() {

@@ -2,32 +2,30 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
 
 import android.content.Context
 import android.graphics.Matrix
-import android.graphics.SurfaceTexture
 import android.opengl.EGL14
-import android.opengl.EGLSurface
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoContentHint
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoRotation
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
-import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
-import io.mockk.*
-import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.MockKAnnotations
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.mockkConstructor
+import io.mockk.mockkStatic
+import io.mockk.runs
+import io.mockk.slot
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.android.HandlerDispatcher
 import kotlinx.coroutines.test.setMain
 import org.junit.Before
-
-import org.junit.Assert.*
 import org.junit.Test
-import java.nio.ByteBuffer
 
 class DefaultEglVideoRenderViewTest {
     @MockK

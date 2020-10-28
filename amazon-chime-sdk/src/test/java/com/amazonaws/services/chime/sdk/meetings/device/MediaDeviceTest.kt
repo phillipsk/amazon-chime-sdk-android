@@ -7,14 +7,15 @@ package com.amazonaws.services.chime.sdk.meetings.device
 
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CameraMetadata
 import android.hardware.camera2.params.StreamConfigurationMap
 import android.media.AudioDeviceInfo
 import android.util.Size
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.VideoCaptureFormat
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.clearAllMocks
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -105,12 +106,12 @@ class MediaDeviceTest {
         val devices = MediaDevice.listVideoDevices(mockCameraManager)
 
         assertEquals(devices.size, 3)
-        assertEquals(devices[0].id ,"0")
-        assertEquals(devices[1].id ,"1")
-        assertEquals(devices[2].id ,"2")
-        assertEquals(devices[0].type , MediaDeviceType.VIDEO_FRONT_CAMERA)
-        assertEquals(devices[1].type ,MediaDeviceType.VIDEO_BACK_CAMERA)
-        assertEquals(devices[2].type ,MediaDeviceType.OTHER)
+        assertEquals(devices[0].id, "0")
+        assertEquals(devices[1].id, "1")
+        assertEquals(devices[2].id, "2")
+        assertEquals(devices[0].type, MediaDeviceType.VIDEO_FRONT_CAMERA)
+        assertEquals(devices[1].type, MediaDeviceType.VIDEO_BACK_CAMERA)
+        assertEquals(devices[2].type, MediaDeviceType.OTHER)
     }
 
     @Test

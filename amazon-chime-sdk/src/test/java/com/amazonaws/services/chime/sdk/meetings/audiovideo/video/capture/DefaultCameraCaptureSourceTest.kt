@@ -111,7 +111,6 @@ class DefaultCameraCaptureSourceTest {
         every { anyConstructed<Matrix>().preRotate(any()) } returns true
         every { anyConstructed<Matrix>().preConcat(any()) } returns true
 
-
         // Most of the previous mocks need to be done before constructor call
         MockKAnnotations.init(this, relaxUnitFun = true)
 

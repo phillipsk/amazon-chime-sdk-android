@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
 
 import android.Manifest
@@ -315,10 +320,10 @@ class DefaultCameraCaptureSource(
     private val cameraCaptureSessionCaptureCallback =
             object : CameraCaptureSession.CaptureCallback() {
                 override fun onCaptureStarted(
-                        session: CameraCaptureSession,
-                        request: CaptureRequest,
-                        timestamp: Long,
-                        frameNumber: Long
+                    session: CameraCaptureSession,
+                    request: CaptureRequest,
+                    timestamp: Long,
+                    frameNumber: Long
                 ) {
                     logger.info(TAG, "Camera capture session capture started")
                     ObserverUtils.notifyObserverOnMainThread(observers) {
@@ -327,9 +332,9 @@ class DefaultCameraCaptureSource(
                 }
 
                 override fun onCaptureFailed(
-                        session: CameraCaptureSession,
-                        request: CaptureRequest,
-                        failure: CaptureFailure
+                    session: CameraCaptureSession,
+                    request: CaptureRequest,
+                    failure: CaptureFailure
                 ) {
                     logger.error(TAG, "Camera capture session failed: $failure")
                     ObserverUtils.notifyObserverOnMainThread(observers) {

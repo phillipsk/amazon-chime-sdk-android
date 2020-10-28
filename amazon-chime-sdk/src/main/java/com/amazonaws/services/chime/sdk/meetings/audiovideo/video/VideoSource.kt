@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
 
 /**
@@ -7,7 +12,10 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
  */
 interface VideoSource {
     /**
-     * Add a video sink which will immediately begin to receive new frames
+     * Add a video sink which will immediately begin to receive new frames.
+     *
+     * Multiple sinks can be added to a single [VideoSource] to allow forking of video frames,
+     * e.g. to send to both local preview and MediaSDK (for encoding) at the same time.
      *
      * @param sink: [VideoSink] - New video sink
      */

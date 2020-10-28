@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class DeviceManagementFragment : Fragment(),
-    DeviceChangeObserver {
+        DeviceChangeObserver {
     private val logger = ConsoleLogger(LogLevel.INFO)
     private val uiScope = CoroutineScope(Dispatchers.Main)
     private val audioDevices = mutableListOf<MediaDevice>()
@@ -74,10 +74,10 @@ class DeviceManagementFragment : Fragment(),
             val fragment = DeviceManagementFragment()
 
             fragment.arguments =
-                Bundle().apply {
-                    putString(HomeActivity.MEETING_ID_KEY, meetingId)
-                    putString(HomeActivity.NAME_KEY, name)
-                }
+                    Bundle().apply {
+                        putString(HomeActivity.MEETING_ID_KEY, meetingId)
+                        putString(HomeActivity.NAME_KEY, name)
+                    }
             return fragment
         }
     }
@@ -136,7 +136,7 @@ class DeviceManagementFragment : Fragment(),
 
         videoFormatSpinner = view.findViewById(R.id.spinnerVideoFormat)
         videoFormatArrayAdapter =
-            createVideoCaptureFormatSpinnerAdapter(context, videoFormats)
+                createVideoCaptureFormatSpinnerAdapter(context, videoFormats)
         videoFormatSpinner.adapter = videoFormatArrayAdapter
         videoFormatSpinner.isSelected = false
         videoFormatSpinner.setSelection(0, true)
@@ -151,7 +151,7 @@ class DeviceManagementFragment : Fragment(),
         view.findViewById<DefaultVideoRenderView>(R.id.videoPreview)?.let {
             val displayMetrics = context.resources.displayMetrics
             val width =
-                if (isLandscapeMode(context) == true) displayMetrics.widthPixels / 2 else displayMetrics.widthPixels
+                    if (isLandscapeMode(context) == true) displayMetrics.widthPixels / 2 else displayMetrics.widthPixels
             val height = (width * VIDEO_ASPECT_RATIO_16_9).toInt()
             it.layoutParams.width = width
             it.layoutParams.height = height
@@ -167,7 +167,7 @@ class DeviceManagementFragment : Fragment(),
             populateVideoFormatList(listVideoFormats())
 
             videoPreview.mirror =
-                cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
+                    cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
 
             var audioDeviceSpinnerIndex = 0
             var videoDeviceSpinnerIndex = 0
@@ -181,6 +181,12 @@ class DeviceManagementFragment : Fragment(),
             audioDeviceSpinner.setSelection(audioDeviceSpinnerIndex)
             videoDeviceSpinner.setSelection(videoDeviceSpinnerIndex)
             videoFormatSpinner.setSelection(videoFormatSpinnerIndex)
+
+            // Setting the selection won't immediately callback, so we need to explicitly set the values
+            // of the camera capturer before starting it
+            cameraCaptureSource.device = videoDeviceSpinner.getItemAtPosition(videoDeviceSpinnerIndex) as MediaDevice
+            videoPreview.mirror = cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
+            cameraCaptureSource.format = videoFormatSpinner.getItemAtPosition(videoFormatSpinnerIndex) as VideoCaptureFormat
 
             cameraCaptureSource.start()
         }
@@ -217,7 +223,7 @@ class DeviceManagementFragment : Fragment(),
             cameraCaptureSource.device = parent?.getItemAtPosition(position) as MediaDevice
 
             videoPreview.mirror =
-                cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
+                    cameraCaptureSource.device?.type == MediaDeviceType.VIDEO_FRONT_CAMERA
         }
 
         override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -236,9 +242,9 @@ class DeviceManagementFragment : Fragment(),
     private fun populateAudioDeviceList(freshAudioDeviceList: List<MediaDevice>) {
         audioDevices.clear()
         audioDevices.addAll(
-            freshAudioDeviceList.filter {
-                it.type != MediaDeviceType.OTHER
-            }.sortedBy { it.order }
+                freshAudioDeviceList.filter {
+                    it.type != MediaDeviceType.OTHER
+                }.sortedBy { it.order }
         )
         audioDeviceArrayAdapter.notifyDataSetChanged()
     }
@@ -246,9 +252,9 @@ class DeviceManagementFragment : Fragment(),
     private fun populateVideoDeviceList(freshVideoDeviceList: List<MediaDevice>) {
         videoDevices.clear()
         videoDevices.addAll(
-            freshVideoDeviceList.filter {
-                it.type != MediaDeviceType.OTHER
-            }.sortedBy { it.order }
+                freshVideoDeviceList.filter {
+                    it.type != MediaDeviceType.OTHER
+                }.sortedBy { it.order }
         )
         videoDeviceArrayAdapter.notifyDataSetChanged()
     }
@@ -280,7 +286,7 @@ class DeviceManagementFragment : Fragment(),
     private suspend fun listVideoFormats(): List<VideoCaptureFormat> {
         return withContext(Dispatchers.Default) {
             val device =
-                cameraCaptureSource.device ?: return@withContext emptyList<VideoCaptureFormat>()
+                    cameraCaptureSource.device ?: return@withContext emptyList<VideoCaptureFormat>()
             MediaDevice.listSupportedVideoCaptureFormats(cameraManager, device)
         }
     }

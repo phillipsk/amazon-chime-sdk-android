@@ -25,10 +25,12 @@ interface VideoClientController {
     fun stopAndDestroy()
 
     /**
-     * Starts sending video for local attendee.  Will internally create a default [CameraCaptureSource] and
-     * start, pass to video client. [stopLocalVideo] will stop the internal capture source if being used.
+     * Start local video and begin transmitting frames from an internally held [DefaultCameraCaptureSource].
+     * [stopLocalVideo] will stop the internal capture source if being used.
      *
      * Calling this after passing in a custom [VideoSource] will replace it with the internal capture source.
+     *
+     * This function will only have effect if [start] has already been called
      */
     fun startLocalVideo()
 
@@ -38,7 +40,9 @@ interface VideoClientController {
      *
      * Calling this function repeatedly will replace the previous [VideoSource] as the one being
      * transmitted.  It will also stop and replace the internal capture source if [startLocalVideo]
-     * was called with no arguments.
+     * was previously called with no arguments.
+     *
+     * This function will only have effect if [start] has already been called
      *
      * @param source: [VideoSource] - The source of video frames to be sent to other clients
      */
@@ -60,14 +64,16 @@ interface VideoClientController {
     fun stopRemoteVideo()
 
     /**
-     * Get the currently active camera, if any.
+     * Get the currently active camera, if any.  This will return null if using a custom source,
+     * e.g. one passed in via [startLocalVideo]
      *
      * @return [MediaDevice] - Information about the current active device used for video.
      */
     fun getActiveCamera(): MediaDevice?
 
     /**
-     * Switches the currently active camera.
+     * Switches the currently active camera.  This will return null if using a custom source,
+     * e.g. one passed in via [startLocalVideo]
      */
     fun switchCamera()
 
