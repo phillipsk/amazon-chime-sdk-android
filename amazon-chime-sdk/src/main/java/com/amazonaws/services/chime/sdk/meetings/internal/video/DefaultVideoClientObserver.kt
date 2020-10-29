@@ -228,7 +228,7 @@ class DefaultVideoClientObserver(
     }
 
     override fun getAvailableDnsServers(): Array<String> {
-        TODO("Not yet implemented")
+        return emptyArray()
     }
 
     private suspend fun doTurnRequest(): TURNCredentials? {
