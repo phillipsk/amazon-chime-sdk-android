@@ -36,6 +36,11 @@ import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
@@ -82,6 +87,8 @@ class DefaultCameraCaptureSourceTest {
     @MockK(relaxed = true)
     private lateinit var mockCameraSession: CameraCaptureSession
 
+    private val testDispatcher = TestCoroutineDispatcher()
+
     @Before
     fun setUp() {
         // Setup handler/thread/looper mocking
@@ -116,6 +123,8 @@ class DefaultCameraCaptureSourceTest {
         every { anyConstructed<Matrix>().preRotate(any()) } returns true
         every { anyConstructed<Matrix>().preConcat(any()) } returns true
 
+        Dispatchers.setMain(testDispatcher)
+
         // Most of the previous mocks need to be done before constructor call
         MockKAnnotations.init(this, relaxUnitFun = true)
 
@@ -129,6 +138,12 @@ class DefaultCameraCaptureSourceTest {
         every { mockBackCameraCharacteristics.get(CameraCharacteristics.SENSOR_ORIENTATION) } returns 180
         every { mockBackCameraCharacteristics.get(CameraCharacteristics.LENS_FACING) } returns CameraMetadata.LENS_FACING_BACK
         every { mockContext.getSystemService(Context.WINDOW_SERVICE) } returns mockWindowManager
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+        testDispatcher.cleanupTestCoroutines()
     }
 
     @Test

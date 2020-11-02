@@ -134,8 +134,13 @@ class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
 
     fun release() {
         handler.post {
+            logger.info(TAG, "Releasing CPU video processor source")
+
             rectDrawer.release()
             textureFrameBuffer.release()
+            eglCore.release()
+
+            handler.looper.quit()
         }
     }
 
