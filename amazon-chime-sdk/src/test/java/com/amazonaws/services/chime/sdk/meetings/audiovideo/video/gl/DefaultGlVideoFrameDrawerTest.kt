@@ -13,6 +13,8 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameI420Buffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameRGBABuffer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
+import com.amazonaws.services.chime.sdk.meetings.internal.video.gl.DefaultGlVideoFrameDrawer
+import com.amazonaws.services.chime.sdk.meetings.internal.video.gl.GlUtil
 import com.xodee.client.video.YuvUtil
 import io.mockk.MockKAnnotations
 import io.mockk.every

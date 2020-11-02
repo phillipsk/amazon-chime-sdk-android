@@ -27,11 +27,11 @@ import kotlinx.coroutines.test.setMain
 import org.junit.Before
 import org.junit.Test
 
-class DefaultEglVideoRenderViewTest {
+class TextureRenderViewTest {
     @MockK
     private lateinit var mockContext: Context
 
-    private lateinit var testEglVideoRenderView: DefaultEglVideoRenderView
+    private lateinit var testEglVideoRenderView: TextureRenderView
 
     @MockK
     private lateinit var mockEglCoreFactory: EglCoreFactory
@@ -79,7 +79,7 @@ class DefaultEglVideoRenderViewTest {
         every { mockEglCoreFactory.createEglCore() } returns mockEglCore
 
         // Create actual test object
-        testEglVideoRenderView = DefaultEglVideoRenderView(mockContext)
+        testEglVideoRenderView = TextureRenderView(mockContext)
     }
 
     @Test

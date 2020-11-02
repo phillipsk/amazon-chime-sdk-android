@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
+package com.amazonaws.services.chime.sdk.meetings.internal.video.gl
 
 import android.graphics.Matrix
 import android.opengl.GLES20
@@ -21,28 +21,28 @@ object GlUtil {
      * i.e. (-1, -1) is bottom-left and (1, 1) is top-right.
      */
     val FULL_RECTANGLE_VERTEX_COORDINATES =
-        createFloatBuffer(
-            floatArrayOf(
-                -1.0f, -1.0f, // Bottom left.
-                1.0f, -1.0f, // Bottom right.
-                -1.0f, 1.0f, // Top left.
-                1.0f, 1.0f // Top right.
+            createFloatBuffer(
+                    floatArrayOf(
+                            -1.0f, -1.0f, // Bottom left.
+                            1.0f, -1.0f, // Bottom right.
+                            -1.0f, 1.0f, // Top left.
+                            1.0f, 1.0f // Top right.
+                    )
             )
-        )
 
     /**
      * Texture coordinates in Normalized Device Coordinates,
      *  i.e. (0, 0) is bottom-left and (1, 1) is top-right.
      */
     val FULL_RECTANGLE_TEXTURE_COORDINATES =
-        createFloatBuffer(
-            floatArrayOf(
-                0.0f, 0.0f, // Bottom left.
-                1.0f, 0.0f, // Bottom right.
-                0.0f, 1.0f, // Top left.
-                1.0f, 1.0f // Top right.
+            createFloatBuffer(
+                    floatArrayOf(
+                            0.0f, 0.0f, // Bottom left.
+                            1.0f, 0.0f, // Bottom right.
+                            0.0f, 1.0f, // Top left.
+                            1.0f, 1.0f // Top right.
+                    )
             )
-        )
 
     private const val SIZEOF_FLOAT = 4
 

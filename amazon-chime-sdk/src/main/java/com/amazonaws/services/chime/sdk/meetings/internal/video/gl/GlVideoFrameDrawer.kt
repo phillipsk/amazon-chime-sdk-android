@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl
+package com.amazonaws.services.chime.sdk.meetings.internal.video.gl
 
 import android.graphics.Matrix
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame

@@ -6,7 +6,7 @@
 package com.amazonaws.services.chime.sdkdemo.utils
 
 import android.opengl.GLES20
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
+import com.amazonaws.services.chime.sdk.meetings.internal.video.gl.GlUtil
 
 /**
  * [GlTextureFrameBufferHelper] is a helper class for handling OpenGL framebuffer with only color attachment and no depth or stencil buffer
