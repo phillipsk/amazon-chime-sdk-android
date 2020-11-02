@@ -212,13 +212,6 @@ class DefaultVideoClientObserverTest {
     }
 
     @Test
-    fun `onLogMessage should NOT call logger when log level is non error or non fatal`() {
-        testVideoClientObserver.onLogMessage(AudioClient.L_INFO, testMessage)
-
-        verify(exactly = 0) { mockLogger.error(any(), testMessage) }
-    }
-
-    @Test
     fun `unsubscribeFromVideoClientStateChange should result in no notification`() {
         testVideoClientObserver.unsubscribeFromVideoClientStateChange(mockAudioVideoObserver)
 
