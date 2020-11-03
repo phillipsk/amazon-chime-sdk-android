@@ -6,16 +6,11 @@
 package com.amazonaws.services.chime.sdkdemo.model
 
 import androidx.lifecycle.ViewModel
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture.CameraCaptureSource
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultEglCoreFactory
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
 import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 import com.amazonaws.services.chime.sdkdemo.data.Message
 import com.amazonaws.services.chime.sdkdemo.data.MetricData
 import com.amazonaws.services.chime.sdkdemo.data.RosterAttendee
 import com.amazonaws.services.chime.sdkdemo.data.VideoCollectionTile
-import com.amazonaws.services.chime.sdkdemo.utils.CpuVideoProcessor
-import com.amazonaws.services.chime.sdkdemo.utils.GpuVideoProcessor
 
 // This will be used for keeping state after rotation
 class MeetingModel : ViewModel() {
@@ -33,9 +28,4 @@ class MeetingModel : ViewModel() {
     var isAdditionalOptionsDialogOn = false
     var lastReceivedMessageTimestamp = 0L
     var tabIndex = 0
-
-    var eglCoreFactory: EglCoreFactory = DefaultEglCoreFactory()
-    var cameraCaptureSource: CameraCaptureSource? = null
-    var gpuVideoProcessor: GpuVideoProcessor? = null
-    var cpuVideoProcessor: CpuVideoProcessor? = null
 }

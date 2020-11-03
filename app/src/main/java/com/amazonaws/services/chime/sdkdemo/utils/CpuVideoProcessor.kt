@@ -15,10 +15,10 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSink
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoSource
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameRGBABuffer
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.DefaultGlVideoFrameDrawer
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCore
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.EglCoreFactory
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
+import com.amazonaws.services.chime.sdk.meetings.internal.video.gl.DefaultGlVideoFrameDrawer
+import com.amazonaws.services.chime.sdk.meetings.internal.video.gl.GlUtil
 import com.amazonaws.services.chime.sdk.meetings.utils.logger.Logger
 import com.xodee.client.video.JniUtil
 
@@ -134,8 +134,13 @@ class CpuVideoProcessor(private val logger: Logger, eglCoreFactory: EglCoreFacto
 
     fun release() {
         handler.post {
+            logger.info(TAG, "Releasing CPU video processor source")
+
             rectDrawer.release()
             textureFrameBuffer.release()
+            eglCore.release()
+
+            handler.looper.quit()
         }
     }
 

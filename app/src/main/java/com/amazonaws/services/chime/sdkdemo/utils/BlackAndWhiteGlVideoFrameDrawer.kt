@@ -10,8 +10,8 @@ import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.VideoFrame
 import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFrameTextureBuffer
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlUtil
-import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.gl.GlVideoFrameDrawer
+import com.amazonaws.services.chime.sdk.meetings.internal.video.gl.GlUtil
+import com.amazonaws.services.chime.sdk.meetings.internal.video.gl.GlVideoFrameDrawer
 import java.security.InvalidParameterException
 import kotlin.math.hypot
 import kotlin.math.roundToInt

@@ -73,10 +73,10 @@ class DeviceManagementFragment : Fragment(),
             val fragment = DeviceManagementFragment()
 
             fragment.arguments =
-                    Bundle().apply {
-                        putString(HomeActivity.MEETING_ID_KEY, meetingId)
-                        putString(HomeActivity.NAME_KEY, name)
-                    }
+                Bundle().apply {
+                    putString(HomeActivity.MEETING_ID_KEY, meetingId)
+                    putString(HomeActivity.NAME_KEY, name)
+                }
             return fragment
         }
     }

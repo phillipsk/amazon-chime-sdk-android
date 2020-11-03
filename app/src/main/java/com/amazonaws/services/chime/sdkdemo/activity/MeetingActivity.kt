@@ -65,7 +65,7 @@ class MeetingActivity : AppCompatActivity(),
                     // However the internal default capture would work fine, since it is initialized using
                     // that internally created default EglCoreFactory, and can be smoke tested by removing this
                     // argument and toggling use of custom video source before starting video
-                    meetingModel.eglCoreFactory
+                    meetingSessionModel.eglCoreFactory
                 )
             }
 
@@ -79,6 +79,11 @@ class MeetingActivity : AppCompatActivity(),
             } else {
                 meetingSessionModel.setMeetingSession(meetingSession)
             }
+
+            val surfaceTextureCaptureSourceFactory = DefaultSurfaceTextureCaptureSourceFactory(logger, meetingSessionModel.eglCoreFactory)
+            meetingSessionModel.cameraCaptureSource = DefaultCameraCaptureSource(applicationContext, logger, surfaceTextureCaptureSourceFactory)
+            meetingSessionModel.cpuVideoProcessor = CpuVideoProcessor(logger, meetingSessionModel.eglCoreFactory)
+            meetingSessionModel.gpuVideoProcessor = GpuVideoProcessor(logger, meetingSessionModel.eglCoreFactory)
 
             val deviceManagementFragment = DeviceManagementFragment.newInstance(meetingId, name)
             supportFragmentManager
@@ -102,9 +107,9 @@ class MeetingActivity : AppCompatActivity(),
 
     override fun onBackPressed() {
         meetingSessionModel.audioVideo.stop()
-        meetingModel.cameraCaptureSource?.stop()
-        meetingModel.gpuVideoProcessor?.release()
-        meetingModel.cpuVideoProcessor?.release()
+        meetingSessionModel.cameraCaptureSource.stop()
+        meetingSessionModel.gpuVideoProcessor.release()
+        meetingSessionModel.cpuVideoProcessor.release()
         super.onBackPressed()
     }
 
@@ -112,34 +117,13 @@ class MeetingActivity : AppCompatActivity(),
 
     fun getMeetingSessionCredentials(): MeetingSessionCredentials = meetingSessionModel.credentials
 
-    fun getEglCoreFactory(): EglCoreFactory = meetingModel.eglCoreFactory
+    fun getEglCoreFactory(): EglCoreFactory = meetingSessionModel.eglCoreFactory
 
-    // Create the following lazily so that we can inject application context and logger in where needed
+    fun getCameraCaptureSource(): CameraCaptureSource = meetingSessionModel.cameraCaptureSource
 
-    fun getCameraCaptureSource(): CameraCaptureSource {
-        return meetingModel.cameraCaptureSource ?: run {
-            val surfaceTextureCaptureSourceFactory = DefaultSurfaceTextureCaptureSourceFactory(logger, meetingModel.eglCoreFactory)
-            val cameraCaptureSource = DefaultCameraCaptureSource(applicationContext, logger, surfaceTextureCaptureSourceFactory)
-            meetingModel.cameraCaptureSource = cameraCaptureSource
-            cameraCaptureSource
-        }
-    }
+    fun getGpuVideoProcessor(): GpuVideoProcessor = meetingSessionModel.gpuVideoProcessor
 
-    fun getGpuVideoProcessor(): GpuVideoProcessor {
-        return meetingModel.gpuVideoProcessor ?: run {
-            val gpuVideoProcessor = GpuVideoProcessor(logger, meetingModel.eglCoreFactory)
-            meetingModel.gpuVideoProcessor = gpuVideoProcessor
-            gpuVideoProcessor
-        }
-    }
-
-    fun getCpuVideoProcessor(): CpuVideoProcessor {
-        return meetingModel.cpuVideoProcessor ?: run {
-            val cpuVideoProcessor = CpuVideoProcessor(logger, meetingModel.eglCoreFactory)
-            meetingModel.cpuVideoProcessor = cpuVideoProcessor
-            cpuVideoProcessor
-        }
-    }
+    fun getCpuVideoProcessor(): CpuVideoProcessor = meetingSessionModel.cpuVideoProcessor
 
     private fun urlRewriter(url: String): String {
         // You can change urls by url.replace("example.com", "my.example.com")
