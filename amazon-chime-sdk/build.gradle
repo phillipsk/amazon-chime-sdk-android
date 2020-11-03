@@ -42,14 +42,6 @@ android {
         }
     }
 
-    testOptions {
-        // This causes system calls to return default (i.e. null or zero) values rather then
-        // immediately throwing exceptions.  Without this, tests covering anything with significant OpenGLES or
-        // EGL calls requires the unit test to basically mock every single line of the original file which is excessive
-        // In return, unit tests should account for these null or 0 values and still mock where appropriate
-        unitTests.returnDefaultValues = true
-    }
-
     dokka {
         outputFormat = 'html'
         outputDirectory = "docs"
@@ -81,10 +73,9 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.3'
     implementation 'androidx.core:core-ktx:1.2.0'
-    api project(path: ':tincan')
+    api(name: 'amazon-chime-sdk-media', ext: 'aar') { transitive = true }
     implementation 'com.google.code.gson:gson:2.8.6'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.3'
     testImplementation 'junit:junit:4.12'
     testImplementation "io.mockk:mockk:1.9.3"
-    implementation 'androidx.appcompat:appcompat:1.2.0'
 }
