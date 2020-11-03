@@ -74,7 +74,7 @@ class VideoHolder(
             view.on_tile_button.visibility = View.VISIBLE
 
             // To facilitate demoing and testing both use cases, we account for both our external
-            // camera and the camera managed by the facade.  Actual applications should
+            // camera and the camera managed by the facade. Actual applications should
             // only use one or the other
             updateLocalVideoMirror()
             view.on_tile_button.setOnClickListener {

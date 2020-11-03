@@ -117,7 +117,7 @@ class DeviceManagementFragment : Fragment(),
 
         // Note we call isSelected and setSelection before setting onItemSelectedListener
         // so that we can control the first time the spinner is set and use previous values
-        // if they exist (i.e. before rotation).  We will set them after lists are populated.
+        // if they exist (i.e. before rotation). We will set them after lists are populated.
 
         audioDeviceSpinner = view.findViewById(R.id.spinnerAudioDevice)
         audioDeviceArrayAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, audioDevices)

@@ -25,7 +25,7 @@ import kotlinx.coroutines.runBlocking
 
 /**
  * [GpuVideoProcessor] is a simple demo processor which draws incoming frames onto a new surface with
- * a black and white filter.  It also draws the original image into a corner of the screen.
+ * a black and white filter. It also draws the original image into a corner of the screen.
  *
  * To pass along the image, it maintains its own internal OpenGLES texture (the texture which is drawn to)
  * which it will package as a [VideoFrame] and forward downstream, only updating the texture
