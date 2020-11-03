@@ -24,7 +24,7 @@ interface VideoCaptureSource :
 
     /**
      * Add a capture source observer to receive callbacks from the source on lifecycle events
-     * which can be used to trigger UI.  This observer is entirely optional.
+     * which can be used to trigger UI. This observer is entirely optional.
      *
      * @param observer: [CaptureSourceObserver] - New observer
      */

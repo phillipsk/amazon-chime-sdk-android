@@ -10,10 +10,7 @@ import java.nio.ByteBuffer
 
 /**
  * [VideoFrameI420Buffer] provides an reference counted wrapper of
- * a YUV where planes are natively allocated direct byte buffers.
- *
- * Builders can use [com.xodee.client.video.JniUtil.nativeAllocateByteBuffer]
- * and [com.xodee.client.video.JniUtil.nativeFreeByteBuffer] if desired.
+ * a YUV where planes are natively (i.e. in JNI) allocated direct byte buffers.
  */
 class VideoFrameI420Buffer(
     override val width: Int,

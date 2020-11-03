@@ -10,10 +10,7 @@ import java.nio.ByteBuffer
 
 /**
  * [VideoFrameRGBABuffer] provides an reference counted wrapper of
- * an RGBAnatively allocated direct byte buffer.
- *
- * Builders can use [com.xodee.client.video.JniUtil.nativeAllocateByteBuffer]
- * and [com.xodee.client.video.JniUtil.nativeFreeByteBuffer] if desired.
+ * an RGBA natively (i.e. in JNI) allocated direct byte buffer.
  */
 class VideoFrameRGBABuffer(
     override val width: Int,

@@ -55,8 +55,8 @@ class DefaultVideoTileController(
                 return
             }
 
-            if (videoStreamContentWidth != tile.state.videoStreamContentWidth ||
-                videoStreamContentHeight != tile.state.videoStreamContentHeight) {
+            if (frame != null && (videoStreamContentWidth != tile.state.videoStreamContentWidth ||
+                videoStreamContentHeight != tile.state.videoStreamContentHeight)) {
                 tile.state.videoStreamContentWidth = videoStreamContentWidth
                 tile.state.videoStreamContentHeight = videoStreamContentHeight
                 forEachObserver { observer -> observer.onVideoTileSizeChanged(tile.state) }
@@ -78,7 +78,7 @@ class DefaultVideoTileController(
 
             // Ignore any frames which come to an already paused tile
             if (tile.state.pauseState == VideoPauseState.Unpaused) {
-                frame?.run { tile.renderFrame(frame) }
+                frame?.run { tile.onVideoFrameReceived(frame) }
             }
         } else {
             frame?.run {

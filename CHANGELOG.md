@@ -1,23 +1,32 @@
-### Unreleased
-
-This release includes support for custom video sources, and therefore includes a lot of additional APIs.  Though most builders who have not been making modifications to internal render path should not need to make any changes, there are some breaking changes to certain APIs to ensure consistancy within data flow accross the SDK.
+## Custom Video Source
+This release includes support for custom video sources, and therefore includes a lot of additional APIs.  Though most builders who have not been making modifications to internal render path should not need to make any changes, there are some small breaking changes to certain APIs to ensure consistancy within data flow accross the SDK.
 
 ### Added
-* Added `VideoFrame`, `VideoRotation`, `VideoContentHint`, `VideoFrameBuffer`, `VideoFrameI420Buffer`, `VideoFrameRGBABuffer`, `VideoFrameTextureBuffer` classes, enums, and interfaces to hold video frames of various raw types.
-* Added `VideoSource` and `VideoSink` to facilitate transfer of `VideoFrame` objects.
-* Added `CameraCaptureSource`, `CaptureSourceError`, `CaptureSourceObserver`, `VideoCaptureFormat`, and `VideoCaptureSource` interfaces and enums to facilitate releasing capturers as part of the SDK.
-* Added `DefaultCameraCaptureSource` implementation of `CameraCaptureSource`.
-* Added `EglCore`, `DefaultEglCore`, `EglCoreFactory`, `DefaultEglCoreFactory`, `GlVideoFrameDrawer`, `DefaultGlVideoFrameDrawer`, `SurfaceTextureCaptureSource`, `DefaultSurfaceTextureCaptureSource`, `SurfaceTextureCaptureSourceFactory`, `DefaultSurfaceTextureCaptureSourceFactory`, for shared graphics related needs.
+* Added `VideoFrame`, `VideoRotation`, `VideoContentHint`, `VideoFrameBuffer`, `VideoFrameI420Buffer`, `VideoFrameRGBABuffer`, `VideoFrameTextureBuffer` classes, enums, and interfaces to hold video frames of various raw types
+* Added `VideoSource` and `VideoSink` to facilitate transfer of `VideoFrame` objects
+* Added `CameraCaptureSource`, `CaptureSourceError`, `CaptureSourceObserver`, `VideoCaptureFormat`, and `VideoCaptureSource` interfaces and enums to facilitate releasing capturers as part of the SDK
+* Added `DefaultCameraCaptureSource` implementation of `CameraCaptureSource`
+* Added `EglCore`, `DefaultEglCore`, `EglCoreFactory`, `DefaultEglCoreFactory`, `GlVideoFrameDrawer`, `DefaultGlVideoFrameDrawer`, `SurfaceTextureCaptureSource`, `DefaultSurfaceTextureCaptureSource`, `SurfaceTextureCaptureSourceFactory`, `DefaultSurfaceTextureCaptureSourceFactory`, for shared graphics related needs
 * Added `listVideoDevices` and `listSupportedVideoCaptureFormats` to `MediaDevice.Companion`
-* Added `DefaultEglVideoRenderView` as an open source implementation of rendering.  `DefaultVideoRenderView` now simply inherits from `DefaultEglVideoRenderView`
+* Added `SurfaceRenderView` and `TextureRenderView` an open source implementation of rendering onto a `SurfaceView` and `TextureView` respectively
+* Added `VideoLayoutMeasure` and `EglRenderer` + `DefaultEglRenderer` internal helper classes for use within aforementioned render views
 
 ### Changed
-* The render path has been changed to use `VideoFrame`s for consistancy with the send side, this includes:
-  * **Breaking** `VideoTileController.onReceiveFrame` now takes `VideoFrame?` instead of `Any?`.
-  * **Breaking** `VideoTile.renderFrame` now takes `VideoFrame` instead of `Any` and has been replaced by extending `VideoSink` and using `onReceivedVideoFrame`.
-  * **Breaking** `VideoRenderView` is now just a `VideoSink` (i.e. it now accepts `VideoFrame` object via `VideoSink.onReceivedVideoFrame` rather then `Any?` via `render`).
-  * **Breaking** `VideoRenderView.initialize` and `VideoRenderView.finalize` have been abstracted away to `EglVideoRenderView` and are now named `init` and `release` respectively.
-* If no custom source is provided, the SDK level video client will use a `DefaultCameraCaptureSource` instead of relying on capturer implementations within the MediaSDK.  Though behavior should be identitical, please open an issue if an differences are noticed.
+* The render path has been changed to use `VideoFrame`s for consistency with the send side, this includes:
+  * **Breaking** `VideoTileController.onReceiveFrame` now takes `VideoFrame?` instead of `Any?` .  Builders with a custom `VideoTileController` will have to update APIs.
+  * **Breaking** `VideoTile.renderFrame` now takes `VideoFrame` instead of `Any` and has been replaced by extending `VideoSink` and using `onReceivedVideoFrame`
+  * **Breaking** `VideoRenderView` is now just a `VideoSink` (i.e. it now accepts `VideoFrame` object via `VideoSink.onReceivedVideoFrame` rather then `Any?` via `render`)
+  * **Breaking** `VideoRenderView.initialize` and `VideoRenderView.finalize` have been abstracted away to `EglVideoRenderView` and are now named `init` and `release` respectively
+  * `DefaultVideoRenderView` now inherits from `SurfaceTextureView`
+* If no custom source is provided, the SDK level video client will use a `DefaultCameraCaptureSource` instead of relying on capture implementations within the MediaSDK; though behavior should be identical, please open an issue if an differences are noticed.
+
+## Unreleased
+
+### Fixed
+* **Breaking** Changed behavior to no longer call `onVideoTileSizeChanged` when a video is paused to fix a bug where pausing triggered this callback with width=0 and height=0
+* Fix audio issue when using Bluetooth device by changing the sample rate to 16kHz
+
+## [0.7.5] - 2020-10-23
 
 ### Fixed
 * Revert structured concurrency which can lead to deadlock
@@ -30,7 +39,7 @@ This release includes support for custom video sources, and therefore includes a
 ## [0.7.3] - 2020-09-10
 
 ### Fixed
-* Pass correct value for audio client in `DefaultAudioClientController`
+* Pass correct microphone input value for audio client in `DefaultAudioClientController` for better audio input quality
 
 ### Changed
 * Replace usage of GlobalScope with structured concurrency
