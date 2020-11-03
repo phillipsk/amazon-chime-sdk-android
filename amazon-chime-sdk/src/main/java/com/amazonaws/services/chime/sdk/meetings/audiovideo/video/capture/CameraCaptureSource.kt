@@ -9,7 +9,9 @@ import com.amazonaws.services.chime.sdk.meetings.device.MediaDevice
 
 /**
  * [CameraCaptureSource] is an interface for camera capture sources with additional features
- * not covered by [VideoCaptureSource]
+ * not covered by [VideoCaptureSource].
+ *
+ * All the APIs here can be called regardless of whether the [AudioVideoFacade] is started or not.
  */
 interface CameraCaptureSource : VideoCaptureSource {
     /**

@@ -51,10 +51,12 @@ interface AudioVideoControllerFacade {
     fun removeMetricsObserver(observer: MetricsObserver)
 
     /**
-     * Starts sending video for local attendee.  Will internally create a default [CameraCaptureSource] and
-     * start, pass to video client. [stopLocalVideo] will stop the internal capture source if being used.
+     * Start local video and begin transmitting frames from an internally held [DefaultCameraCaptureSource].
+     * [stopLocalVideo] will stop the internal capture source if being used.
      *
      * Calling this after passing in a custom [VideoSource] will replace it with the internal capture source.
+     *
+     * This function will only have effect if [start] has already been called
      */
     fun startLocalVideo()
 
@@ -71,7 +73,8 @@ interface AudioVideoControllerFacade {
     fun startLocalVideo(source: VideoSource)
 
     /**
-     * Stop local video.
+     * Stops sending video for local attendee.  This will additionally stop the internal capture source if being used.
+     * If using a custom video source, this will call [VideoSource.removeVideoSink] on the previously provided source.
      */
     fun stopLocalVideo()
 

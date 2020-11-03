@@ -17,12 +17,14 @@ enum class VideoContentHint {
 
     /**
      * The track should be treated as if it contains video where motion is important.
+     *
      * This is normally webcam video, movies or video games.
      */
     Motion,
 
     /**
      * The track should be treated as if video details are extra important.
+     *
      * This is generally applicable to presentations or web pages with text content, painting or line art.
      */
     Detail,
@@ -30,6 +32,7 @@ enum class VideoContentHint {
     /**
      * The track should be treated as if video details are extra important, and that
      * significant sharp edges and areas of consistent color can occur frequently.
+     *
      * This is generally applicable to presentations or web pages with text content.
      */
     Text

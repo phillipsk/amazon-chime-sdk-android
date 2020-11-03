@@ -9,6 +9,7 @@ import com.amazonaws.services.chime.sdk.meetings.audiovideo.video.buffer.VideoFr
 
 /**
  * [VideoFrame] is a class which contains a [VideoFrameBuffer] and metadata necessary for transmission
+ * Typically produced via a [VideoSource] and consumed via a [VideoSink]
  */
 class VideoFrame(
     /**

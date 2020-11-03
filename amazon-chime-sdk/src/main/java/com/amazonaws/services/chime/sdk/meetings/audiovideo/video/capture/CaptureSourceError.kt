@@ -7,6 +7,7 @@ package com.amazonaws.services.chime.sdk.meetings.audiovideo.video.capture
 
 /**
  * [CaptureSourceError] describes an error resulting from a capture source failure
+ * These can be used to trigger UI, or attempt to restart the capture source.
  */
 enum class CaptureSourceError {
     /**

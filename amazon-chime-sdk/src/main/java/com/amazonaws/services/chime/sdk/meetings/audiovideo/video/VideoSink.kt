@@ -6,8 +6,8 @@
 package com.amazonaws.services.chime.sdk.meetings.audiovideo.video
 
 /**
- * A [VideoSink] consumes video frames, typically from a [VideoSource];
- * connected via video [VideoSource.addVideoSink] and disconnected via [VideoSource.removeVideoSink]
+ * A [VideoSink] consumes video frames, typically from a [VideoSource]. It may process, fork, or render these frames.
+ * Typically connected via [VideoSource.addVideoSink] and disconnected via [VideoSource.removeVideoSink]
  */
 interface VideoSink {
     /**
