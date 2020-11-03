@@ -25,6 +25,11 @@ class MeetingModel : ViewModel() {
     var isMuted = false
     var isCameraOn = false
     var isDeviceListDialogOn = false
+    var isAdditionalOptionsDialogOn = false
     var lastReceivedMessageTimestamp = 0L
     var tabIndex = 0
+    var isUsingCameraCaptureSource = true
+    var isLocalVideoStarted = false
+    var isUsingGpuVideoProcessor = false
+    var isUsingCpuVideoProcessor = false
 }
