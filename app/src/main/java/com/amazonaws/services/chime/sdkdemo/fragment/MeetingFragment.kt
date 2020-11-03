@@ -83,10 +83,6 @@ class MeetingFragment : Fragment(),
     private lateinit var cameraCaptureSource: CameraCaptureSource
     private lateinit var gpuVideoProcessor: GpuVideoProcessor
     private lateinit var cpuVideoProcessor: CpuVideoProcessor
-    private var isUsingCameraCaptureSource = true
-    private var isLocalVideoStarted = false
-    private var isUsingGpuVideoProcessor = false
-    private var isUsingCpuVideoProcessor = false
     private lateinit var listener: RosterViewEventListener
     override val scoreCallbackIntervalMs: Int? get() = 1000
 
@@ -609,7 +605,7 @@ class MeetingFragment : Fragment(),
             TAG,
             "Toggling flashlight from ${cameraCaptureSource.torchEnabled} to ${!cameraCaptureSource.torchEnabled}"
         )
-        if (!isUsingCameraCaptureSource) {
+        if (!meetingModel.isUsingCameraCaptureSource) {
             logger.warn(TAG, "Cannot toggle flashlight without using custom camera capture source")
             Toast.makeText(
                 context,
@@ -632,7 +628,7 @@ class MeetingFragment : Fragment(),
     }
 
     private fun toggleCpuDemoFilter() {
-        if (!isUsingCameraCaptureSource) {
+        if (!meetingModel.isUsingCameraCaptureSource) {
             logger.warn(TAG, "Cannot toggle filter without using custom camera capture source")
             Toast.makeText(
                 context,
@@ -641,7 +637,7 @@ class MeetingFragment : Fragment(),
             ).show()
             return
         }
-        if (isUsingGpuVideoProcessor) {
+        if (meetingModel.isUsingGpuVideoProcessor) {
             logger.warn(TAG, "Cannot toggle filter when other filter is enabled")
             Toast.makeText(
                 context,
@@ -652,17 +648,17 @@ class MeetingFragment : Fragment(),
         }
         logger.info(
             TAG,
-            "Toggling CPU demo filter from $isUsingCpuVideoProcessor to ${!isUsingCpuVideoProcessor}"
+            "Toggling CPU demo filter from $meetingModel.isUsingCpuVideoProcessor to ${!meetingModel.isUsingCpuVideoProcessor}"
         )
-        isUsingCpuVideoProcessor = !isUsingCpuVideoProcessor
-        if (isLocalVideoStarted) {
+        meetingModel.isUsingCpuVideoProcessor = !meetingModel.isUsingCpuVideoProcessor
+        if (meetingModel.isLocalVideoStarted) {
             stopLocalVideo()
             startLocalVideo()
         }
     }
 
     private fun toggleGpuDemoFilter() {
-        if (!isUsingCameraCaptureSource) {
+        if (!meetingModel.isUsingCameraCaptureSource) {
             logger.warn(TAG, "Cannot toggle filter without using custom camera capture source")
             Toast.makeText(
                 context,
@@ -671,7 +667,7 @@ class MeetingFragment : Fragment(),
             ).show()
             return
         }
-        if (isUsingCpuVideoProcessor) {
+        if (meetingModel.isUsingCpuVideoProcessor) {
             logger.warn(TAG, "Cannot toggle filter when other filter is enabled")
             Toast.makeText(
                 context,
@@ -682,10 +678,10 @@ class MeetingFragment : Fragment(),
         }
         logger.info(
             TAG,
-            "Toggling GPU demo filter from $isUsingGpuVideoProcessor to ${!isUsingGpuVideoProcessor}"
+            "Toggling GPU demo filter from $meetingModel.isUsingGpuVideoProcessor to ${!meetingModel.isUsingGpuVideoProcessor}"
         )
-        isUsingGpuVideoProcessor = !isUsingGpuVideoProcessor
-        if (isLocalVideoStarted) {
+        meetingModel.isUsingGpuVideoProcessor = !meetingModel.isUsingGpuVideoProcessor
+        if (meetingModel.isLocalVideoStarted) {
             stopLocalVideo()
             startLocalVideo()
         }
@@ -694,11 +690,11 @@ class MeetingFragment : Fragment(),
     private fun toggleCustomCaptureSource() {
         logger.info(
             TAG,
-            "Toggling using custom camera source from $isUsingCameraCaptureSource to ${!isUsingCameraCaptureSource}"
+            "Toggling using custom camera source from $meetingModel.isUsingCameraCaptureSource to ${!meetingModel.isUsingCameraCaptureSource}"
         )
-        val wasUsingCameraCaptureSource = isUsingCameraCaptureSource
-        isUsingCameraCaptureSource = !isUsingCameraCaptureSource
-        if (isLocalVideoStarted) {
+        val wasUsingCameraCaptureSource = meetingModel.isUsingCameraCaptureSource
+        meetingModel.isUsingCameraCaptureSource = !meetingModel.isUsingCameraCaptureSource
+        if (meetingModel.isLocalVideoStarted) {
             if (wasUsingCameraCaptureSource) {
                 cameraCaptureSource.stop()
             }
@@ -728,12 +724,12 @@ class MeetingFragment : Fragment(),
     }
 
     private fun startLocalVideo() {
-        isLocalVideoStarted = true
-        if (isUsingCameraCaptureSource) {
-            if (isUsingGpuVideoProcessor) {
+        meetingModel.isLocalVideoStarted = true
+        if (meetingModel.isUsingCameraCaptureSource) {
+            if (meetingModel.isUsingGpuVideoProcessor) {
                 cameraCaptureSource.addVideoSink(gpuVideoProcessor)
                 audioVideo.startLocalVideo(gpuVideoProcessor)
-            } else if (isUsingCpuVideoProcessor) {
+            } else if (meetingModel.isUsingCpuVideoProcessor) {
                 cameraCaptureSource.addVideoSink(cpuVideoProcessor)
                 audioVideo.startLocalVideo(cpuVideoProcessor)
             } else {
@@ -748,8 +744,8 @@ class MeetingFragment : Fragment(),
     }
 
     private fun stopLocalVideo() {
-        isLocalVideoStarted = false
-        if (isUsingCameraCaptureSource) {
+        meetingModel.isLocalVideoStarted = false
+        if (meetingModel.isUsingCameraCaptureSource) {
             cameraCaptureSource.stop()
         }
         audioVideo.stopLocalVideo()
