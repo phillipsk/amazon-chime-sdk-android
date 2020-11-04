@@ -147,7 +147,7 @@ class DefaultCameraCaptureSource(
             if (value.maxFps > MAX_INTERNAL_SUPPORTED_FPS) {
                 logger.info(TAG, "Limiting capture to 15 FPS to avoid frame drops")
             }
-            field = VideoCaptureFormat(value.width, value.height, min(value.maxFps,
+            field = VideoCaptureFormat(480, 328, min(value.maxFps,
                 MAX_INTERNAL_SUPPORTED_FPS
             ))
 
@@ -351,7 +351,7 @@ class DefaultCameraCaptureSource(
             // Set target FPS
             captureRequestBuilder.set(
                 CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
-                Range(0, this.format.maxFps)
+                Range(15, 30)
             )
 
             // Set target auto exposure mode
