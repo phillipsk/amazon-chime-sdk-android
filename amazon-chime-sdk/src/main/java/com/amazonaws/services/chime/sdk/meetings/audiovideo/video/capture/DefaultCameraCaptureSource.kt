@@ -147,7 +147,7 @@ class DefaultCameraCaptureSource(
             if (value.maxFps > MAX_INTERNAL_SUPPORTED_FPS) {
                 logger.info(TAG, "Limiting capture to 15 FPS to avoid frame drops")
             }
-            field = VideoCaptureFormat(value.width, value.height, min(value.maxFps,
+            field = VideoCaptureFormat(960, 720, min(value.maxFps,
                 MAX_INTERNAL_SUPPORTED_FPS
             ))
 
