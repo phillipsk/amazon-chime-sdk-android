@@ -16,7 +16,8 @@ import kotlin.math.roundToInt
 class VideoLayoutMeasure {
     enum class ScalingType { SCALE_ASPECT_FIT, SCALE_ASPECT_FILL }
 
-    var scalingType = ScalingType.SCALE_ASPECT_FILL
+    // Default value, currently not exposed
+    val scalingType = ScalingType.SCALE_ASPECT_FILL
 
     /**
      * Measure desired layout size based off provided parameters

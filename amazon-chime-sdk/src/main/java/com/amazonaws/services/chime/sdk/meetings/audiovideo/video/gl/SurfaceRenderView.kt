@@ -49,12 +49,6 @@ open class SurfaceRenderView @JvmOverloads constructor(
             field = value
         }
 
-    var scalingType: VideoLayoutMeasure.ScalingType = VideoLayoutMeasure.ScalingType.SCALE_ASPECT_FILL
-        set(value) {
-            videoLayoutMeasure.scalingType = value
-            field = value
-        }
-
     init {
         holder?.addCallback(this)
     }
